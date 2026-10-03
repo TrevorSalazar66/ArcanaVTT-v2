@@ -169,7 +169,7 @@ Ao tocar no avatar ou `@nickname` de qualquer usuário (seja no lobby, no chat d
    - 🚫 **Menu de Opções:** Bloquear usuário (impede mensagens e convites) ou Denunciar por conduta inadequada para a moderação Admin.
 3. **Seção "Sobre Mim":**
    - Biografia (até 500 caracteres).
-   - Selos verificados de **Contas Vinculadas** (Discord, Twitch, YouTube, Steam, Instagram, etc.) com links diretos.
+   - Selos verificados de **Contas Vinculadas** (Discord, Twitch, YouTube, Steam, Instagram, X/Twitter, Reddit) com links diretos.
 4. **Seção "Em Comum" (*Mutuals*):**
    - Lista de campanhas ativas ou concluídas em que ambos participam juntos.
 
@@ -217,44 +217,94 @@ O sistema calcula automaticamente o perfil de jogador do usuário:
 
 ---
 
-## ⚙️ 5. Aba de Configurações, Acessibilidade & Gestão de Dispositivos
+## ⚙️ 5. Aba de Configurações, Acessibilidade, Rede P2P, Privacidade & Gestão de Dispositivos
 
-Aba dedicada à personalização do aplicativo no aparelho do usuário e governança de segurança da conta.
+Aba dedicada à personalização da interface, acessibilidade, mixers de áudio, governança de dados P2P Mesh, idiomas, privacidade social e segurança de sessões da conta no dispositivo móvel.
 
 ```mermaid
 flowchart TD
     SETTINGS["⚙️ Configurações do App"]
     
-    SETTINGS --> S_PREFS["📱 1. Preferências do Celular & Acessibilidade\n(Feedback Tátil/Vibração, Tema Visual, Alto Contraste)"]
-    SETTINGS --> S_AUDIO["🔊 2. Controle de Áudio Individual\n(Sliders de Música Ambiente e Efeitos Sonoros SFX)"]
-    SETTINGS --> S_SEC["🛡️ 3. Segurança & Dispositivos Conectados\n(Telemetria do Fingerprint, Sessões Ativas, Desconectar Aparelhos)"]
+    SETTINGS --> S_PREFS["📱 1. Interface, Idiomas & Acessibilidade\n(Feedback Tátil, Temas Visuais, Idiomas PT/EN/ES, Escala, Animações)"]
+    SETTINGS --> S_AUDIO["🔊 2. Mixer de Áudio Individual\n(Sliders de Volume Mestre, SFX, Trilha Sonora e Background)"]
+    SETTINGS --> S_P2P["🌐 3. Conexão P2P Mesh & Economia de Mídia\n(Toggle P2P, Filtro de Mídias Externas, Limite de Cache, Limpeza)"]
+    SETTINGS --> S_PRIV["👥 4. Privacidade, Lista de Amigos & DMs\n(Permissão DMs, Visibilidade da Vitrine, Gestão da Lista de Amigos)"]
+    SETTINGS --> S_SEC["🛡️ 5. Segurança Custo Zero & Dispositivos\n(Device Fingerprint, Desconexão Total + Lockout via E-mail Resend)"]
 ```
 
 ---
 
-### 📱 5.1. Preferências do Aparelho & Acessibilidade
+### 📱 5.1. Preferências de Interface, Idiomas & Acessibilidade Visual e Tátil
 
+- **Idioma do Aplicativo (*Language & Region*):**
+  - Seletor com 3 opções explícitas de idioma de interface: *Português do Brasil (PT-BR)* [Padrão Nativo], *Inglês (EN-US)* e *Espanhol (ES-ES)*.
 - **Feedback Tátil / Vibração (*Haptic Feedback*):**
-  - Ajuste de intensidade de vibração do celular ao rolar dados críticos e interagir no grid: *Desativado*, *Suave*, *Médio* ou *Intenso*.
-- **Acessibilidade Visual:**
-  - Modo de alto contraste para leitura em ambientes claros.
-  - Ajuste de escala de texto para fichas e chat.
+  - Seletor de intensidade com 4 opções explícitas: *Desativado*, *Suave*, *Médio* ou *Intenso* (para rolagens de dados, acertos críticos e toques no grid tático).
+- **Temas Visuais da Taverna:**
+  - Seletor de tema visual com 3 opções: *Modo Escuro Heráldico* (padrão), *Modo Alto Contraste para Luz Solar* e *Modo Economia de Bateria OLED* (pretos puros `#000000`).
+- **Escala de Texto & Tipografia:**
+  - Ajuste deslizante numérico da fonte (de *80% a 150%*) aplicado em tempo real em fichas de personagem, diários de bordo, menus e chats.
+- **Redução de Movimentos & Animações:**
+  - Toggle (*Ligado / Desligado*) para desativar animações e transições de tela em dispositivos de menor desempenho.
 
 ---
 
-### 🔊 5.2. Controle de Áudio Individual
+### 🔊 5.2. Mixer de Áudio Individual
 
-- **Volume de Efeitos Sonoros (SFX):** Controle independente para sons de dados, ataques e gatilhos de cena.
-- **Volume de Trilha Sonora / Música:** Controle independente para músicas de ambiência transmitidas pelo Mestre.
+- **Slider de Volume Mestre:** Controle numérico deslizante de 0% a 100% para o volume geral do aplicativo.
+- **Slider de Efeitos Sonoros (SFX):** Controle independente de 0% a 100% para sons de rolagem de dados, ataques no grid tático, bombas no Mahjong e gatilhos sonoros de cenas.
+- **Slider de Trilha Sonora / Ambiência:** Controle independente de 0% a 100% para faixas de música de fundo transmitidas pelo Mestre.
+- **Silenciar em Segundo Plano:** Toggle (*Ligado / Desligado*) para pausar áudio e efeitos automaticamente ao minimizar o aplicativo.
 
 ---
 
-### 🛡️ 5.3. Segurança & Gestão de Dispositivos Conectados
+### 🌐 5.3. Conexão P2P Mesh, Filtro de Segurança & Armazenamento Local
 
-- **Conta Principal:** Exibição da conta OAuth vinculada (ex: `Google: joao@gmail.com`) com data do último login.
+- **🖼️ Filtro de Segurança de Mídia Externa (*Safety Media Filter*):**
+  - Seletor com 2 opções de exibição de imagens: *Exibir Todas as Imagens da Mesa (Oficiais e URLs Externas)* ou *Exibir Apenas Mídias Oficiais da Taverna* (substitui imagens de links externos inseridas por outros jogadores por ilustrações vetoriais padronizadas SVG para evitar a exibição de conteúdos indesejados).
+- **Compartilhamento P2P Mesh:**
+  - Toggle (*Ligado / Desligado*) para autorizar o envio e recebimento direto de mídias de cena, vetores SVG e pacotes homebrew entre dispositivos da taverna.
+- **Modo de Dados Móveis para P2P & Mídias:**
+  - Seletor com 2 opções: *Somente em Redes Wi-Fi* (padrão de economia) ou *Wi-Fi e Redes Móveis (4G/5G)*.
+- **Limite de Cache P2P Mesh no Celular:**
+  - Seletor com 4 opções de cota máxima de disco: *500 MB*, *1 GB*, *2 GB* ou *Sem Limite*.
+- **Limpeza de Cache com 1 Toque:**
+  - Botão destacado `[ 🧹 Limpar Cache de Mídias Locais ]` para liberar espaço em disco sem apagar campanhas ou fichas salvas localmente.
+
+---
+
+### 👥 5.4. Privacidade & Módulo de Gestão da Lista de Amigos
+
+- **👥 Módulo Completo da Lista de Amigos do Aventureiro:**
+  - *Localização:* Painel social no perfil, atalho na Top Bar e menu em Comunidades.
+  - *Adicionar Amigo:* Envio de solicitação por `@nickname` único ou leitura de QR Code do perfil do aventureiro.
+  - *Gerenciamento de Solicitações:* Painel com abas *Solicitações Recebidas* e *Solicitações Enviadas* com botões explícitos `[ Aceitar ]` e `[ Recusar ]`.
+  - *Lista de Amigos Confirmados:* Exibição da lista de amigos com indicadores de presença (*Online*, *Em Jogo*, *Ausente*), atalho de 1 toque para abrir DM privada e botão `[ Convidar para Campanha ]`.
+  - *Ações de Governança:* Opção de `[ Remover Amigo ]` ou `[ Bloquear Usuário ]`.
+- **Permissão de Recebimento de Mensagens Diretas (DMs):**
+  - Seletor de privacidade com 3 opções: *Qualquer Usuário da Taverna*, *Apenas Membros de Campanhas em Comum* ou *Apenas Amigos*.
+- **Privacidade da Vitrine de Métricas:**
+  - Seletor de visibilidade das estatísticas do perfil com 3 opções: *Público na Taverna*, *Apenas para Amigos* ou *Privado (Apenas Eu)*.
+- **Visibilidade de Presença Social:**
+  - Toggle (*Visível na Taverna / Oculto em Modo Offline*).
+
+---
+
+### 🛡️ 5.5. Segurança Custo Zero, Sigilo de E-mail & Lockout de Dispositivos
+
+- **🔒 Sigilo de E-mail Principal (Visibilidade Restrita):**
+  - **REGRA DE PRIVACIDADE:** O e-mail privado vinculado ao OAuth (ex: `usuario@gmail.com`) e o carimbo de data/hora do último login **NÃO são exibidos** nas configurações comuns ou perfis públicos.
+  - O perfil público do usuário exibe apenas a insígnia `[Google OAuth Verificado]`.
+  - **Exclusividade de Auditoria:** O e-mail exato e os dados de telemetria são visíveis **exclusivamente no Painel de Administração para usuários com cargo Admin ou Superadmin**.
 - **Dispositivos Conectados (Telemetria do Device Fingerprint):**
-  - Lista de todos os celulares e aparelhos que possuem sessão ativa na conta (Modelo do aparelho, versão do Android, data/hora do último acesso e IP aproximado).
-- **Encerramento Remoto de Sessões:** Botão *"Desconectar de todos os outros aparelhos"*, revogando instantaneamente os tokens JWT das outras sessões ativas no backend.
+  - Lista de todos os celulares e aparelhos com sessão ativa na conta (Modelo do aparelho, versão do Android, data/hora do último acesso e IP aproximado).
+- **🚨 Encerramento Total de Sessões & Lockout com Reautenticação por E-mail (Custo Zero):**
+  - Ao clicar no botão `[ 🚨 Desconectar de Todos os Aparelhos ]`:
+    1. **Desconexão Geral Imediata:** O backend Cloudflare Worker revoga 100% dos tokens JWT de todos os aparelhos conectados, **inclusive o dispositivo atual do usuário que executou a ação**;
+    2. **Limpeza Local:** O app no celular apaga as chaves criptográficas salvas no *Android Keystore* e redireciona o usuário instantaneamente para a tela de login inicial;
+    3. **Bloqueio Temporário no Banco (Lockout):** O backend altera o estado da conta no banco D1 para `lockdown_reauth_required = true`;
+    4. **Infraestrutura de Disparo de E-mail Gratuito (Custo Zero):** O Cloudflare Worker executa uma chamada de API serverless para o provedor gratuito **Resend (Free Tier de 3.000 e-mails/mês)** ou **Brevo (Free Tier de 300 e-mails/dia)**, enviando um e-mail de segurança contendo um link de revalidação com token assinado e validade de 15 minutos;
+    5. **Bloqueio de Reacesso:** Enquanto o usuário não acessar a caixa de entrada do seu e-mail e clicar no link de confirmação, qualquer tentativa de efetuar login OAuth a partir de qualquer dispositivo é sumariamente bloqueada com o erro `HTTP 403 Account Locked`.
 
 ---
 
@@ -509,12 +559,14 @@ flowchart TD
   - **Validação de Entrada:** Todo texto, descrição de perícia, fórmula matemática de rolagem e campo personalizado inserido por mestres/criadores passa por sanitização profunda no cliente e na borda (Cloudflare Worker).
   - Bloqueio estrito de tags HTML executáveis (`<script>`, `<iframe>`, `onerror=`), caracteres de escape maliciosos e injeções de código em parsers de expressões matemáticas.
 
-- **🌐 Arquitetura de Distribuição Híbrida P2P (*Mesh Distribution*) & Moderação:**
-  - Para manter **custo zero de infraestrutura** e evitar tráfego pesado no servidor:
-    1. **Servidor Cloudflare como Sinalizador (*Signaling Tracker*):** O backend armazena apenas metadados leves (título, autor, hash do pacote e lista de nós/dispositivos conectados que possuem o conteúdo).
-    2. **Transferência Direta P2P:** Ao solicitar o download de uma homebrew ou sistema não oficial, os pacotes trafegam diretamente de dispositivo para dispositivo (P2P Mesh) entre os usuários que já possuem o arquivo baixado.
-    3. **Moderação & Promoção Oficial no Servidor:** Para mitigar riscos jurídicos (copyright/pirataria) e conteúdos abusivos, nenhum conteúdo da comunidade é salvo nos servidores centrais do ArcanaVTT de forma automática. Um pacote só passa a residir de forma permanente na nuvem após **análise e aprovação manual de um Admin ou Superadmin** no Painel de Administração.
-  - Essa lógica P2P descentralizada é a diretriz arquitetural adotada para transferências pesadas de dados em todo o ecossistema.
+- **🌐 Arquitetura de Distribuição Híbrida P2P (*Mesh Distribution*) & Diretriz Transversal:**
+  - **MANDATO DE ARQUITETURA:** A viabilidade da tecnologia P2P Mesh (transferência direta ponto a ponto entre dispositivos) deve ser **pesada e avaliada em cada função e módulo do projeto**, com o objetivo de maximizar o uso dessa tática ao limite operacional e manter o custo de nuvem nulo.
+  - **Módulos com Aplicação P2P Mesh:**
+    1. **Pacotes Homebrew & Compêndios Comunitários:** Download de arquivos de regras, monstros, armas, magias e tabelas diretamente dos aparelhos de outros usuários que já possuem o conteúdo baixado.
+    2. **Mídias de Cenas & Assets Visuais:** Transferência direta de mapas de fundo em alta resolução, tokens personalizados de personagens, ilustrações de diários e ícones SVG vetoriais entre os membros da mesa.
+    3. **Faixas de Áudio & Trilhas Sonoras:** Streaming P2P direto do dispositivo do Mestre para os Jogadores para faixas de música e efeitos sonoros SFX.
+    4. **Sincronização de Estado de Cena em Tempo Real:** Comunicação direta P2P WebSockets/WebRTC entre os aparelhos dos jogadores conectados à mesma sessão (movimento de tokens no Grid Tático 2D, cliques no Mahjong, Puzzles e mensagens do Chat da Mesa), utilizando o servidor Cloudflare estritamente como *Signaling Tracker* (sinalizador de nós) e validador autoritativo de final de turno.
+  - **Moderação & Promoção Oficial no Servidor:** Para mitigar riscos jurídicos (copyright/pirataria) e conteúdos abusivos, nenhum conteúdo da comunidade é salvo nos servidores centrais do ArcanaVTT de forma automática. Um pacote só passa a residir de forma permanente na nuvem após **análise e aprovação manual de um Admin ou Superadmin** no Painel de Administração.
 
 - **🔬 Nota de Projeto (Anatomia do Sistema & Lookup Rápido):**
   - A anatomia detalhada dos blocos mecânicos de um sistema e o motor de *Lookup Rápido em Sessão* serão detalhados em tópicos próprios dedicados do planejamento.
@@ -593,31 +645,86 @@ flowchart TD
     - Aba exclusiva na guilda onde todos os mestres autorizados colaboram adicionando artigos de cidades, facções, NPCs lendários, artefatos e acontecimentos históricos que moldam o universo compartilhado.
   - **🔍 Visualização Dupla:** As Guildas são listadas tanto na aba **Comunidades** quanto na aba **Campanhas** (com visualização das mesas ativas daquela guilda).
 
-- **🚨 Botão de Denúncia Universal (*Global Report*):**
-  - Presente de forma padronizada em **absolutamente tudo que puder ser criado por usuários**: fichas de personagem, compêndios, sistemas, campanhas, posts no fórum, mensagens de chat, nomes/banners de guildas e perfis de usuário.
-  - O relatório é enviado com evidências e identificadores de dispositivo (*Fingerprint*) diretamente para a fila de moderação no Painel de Administração.
+- **🚨 Botão de Denúncia Universal (*Global Report* - Regra Global de Moderação Ubíqua):**
+  - **CONCEITO UNIVERSAL:** O Botão de Denúncia não é um ponto único isolado, mas uma **opção padronizada e ubíqua presente em absolutamente todas as interfaces** onde existam conteúdos criados por usuários (desde mensagens de chat individuais até sistemas inteiros de RPG, fichas, campanhas e guildas).
+  - **Mapeamento Exaustivo dos 7 Grupos de Conteúdo:**
+    1. **Perfis de Usuário:** Nome de exibição, `@nickname`, imagem de avatar, banner heráldico e texto de biografia;
+    2. **Comunicações & Chat:** Mensagens do Chat da Mesa, mensagens de DMs privadas (1-a-1), mensagens nos canais de texto de Guildas, tópicos criados no Fórum e respostas/comentários de tópicos;
+    3. **Campanhas:** Nome da campanha, imagem de capa/banner, ícone/avatar da mesa, sinopse/lore narrativa e tags da mesa;
+    4. **Fichas de Personagem:** Nome do personagem, história/background, ilustração/avatar e anotações públicas do jogador;
+    5. **Elementos de Compêndio:** NPCs, Ameaças/Monstros, Armas, Equipamentos/Itens, Rituais, Magias, Pistas e Tabelas de Encontros;
+    6. **Sistemas de RPG & Pacotes Homebrew:** Nome do sistema de RPG, descrição de regras personalizadas, nomes de perícias e pacotes de expansão homebrew;
+    7. **Guildas & Clãs:** Nome da guilda, banner, descrição narrativa, nome de clãs/facções, títulos de cargos personalizados e artigos da Wiki de Cenário (*World Wiki*).
+  - **📝 Fluxo de Envio pelo Usuário (Modal Obrigatório):**
+    - Ao acionar o botão de denúncia em qualquer item, abre-se um modal onde o usuário deve fornecer obrigatoriamente:
+      1. **Mensagem Explicativa:** Texto descritivo detalhando o motivo da denúncia;
+      2. **Tag Simples da Infração:** Seleção ou digitação da tag de classificação (`#conteudo-improprio`, `#discurso-de-odio`, `#pirataria`, `#assedio`, `#spam`).
+  - **🏷️ Anexação Automática de Tags de Contexto para Moderadores:**
+    - Ao chegar na Central de Moderação do Painel Admin, o sistema anexa **automaticamente uma Tag de Entidade** identificando com precisão o elemento denunciado: `[🏷️ TIPO: USUÁRIO]`, `[🏷️ TIPO: MENSAGEM_CHAT]`, `[🏷️ TIPO: CAMPANHA]`, `[🏷️ TIPO: FICHA_PERSONAGEM]`, `[🏷️ TIPO: SISTEMA_RPG]`, `[🏷️ TIPO: PACOTE_HOMEBREW]`, `[🏷️ TIPO: GUILDA]`, `[🏷️ TIPO: CLÃ]`, `[🏷️ TIPO: TOPICO_FORUM]`, `[🏷️ TIPO: ARTIGO_WIKI]`.
+  - **Envio de Evidências:** O relatório gera um pacote inviolável contendo a cópia do conteúdo, carimbo de data/hora, identificadores do denunciado e telemetria de hardware (*Device Fingerprint*).
 
 - **🛡️ Anti-Spam & Moderação Descentralizada:**
   - Sistema inteligente de *rate limiting* e cooldowns para mensagens repetitivas ou disparo em massa nos fóruns e chats comunitários (padrão Discord).
   - As diretrizes de publicação em fóruns e chats de guildas são gerenciadas de forma autônoma pelos respectivos anfitriões/criadores.
-  - *Localização:* Toque no Avatar do Cabeçalho Superior ou na Gaveta Lateral.
-  - *Conteúdo:* Heráldica, avatar/banner, biografia, contas vinculadas via OAuth, vitrine de métricas interativas (*drill-down*) e central de DMs.
 
-1. **📖 Tutorial & Guia da Taverna (?):**
-   - *Localização:* Gaveta Lateral de Navegação.
-   - *Conteúdo:* Guias interativos em cards passo a passo (*"Como criar seu primeiro herói"*, *"Guia do Mestre: como montar cenas"*, *"Regras básicas do AlphaD6"* e *"Manual dos 6 Modelos de Cena"*).
+1. **📖 Tutorial & Guia da Taverna (Central de Aprendizado Interativa por Macro Funções):**
+   - *Localização:* Item na Gaveta Lateral de Navegação (Navigation Drawer) e atalho permanente no Dashboard de Início (`[📖 Guia]`).
+   - *Mecânica Visual de Apresentação:* Série de telas e imagens interativas guiadas com **setas indicativas destacadas**, **balões explicativos dinâmicos (*Guided Tooltips/Overlays*)** e botões de navegação (*Avançar*, *Voltar*, *Pular*, *Concluir*).
+   - *🛡️ Emulação 100% Vazia no Cliente (Zero Persistência no Backend):*
+     - **Regra Rígida:** Nenhuma ação, campanha, ficha ou cena "criada" dentro dos tutoriais é enviada ou salva no banco de dados em nuvem (Cloudflare D1).
+     - Toda a experiência funciona através de uma **Sandboxed Local Mock Engine (Emulação em Memória do Celular)**, garantindo que o usuário aprenda e teste todas as ferramentas na prática sem poluir o banco de dados oficial ou consumir requisições de servidor.
+   - **Lista de Tutoriais por Macro Função:**
+     1. **🎯 Tutorial 1 — Criação & Gestão Completa de Campanhas:**
+        - Emulação passo a passo abrangendo: criação de nova mesa, navegação pelos chats da campanha, personalização de configurações da mesa, vinculação de fichas e uso do compêndio completo.
+     2. **🎭 Tutorial 2 — Oficina & Montagem de Cenas:**
+        - Emulação guiada demonstrando a criação, ordenação e múltiplas configurações dos **6 Modelos de Cena disponíveis** (Grid Tático 2D, Mahjong & Minas, Senha & Cofres, Conversa & Diálogos, Combate JRPG e Terminal & Hacking).
+     3. **⚔️ Tutorial 3 — Jogabilidade do Aventureiro (Fichas, Cenas & Dados):**
+        - Guia visual mostrando como buscar campanhas, solicitar entrada, interagir nos 6 modelos de cena, realizar testes de perícia na ficha e utilizar o rolador de dados.
+     4. **🏰 Tutorial 4 — Comunicação, Redes & Sistema Social:**
+        - Explicação guiada sobre envio de Mensagens Diretas (DMs 1-a-1), participação nos tópicos do Fórum, fundação e evolução de Guildas/Clãs e acionamento do Botão de Denúncia Universal.
+     5. **🛠️ Tutorial 5 — Criação de Sistemas & Pacotes Homebrew:**
+        - Guia de como forjar novos motores de RPG (com uso da Key de Criação) e empacotar homebrews comunitárias para distribuição.
+   - **🌐 Armazenamento & Distribuição Híbrida P2P:**
+     - As imagens, vetores SVG e dados explicativos dos tutoriais ficam armazenados localmente no dispositivo. Mídias demonstrativas mais pesadas utilizam a rede **P2P Mesh** entre os aparelhos dos usuários para distribuição descentralizada com custo zero.
 
 2. **⚙️ Configurações:**
-   - *Localização:* Gaveta Lateral de Navegação ou ícone de engrenagem.
-   - *Conteúdo:* Acessibilidade, intensidade de vibração tátil (*Haptic Feedback*), sliders de volume de som/música e gestão de aparelhos conectados.
+   - *Localização:* Gaveta Lateral de Navegação (Navigation Drawer) ou ícone de engrenagem na Top Bar.
+   - *Conteúdo:* Painel dividido em 4 sub-seções completas (*Interface & Acessibilidade*, *Mixer de Áudio Individual*, *Conexão P2P Mesh & Armazenamento Local* e *Privacidade, Segurança & Gestão de Dispositivos Conectados*).
 
-3. **🛡️ Administração (Exclusivo para Admins e Superadmin):**
-   - *Localização:* Gaveta Lateral (renderizado exclusivamente para contas autorizadas).
-   - *Conteúdo:* Painel global de auditoria de campanhas, moderação, alertas de segurança, telemetria de dispositivos e modo espectador invisível (*Ghost*).
+3. **🛡️ Administração (Painel Restrito a Admins e Superadmin):**
+   - *Localização:* Item na Gaveta Lateral de Navegação (Navigation Drawer), renderizado **exclusivamente** para contas autorizadas com role `admin` ou `superadmin`.
+   - **Módulos Exaustivos do Painel de Administração:**
+     1. **📊 Sub-módulo 1 — Telemetria Global & Monitoramento P2P Mesh:**
+        - Métricas em tempo real: Total de usuários cadastrados, campanhas ativas, sessões ao vivo no momento e consumo de recursos no Cloudflare Worker/D1;
+        - Painel da Rede P2P Mesh: Monitoramento do número de nós ativos, volume de tráfego transferido P2P entre aparelhos e estimativa de largura de banda economizada.
+     2. **🚨 Sub-módulo 2 — Central da Fila da Denúncia Universal (*Global Report Queue*):**
+        - Fila de atendimento contendo todas as denúncias enviadas pelos usuários nos 7 grupos de conteúdo (Perfis, Chats/DMs, Campanhas, Fichas, Compêndio, Sistemas/Homebrews, Guildas/Clãs);
+        - **Visualização com Tags Automáticas de Contexto:** Cada item na fila exibe em destaque a tag de entidade gerada pelo sistema (`[🏷️ TIPO: USUÁRIO]`, `[🏷️ TIPO: MENSAGEM_CHAT]`, `[🏷️ TIPO: CAMPANHA]`, `[🏷️ TIPO: FICHA_PERSONAGEM]`, `[🏷️ TIPO: SISTEMA_RPG]`, `[🏷️ TIPO: PACOTE_HOMEBREW]`, `[🏷️ TIPO: GUILDA]`, `[🏷️ TIPO: CLÃ]`, `[🏷️ TIPO: TOPICO_FORUM]`, `[🏷️ TIPO: ARTIGO_WIKI]`);
+        - **Visualização do Pacote de Evidências:** Transcrição do conteúdo, justificativa do denunciante, tag da infração (`#conteudo-improprio`, `#discurso-de-odio`, `#pirataria`, `#assedio`, `#spam`), carimbo de data/hora, identificadores da conta e telemetria de hardware (*Device Fingerprint*);
+        - **Painel de Avaliação de Infração & Votação Colegiada:**
+          - Punições leves (advertência ou despublicar conteúdo) podem ser executadas individualmente por 1 moderador;
+          - **Regra Rígida de Votação Majoritária:** Punições graves (suspensão temporária ou banimento definitivo por hardware) são enviadas para votação no Painel de Infração e exigem o **voto majoritário favorável de no mínimo 3 Admins** OU a **decisão direta e imediata do Superadmin**.
+     3. **👥 Sub-módulo 3 — Auditoria de Identidade, Gestão de Usuários & Banimento:**
+        - Ferramenta de busca por `@nickname`, ID interno `usr_...` ou hardware fingerprint;
+        - Visualização de dados restritos de auditoria: **Endereço de e-mail privado vinculado ao OAuth (ex: `usuario@gmail.com`)**, carimbo de data/hora do último login, IP de acesso e histórico de punições;
+        - Aplicação de sanções: Suspensão por prazos explícitos (24 horas, 7 dias, 30 dias) ou **Banimento Definitivo por Hardware** (inserção de MAC, Hardware UUID e DRM Widevine ID na lista negra do banco D1).
+     4. **👻 Sub-módulo 4 — Modo Espectador Invisível (*Ghost Spectator*):**
+        - **Escopo do Modo Espectador:** Permite que Admins e Superadmins ingressem em qualquer campanha ao vivo, cena, chat de comunidade, guilda, clã ou fórum (**EXCETO conversas privadas e DMs 1-a-1**, que são estritamente isoladas e confidenciais);
+        - **👁️ Indicador Exclusivo de Autoridade (Invisível para Jogadores):** Quando um Admin/Superadmin ativa o Modo Espectador, um badge/indicativo especial `[ 👻 ADMIN ESPECTADOR: @nome ]` fica **visível EXCLUSIVAMENTE para outros Admins e Superadmins** no painel de administração, informando quem está inspecionando a sessão e qual conteúdo está sendo acessado; para os jogadores e mestres da mesa, a presença é 100% invisível;
+        - **Trava de Não-Interferência:** Nesse modo, o moderador **NÃO pode interagir com o jogo** (botões de envio de chat da mesa, rolagens de dados e movimentação no grid tático ficam completamente desativados);
+        - **Denúncia Direta em Modo Ghost:** O moderador pode **executar denúncias diretas** de conteúdos, mensagens, grupos ou usuários diretamente durante a fiscalização, encaminhando o caso imediatamente para o Painel de Avaliação de Infração para votação colegiada dos Admins.
+     5. **👑 Sub-módulo 5 — Governança Suprema (Exclusivo do Superadmin):**
+        - *Gestão de Administradores:* Concessão ou revogação do cargo de `Admin` para outros usuários;
+        - *Auditoria Total de Comunicações:* Leitura e análise do histórico de conversas e DMs privadas 1-a-1 mediante denúncias graves;
+        - *Infraestrutura & Banco D1:* Acesso direto aos schemas de banco, migrações SQL, chaves de API e painel de faturamento.
 
 4. **🚪 Sair (Logout):**
-   - *Localização:* Rodapé da Gaveta Lateral.
-   - *Conteúdo:* Desconecta a sessão atual, remove os tokens do *Android Keystore* com segurança e retorna à tela inicial de login.
+   - *Localização:* Botão fixo no rodapé da Gaveta Lateral de Navegação (Navigation Drawer).
+   - *Procedimento Exaustivo de Execução:*
+     1. **Revogação no Backend:** Chama o endpoint no Cloudflare Worker para invalidar a assinatura JWT da sessão ativa;
+     2. **Sanitização Criptográfica Local:** Remove todas as chaves e tokens salvos no *Android Keystore* via `flutter_secure_storage`;
+     3. **Limpeza de Estado de Memória:** Reseta os controllers de estado, caches locais e variáveis em memória do aparelho;
+     4. **Navegação Segura:** Redireciona o aplicativo imediatamente para a Tela Splash de Autenticação OAuth.
 
 ---
 
