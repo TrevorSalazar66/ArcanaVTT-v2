@@ -137,9 +137,9 @@
             - *Geral:* Nome, descrição narrativa, limite de jogadores simultâneos e documentação do modelo;
             - *Visualizar / Editor:* Seletor duplo para alternar entre modo de pintura/edição e modo visualizador para simular a gameplay do jogador antes da sessão;
             - *Gatilhos & Automação No-Code:* Construtor por blocos `[QUANDO] ➔ [SE] ➔ [ENTÃO]` com botão `🎯 Capturar Alvo`.
-       2. **📚 Gerenciamento de Compêndio (Até 100 Homebrews por Tipo):**
-          - Biblioteca de elementos customizados (Itens Consumíveis, Equipamentos/Armas, Criaturas/NPCs, Poderes, Pistas), baseada em **Herança Delta semi-dependente** (armazena apenas as alterações feitas pelo mestre em relação ao registro pai).
-          - Assets fixos por tipo base e modal de inspeção com **controle granular de visibilidade de variáveis** (`is_visible: boolean` por campo) e gatilhos de revelação progressiva.
+       2. **📚 Gerenciamento de Compêndio (Até 100 Homebrews por Categoria por Sistema de RPG):**
+          - Biblioteca de elementos customizados estruturada nas **5 Categorias Universais Fixas** (*🧪 Itens, ⚔️ Equipamentos com slots corporais, 🐉 Seres, ✨ Poderes, 📜 Pistas*), baseada em **Herança Delta semi-dependente** (armazena apenas as alterações feitas pelo mestre em relação ao registro pai).
+          - Assets fixos por tipo base, **Interpretador Inteligente** com extração automática de ranges `{min, max}`, mapeamento explícito de `target_variable_id` e modal de **Descrição Completa** com controle granular de visibilidade por bloco (`is_visible: boolean` com fundo vermelho translúcido para o Mestre sob governança RBAC).
        3. **🌍 Gerenciamento de Mundo (Cronologia, Overworld & Lore):**
           - **🗺️ Atlas Global em Grids Hexagonais (*Overworld Hex Grid*):**
             - Matriz visual baseada em hexágonos com terrenos vetoriais SVG (montanhas, vilarejos, ruínas, florestas, rios).
@@ -151,7 +151,7 @@
           - **⏳ Relógio do Mundo & Calendário Procedural do Zero:**
             - *Criação de Calendários Cósmicos:* O mestre define dias e semanas por mês, número de meses no ano, horas do dia, proporção de **Luz / Escuridão (ciclo Sol/Lua)** e estações do ano com sua duração.
             - *Geração Procedural de Meses:* Botão `[ + Adicionar Mês ]` e cadastro de eventos astronômicos e feriados fixos/recorrentes (solstícios, luas de sangue, eclipses).
-            - *Relógio Narrativo por Eventos:* O tempo **nunca avança sozinho em tempo real**; avança exclusivamente com ações dos jogadores (descansos de 2h/6h/8h ou restaurações de 24h) ou comando manual do Mestre (`+1h`, `+1 dia`, `Amanhecer`, `Anoitecer`), podendo disparar gatilhos no-code em datas específicas.
+            - *Relógio Narrativo por Eventos:* O tempo **nunca avança sozinho em tempo real**; avança exclusivamente com ações dos jogadores (descansos de 2h/6h/8h ou restaurações de 24h) ou comando manual do Mestre dentro do modal de Mundo (`Amanhecer`, `Anoitecer`, `+6h`, `+8h`), podendo disparar gatilhos no-code em datas específicas.
             - *Linha do Tempo (Cronologia):* Painel visual para o mestre registrar a história do **Passado** (lore antiga) e o planejamento do **Futuro** da campanha.
           - **🏛️ Facções, Reputação & Influência:**
             - Cadastro de organizações (reinos, guildas, cultos, ordens de cavalaria) com **Barra de Reputação manual** variando de **`-100 Hostil`** a **`0 Neutro`** a **`+100 Aliado/Reverenciado`**.

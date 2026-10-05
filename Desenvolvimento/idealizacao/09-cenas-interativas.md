@@ -66,40 +66,55 @@ flowchart LR
 - **Natureza:** Assíncrono (1 jogador por vez na cena).
 - **Mecânica Híbrida:** Integra a concentração do Mahjong, o desafio mnemônico do Jogo da Memória e o risco letal do Campo Minado.
 - **📐 Painel de Configuração na Oficina:**
-  - *Dimensões do Tabuleiro:* Pequeno (4x4 = 16 blocos), Médio (6x6 = 36 blocos) ou Grande (8x8 = 64 blocos).
-  - *Configurador de Bombas:* Quantidade de bombas distribuídas e fórmula de dano em HP/Ânima (ex: dano fixo de 5 PV ou 1d6 de fogo).
-  - *Tabela de Recompensas:* Associação de pontuação acumulada a entregas de itens do compêndio, minérios ou moedas.
-- **Ciclo de Jogo & Revelação Inicial:**
-  - No início da cena, todos os blocos do tabuleiro são exibidos revelados por 3 a 5 segundos (memorização).
-  - Ao formar o primeiro par válido de peças, todos os blocos restantes se ocultam imediatamente sob o símbolo de interrogação `?`.
-  - Cada símbolo está vinculado a um número secreto sorteado na inicialização da cena.
-- **💣 Bombas (Peças Vermelhas / Fundo Lilás):**
-  - Se o jogador tocar em uma peça bomba, ela detona e causa dano direto à ficha do personagem.
-- **Recompensas & Reinício Contínuo:**
-  - Formar pares acumula pontos. Se o jogador limpar todas as peças que não são bombas, o tabuleiro é limpo e reinicia uma nova rodada **mantendo os pontos e vida acumulados**, permitindo mineração progressiva de alto risco.
+  - *Dimensões do Tabuleiro (Linhas x Colunas Livres):*
+    - **Modo Fixo:** O Mestre define livremente a quantidade de linhas e colunas (ex: 4x4, 6x6, 8x12 até o limite máximo de 100x100).
+    - **Modo Progressivo:** O tamanho do tabuleiro cresce automaticamente a cada nova rodada concluída com sucesso.
+  - *Configurador de Bombas:*
+    - **Modo Fixo:** Quantidade exata de bombas (ex: 3 bombas).
+    - **Modo Porcentagem (`%`):** Percentual do total de células convertido em bombas (ex: 15% do tabuleiro).
+    - **Modo Progressivo:** A quantidade ou porcentagem de bombas aumenta a cada rodada.
+  - *Dano por Bomba:* Dano fixo ou fórmula matemática (ex: 5 PV ou 1d6 de fogo) aplicado diretamente à Ânima/Vida do personagem ativo ao clicar em uma mina.
+- **Ciclo de Gameplay & Mapeamento Numérico-Simbólico:**
+  - No início da cena, todas as peças iniciam visíveis com seus símbolos para memorização.
+  - **Sorteio Dinâmico:** Cada símbolo visual está associado a um número oculto que indica **quantas bombas existem nas 8 células vizinhas adjacentes** (como no Campo Minado).
+  - **Gatilho de Ocultação:** Ao formar o primeiro par válido de relíquias idênticas, todas as peças restantes viram `?`.
+  - **Formação de Pares:** Revelar duas peças idênticas remove o par da tela e soma +1 Ponto.
+  - **Bombas (Peças Vermelhas com Fundo Lilás):** Tocar em uma bomba revela a mina e aplica o dano configurado na ficha.
+  - **Limpeza de Rodada & Mineração Contínua:** Ao eliminar todas as peças que não são bombas, o tabuleiro reinicia uma nova rodada **preservando os pontos e vida acumulados**, permitindo mineração progressiva de alto risco.
+- **⚡ Gatilhos & Efeitos No-Code:**
+  - `on_score_reach` (ex: atingir 10 pts) ➔ `award_item`, `award_xp`, `transfer_scene`.
+  - `on_hp_zero` (zerar Ânima por dano de bomba) ➔ `defeat_event`, `log_diary`, `transfer_scene`.
+  - `on_board_clear` (limpar rodada) ➔ `show_toast`, `heal_anima`.
 
 ---
 
 ### 🔐 Modelo 3: Senha & Mecânica de Cofre (Desafio Lógico Rúnico)
 
 - **Natureza:** Assíncrono (1 jogador por vez na cena).
-- **Mecânica:** Desafio de decodificação estilo *Mastermind / Cofre de Segredos*.
+- **Mecânica:** Desafio de decodificação estilo *Mastermind / Cofre de Segredos / Sequência Rúnica*.
 - **📐 Painel de Configuração na Oficina:**
-  - *Quantidade de Slots:* De 3 a 6 slots configuráveis.
-  - *Tipos de Símbolos:* Números decimais (0-9), Letras do alfabeto ou Ícones Rúnicos SVG.
-  - *Geração da Chave:* Combinação fixa do Mestre ou aleatória a cada novo acesso.
-  - *Limite de Tentativas:* Número máximo de chances (ex: 3 a 5) antes de travar ou acionar alarme.
-- **Dicas Visuais & 3 Modos de Feedback Cromático:**
-  1. **Dica Textual Livre:** Mensagem enigmática ou pista escrita pelo Mestre.
-  2. **Dica Matemática Global (Calor na Moldura do Cofre):** Cada símbolo possui um peso numérico. O sistema calcula a soma/multiplicação da tentativa contra a chave:
-     - *Vermelho:* Valor inserido está acima da meta secreta ("muito quente / excesso");
-     - *Azul:* Valor inserido está abaixo da meta ("frio / falta");
-     - *Dourado:* Combinação 100% correta.
-  3. **Semáforo Preciso por Slot Individual:** Cada slot indica seu alinhamento individual:
-     - *Vermelho:* Símbolo selecionado está acima do correto;
-     - *Azul:* Símbolo selecionado está abaixo do correto;
-     - *Verde:* Símbolo 100% exato naquele slot.
-- **Consequências:** Cada erro pode causar dano elétrico/mecânico. Acertos entregam itens, destrancam passagens ou disparam transição de cena.
+  - *Quantidade de Slots:* Suporte livre de **1 a 50 Slots** por puzzle (sem restrição fixa a 3-6).
+  - *Tipos de Símbolos Permitidos:*
+    - **Números:** Intervalo definido pelo mestre (ex: 0 a 9, 1 a 100);
+    - **Letras:** Alfabeto padrão ou alfabetos temáticos antigos;
+    - **Ícones / Runas SVG:** Biblioteca de vetores e relíquias com atribuição de valor numérico dinâmico no backend.
+  - *Modos de Definição da Chave:*
+    - **Modo Fixo:** O Mestre define manualmente a ordem exata da senha (persistente);
+    - **Modo Aleatório:** O backend sorteia uma nova chave dinamicamente a cada novo acesso do jogador.
+  - *Limite de Tentativas:* Contador de erros antes de travar ou disparar alarmes.
+- **💡 Sistema Triplo de Dicas Escalonado:**
+  1. **Dica 1 (Texto Livre Enigmático):** Enigma descritivo ou pista narrativa cadastrada pelo Mestre.
+  2. **Dica 2 (Multiplicação Global / Feedback de Borda):** Calcula o produto dos valores dos slots inseridos da esquerda para a direita contra a meta:
+     - *Bordas Vermelhas:* Produto inserido $>$ Meta secreta;
+     - *Bordas Azuis:* Produto inserido $<$ Meta secreta;
+     - *Bordas Douradas:* Combinação 100% correta.
+  3. **Dica 3 (Posicional por Slot / Semáforo RGB):** Feedback cromático em tempo real em cada slot:
+     - 🔴 **Vermelho:** O valor naquele slot é **Maior** que o correto;
+     - 🟢 **Verde:** O valor naquele slot é **Exato**;
+     - 🔵 **Azul:** O valor naquele slot é **Menor** que o correto.
+- **⚡ Gatilhos & Efeitos No-Code:**
+  - `on_password_fail` (erro de tentativa) ➔ dano à Ânima, incremento de erros, desbloquear dicas (`show_hint_1`, `show_hint_2`, `show_hint_3`).
+  - `on_password_correct` (acerto da senha) ➔ `award_item`, `award_xp`, `transfer_scene`, `log_diary`, `show_toast`.
 
 ---
 

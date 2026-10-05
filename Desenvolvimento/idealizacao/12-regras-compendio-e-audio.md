@@ -1,112 +1,158 @@
-# ArcanaVTT — Módulo 12: Gerenciamento de Compêndio, Herança Delta & Áudio P2P
+# ArcanaVTT — Módulo 12: Gerenciamento de Compêndio, Herança Delta, Interpretador Universal & Áudio P2P
 
 ---
 
-## 🏛️ 7. Arquitetura Modular de Compêndio (5 Tipos, Herança Delta & Esqueletos de Dados)
+## 🏛️ 7. Arquitetura Modular de Compêndio (As 5 Categorias Universais, Herança Delta & Esqueletos de Dados)
 
-O **Compêndio** funciona como a biblioteca central e reutilizável de dados da campanha e do universo do jogo. Ele é estruturado para garantir consumo nulo de banda, latência zero em celulares Android e armazenamento ultraleve no Cloudflare D1 através do modelo de **Herança Delta** e **Blocos Visuais No-Code**:
+O **Compêndio** funciona como a biblioteca mecânica central e reutilizável de dados da campanha e do universo do jogo. Ele é estruturado para garantir **consumo nulo de banda, latência zero em celulares Android e armazenamento ultraleve no Cloudflare D1/SQLite** através do modelo de **Herança Delta**, **Blocos Modulares No-Code** e um **Interpretador em Tempo de Execução (*Smart Runtime Parser*)**:
 
 ```mermaid
 flowchart TD
-    BASE["📚 Item Base do Compêndio Oficial\n(Dados Frios / Imutáveis: ID, Nome, Tipo, Asset Base)"]
+    BASE["📚 Item Base do Compêndio Oficial\n(Dados Frios / Imutáveis: ID, Nome, Categoria, Asset Base)"]
     
-    subgraph CLIENT_MEM["Aparelho do Usuário (Flutter Mobile Cache)"]
+    subgraph CLIENT_MEM["Aparelho do Usuário (Flutter Mobile Cache & Runtime Parser)"]
         DELTA["📝 Delta Changes do Mestre\n(Apenas modificações: +5 HP, dano de fogo, custo alterado)"]
         MERGE["⚡ Merge em Tempo de Execução\nElementoFinal = merge(Base, Delta)"]
+        PARSER["🧠 Interpretador Local (Range Parsing, target_variable_id & RBAC)"]
     end
     
     BASE --> MERGE
     DELTA --> MERGE
-    MERGE --> UI_BLOCKS["🧩 Blocos Visuais com Toggle de Visibilidade\n(Visível Jogador 🟢 / Invisível GM 🔴)"]
+    MERGE --> PARSER
+    PARSER --> UI_BLOCKS["🧩 Blocos Visuais com RoleGate\n(Mestre 🔴 Fundo Translúcido / Jogador 🟢 Invisível se Oculto)"]
 ```
 
 ---
 
-### 📚 7.1. Os 5 Tipos Fundamentais de Elementos
+### 📚 7.1. As 5 Categorias Universais & Rígidas do Compêndio
 
-O Compêndio gerencia categoricamente **5 tipos fundamentais de entidades**:
+Todo e qualquer sistema de RPG cadastrado no ArcanaVTT (oficial, próprio ou comunitário) é obrigatoriamente estruturado sobre estas **5 categorias universais fixas e imutáveis**:
 
-1. **🧪 Itens Consumíveis / Gerais:** Poções de cura, elixires, rações de viagem, tochas, cordas, gazuas, ferramentas de ofício, munições e suprimentos.
-2. **⚔️ Equipamentos & Armas:** Armas brancas, armas de fogo/distância, armaduras leves/médias/pesadas, escudos, trajes especiais e acessórios mágicos (anéis, amuletos).
-3. **🐉 Criaturas / NPCs / Entidades:** Bestiário de monstros, ameaças, aliados da guilda, PNJs de cidades e chefes de masmorra.
-4. **✨ Poderes / Habilidades / Magias:** Técnicas ativas, habilidades passivas, magias arcanas, rituais e dons sobrenaturais.
-5. **📜 Pistas / Segredos / Lore:** Fragmentos de documentos, cartas cifradas, itens de enigma, segredos investigativos e relíquias de lore.
+1. **🧪 Itens:** Poções de cura, elixires, rações de viagem, tochas, cordas, gazuas, ferramentas de ofício, munições, suprimentos e consumíveis em geral.
+2. **⚔️ Equipamentos:** Armas brancas (corte, impacto, perfuração), armas de fogo e de distância, armaduras (leves, médias, pesadas), escudos, vestes, trajes e acessórios mágicos (anéis, amuletos, mantos, cintos), vinculados a **slots corporais de equipamento** estilo RPGs clássicos (*Exiled Kingdoms*).
+3. **🐉 Seres:** Bestiário completo de criaturas, monstros, ameaças, aliados da guilda, PNJs de cidades, animais, entidades sobrenaturais e chefes de masmorra.
+4. **✨ Poderes:** Magias arcanas/divinas, dons sobrenaturais, técnicas de combate, habilidades ativas, habilidades passivas e rituais.
+5. **📜 Pistas:** Fragmentos de documentos, cartas cifradas, itens de enigma, segredos investigativos, mapas parciais e relíquias narrativas de lore.
 
 ---
 
-### 📊 7.2. Esqueletos Base de Dados (*Data Schemas* Padronizados)
+### 📊 7.2. Filosofia de Dados: Esqueleto Enxuto & Interpretador Inteligente (*Runtime Parser*)
 
-Cada um dos 5 tipos possui um esqueleto de dados pré-definido e padronizado no SQLite/Cloudflare D1 e no estado local do Flutter:
+Para evitar o inchaço do banco SQLite local e da nuvem Cloudflare D1 com dezenas de colunas especializadas, adotamos a regra arquitetural:
+
+> **"Banco de Dados Primitivo e Enxuto $\longleftrightarrow$ Interpretador Local Poderoso no Cliente (Flutter / Dart)."**
+
+#### 🎯 Regra Geral Universal: `target_variable_id` e Range Parsing
+Todo efeito mecânico executável carrega o identificador exato da variável da ficha do personagem (`target_variable_id`), a fórmula de dados/valores brutos com cálculo automático de **Range Numérico `{ min, max }`**, e o tipo de operação matemática (`operation: "add" | "sub" | "set"`).
 
 ```json
-// 1. Esqueleto de Item Consumível
+// 1. Esqueleto: 🧪 Itens (Consumíveis, Poções, Ferramentas)
 {
-  "id": "item_pocao_cura_menor",
-  "name": "Poção de Cura Menor",
-  "type": "item",
-  "base_asset_id": "svg_potion_small",
+  "id": "item_pocao_cura_maior",
+  "name": "Poção de Cura Maior",
+  "category": "itens",
+  "sub_type": "Consumível / Alquimia",
+  "base_asset_id": "svg_potion_large",
+  "is_all_hidden": false, // Se true, o cartão inteiro recebe contorno em vermelho forte
   "blocks": {
-    "bloco_uso": { "label": "Modo de Uso", "value": "1 Ação (Ingerir)", "is_visible": true },
-    "bloco_qtd": { "label": "Doses / Quantidade", "value": 3, "is_visible": true },
-    "bloco_efeito": { "label": "Efeito Mecânico", "value": "Restaura 1d6 + 2 de Vida/Ânima", "is_visible": true },
-    "bloco_custo": { "label": "Custo em Moedas", "value": "50P", "is_visible": true },
-    "bloco_raridade": { "label": "Raridade", "value": "Comum", "is_visible": true }
+    "bloco_aparencia": { "label": "Descrição", "type": "text", "value": "Líquido vermelho cintilante.", "is_visible": true },
+    "bloco_efeito": { 
+      "label": "Efeito de Cura", 
+      "type": "dice_effect", 
+      "dice_formula": "2d6 + 4", 
+      "parsed_range": { "min": 6, "max": 16 }, 
+      "target_variable_id": "hp_current", 
+      "operation": "add", 
+      "is_visible": true 
+    },
+    "bloco_tempo_uso": { "label": "Ativação", "type": "text", "value": "1 Ação", "is_visible": true },
+    "bloco_cargas": { "label": "Doses", "type": "charges", "max_charges": 1, "current_charges": 1, "consume_on_empty": true, "is_visible": true },
+    "bloco_peso": { "label": "Carga", "type": "number", "value": 1, "is_visible": true },
+    "bloco_custo": { "label": "Preço", "type": "currency", "value": "50P", "is_visible": true }
   }
 }
 
-// 2. Esqueleto de Equipamento / Arma
+// 2. Esqueleto: ⚔️ Equipamentos (Estilo RPG Clássico / Exiled Kingdoms)
 {
   "id": "eq_espada_aco_runica",
   "name": "Espada de Aço Rúnica",
-  "type": "equipment",
+  "category": "equipamentos",
+  "equip_slot": "Mao_Principal", // Slots: Cabeca, Peitoral, Luvas, Calcas, Botas, Mao_Principal, Mao_Secundaria, Capa, Amuleto, Anel_1, Anel_2, Cinto
   "base_asset_id": "svg_sword_long",
+  "is_all_hidden": false,
   "blocks": {
-    "bloco_tipo": { "label": "Categoria", "value": "Arma Branca (Corte)", "is_visible": true },
-    "bloco_dano": { "label": "Dano", "value": "1d8 + 3 Físico", "is_visible": true },
-    "bloco_alcance": { "label": "Alcance", "value": "Corpo a Corpo (1.5m)", "is_visible": true },
+    "bloco_tipo": { "label": "Categoria", "value": "Arma Branca (Corte 1M)", "is_visible": true },
+    "bloco_dano": { 
+      "label": "Dano Base", 
+      "dice_formula": "1d8 + 3", 
+      "parsed_range": { "min": 4, "max": 11 }, 
+      "damage_type": "Físico", 
+      "target_variable_id": "target_hp_current",
+      "operation": "sub",
+      "is_visible": true 
+    },
     "bloco_peso": { "label": "Slots de Carga", "value": 2, "is_visible": true },
-    "bloco_efeito_oculto": { "label": "Encantamento Secreto", "value": "+1d6 dano contra mortos-vivos", "is_visible": false }
+    "bloco_efeito_oculto": { 
+      "label": "Encantamento Secreto", 
+      "dice_formula": "1d6", 
+      "parsed_range": { "min": 1, "max": 6 }, 
+      "damage_type": "Fogo", 
+      "target_variable_id": "target_hp_current",
+      "operation": "sub",
+      "is_visible": false // Fundo vermelho translúcido na visão do Mestre
+    }
   }
 }
 
-// 3. Esqueleto de Criatura / NPC
+// 3. Esqueleto: 🐉 Seres (Criaturas / NPCs / Entidades)
 {
   "id": "npc_guardiao_cripta",
   "name": "Guardião da Cripta",
-  "type": "creature",
+  "category": "seres",
   "base_asset_id": "svg_token_skeleton_warrior",
+  "is_all_hidden": false,
   "blocks": {
     "bloco_atributos": { "label": "Atributos", "value": { "corpo": 4, "mente": 2, "espirito": 1 }, "is_visible": false },
-    "bloco_vida": { "label": "Vida / Ânima Máxima", "value": 28, "is_visible": false },
+    "bloco_vida": { "label": "Vida / Ânima Máxima", "value": 28, "target_variable_id": "hp_max", "is_visible": false },
     "bloco_defesa": { "label": "Defesa Passiva", "value": 3, "is_visible": false },
     "bloco_ataques": { "label": "Ataques", "value": "Golpe de Alabarda (1d10+2)", "is_visible": true },
     "bloco_fraqueza": { "label": "Fraqueza Oculta", "value": "Vulnerável a dano de Fogo e Sagrado", "is_visible": false }
   }
 }
 
-// 4. Esqueleto de Poder / Habilidade
+// 4. Esqueleto: ✨ Poderes (Magias / Habilidades / Rituais)
 {
   "id": "pow_rajada_chamas",
   "name": "Rajada de Chamas",
-  "type": "power",
+  "category": "poderes",
   "base_asset_id": "svg_spell_fireball",
+  "is_all_hidden": false,
   "blocks": {
-    "bloco_custo": { "label": "Custo de Energia", "value": "3 Pontos de Ânima / Mana", "is_visible": true },
+    "bloco_custo": { "label": "Custo de Energia", "value": "3 Pontos de Ânima / Mana", "target_variable_id": "anima_current", "operation": "sub", "is_visible": true },
     "bloco_alcance": { "label": "Alcance", "value": "9 metros", "is_visible": true },
     "bloco_duracao": { "label": "Duração", "value": "Instantâneo", "is_visible": true },
-    "bloco_efeito": { "label": "Efeito", "value": "Explosão de 2d6 de fogo em cone de 3m", "is_visible": true }
+    "bloco_efeito": { 
+      "label": "Dano em Área", 
+      "dice_formula": "2d6", 
+      "parsed_range": { "min": 2, "max": 12 }, 
+      "damage_type": "Fogo",
+      "target_variable_id": "target_hp_current",
+      "operation": "sub",
+      "is_visible": true 
+    }
   }
 }
 
-// 5. Esqueleto de Pista / Segredo
+// 5. Esqueleto: 📜 Pistas (Segredos / Relíquias / Lore)
 {
   "id": "clue_diario_cultista",
   "name": "Página Rasgada do Diário",
-  "type": "clue",
+  "category": "pistas",
   "base_asset_id": "svg_scroll_letter",
+  "is_all_hidden": false,
   "blocks": {
     "bloco_resumo": { "label": "Aparência", "value": "Um pergaminho amarelado com manchas de cinza", "is_visible": true },
-    "bloco_lore_secreta": { "label": "Texto Cifrado", "value": "A senha da cripta corresponde ao ano da fundação (1482)", "is_visible": false },
+    "bloco_lore_secreta": { "label": "Texto Cifrado", "value": "A senha da cripta corresponde ao ano de fundação (1482)", "is_visible": false },
     "bloco_solucao": { "label": "Gatilho de Enigma", "value": "Senha do cofre: 1-4-8-2", "is_visible": false }
   }
 }
@@ -122,16 +168,21 @@ Cada um dos 5 tipos possui um esqueleto de dados pré-definido e padronizado no 
 
 ---
 
-### 🧩 7.4. UI por Blocos Visuais & Revelação Progressiva por Gatilhos
+### 🔒 7.4. Governança por Cargo (RBAC) & Sistema Visual de Destaque de Blocos
 
-1. **Identificador Único por Bloco:** Cada campo da ficha ou item possui seu próprio ID (ex: `bloco_dano`, `bloco_fraqueza`, `bloco_lore_secreta`).
-2. **Chave de Visibilidade (`is_visible: boolean`):**
-   - **🟢 ON (Verde):** O dado é exibido para o jogador ao inspecionar o card ou token.
-   - **🔴 OFF (Vermelho/Cinza):** Oculto para os jogadores, acessível exclusivamente pelo Mestre ou Administradores.
-3. **Gatilhos de Revelação Progressiva No-Code:**
-   - O motor de automação pode alterar a visibilidade de blocos individuais em tempo real:
-     $$\text{[GATILHO: Jogador usa Lupa ou passa em Investigação]} \longrightarrow \text{Alterar Visibilidade}(\text{bloco\_fraqueza}, \text{Visible: true})$$
-   - Isso permite que itens mágicos não identificados tenham suas propriedades secretas reveladas gradualmente ao longo da sessão.
+1. **Leitura Obrigatória de Cargo (*RoleGate*):**
+   - O aplicativo lê o cargo do usuário autenticado na campanha (`Mestre`, `Assistente de Mestre`, `Jogador`, `Espectador`).
+2. **Padrão Cromático dos Blocos:**
+   - **Blocos Visíveis (`is_visible: true`):** Texto renderizado normalmente sem destaque no fundo.
+   - **Blocos Invisíveis (`is_visible: false`):**
+     - *Visão do Mestre / Assistente:* Fundo das letras destacado com um **vermelho vivo de alta transparência / translúcido** acompanhado de ícone de cadeado `🔒`, permitindo leitura clara do segredo.
+     - *Visão do Jogador:* O bloco é **100% filtrado da árvore de renderização Flutter**, sem gerar espaços vazios ou pistas visuais de dados ocultos.
+3. **Elemento 100% Oculto (`is_all_hidden: true`):**
+   - Caso todo o elemento esteja oculto para a mesa, o **contorno/borda do cartão** recebe um **vermelho forte e vibrante**.
+4. **Modal de Descrição Completa (`[ 📜 Descrição Completa ]`):**
+   - Cada card possui o botão que abre o modal expandido contendo todas as variáveis, lore, efeitos mecânicos e blocos daquele elemento em detalhes.
+5. **Navegação de Retorno:**
+   - O botão `[← Voltar]` no cabeçalho do Compêndio retorna diretamente para a **Aba 5 (Oficina do Mestre) dentro do Modal Geral da Campanha**.
 
 ---
 
@@ -144,8 +195,8 @@ Cada um dos 5 tipos possui um esqueleto de dados pré-definido e padronizado no 
 2. **Merge em Tempo de Execução no Flutter:**
    - $\text{ElementoFinal} = \text{merge}(\text{ElementoPai}, \text{DeltaChanges})$.
    - Reduz o consumo de banco em mais de **90%**.
-3. **Limites Rígidos por Campanha:**
-   - Limite de até **100 Homebrews por Tipo** (100 Itens, 100 Equipamentos, 100 Criaturas, 100 Poderes, 100 Pistas).
+3. **Limites Rígidos:**
+   - Limite de até **100 Homebrews por Categoria por Sistema de RPG** (100 Itens, 100 Equipamentos, 100 Seres, 100 Poderes, 100 Pistas = 500 Homebrews totais por Sistema).
 4. **Distribuição P2P Mesh & Governança de Nuvem:**
    - Deltas de campanhas trafegam **diretamente entre os celulares dos membros da mesa via P2P Mesh**.
    - Para manter o banco Cloudflare D1 seguro e enxuto, o upload para o catálogo público da plataforma só é liberado após **aprovação manual de um Admin ou Superadmin**.

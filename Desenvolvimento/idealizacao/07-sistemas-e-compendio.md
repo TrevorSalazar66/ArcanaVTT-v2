@@ -1,4 +1,4 @@
-# ArcanaVTT — Módulo 07: Sistemas, Compêndio, Homebrews & P2P Mesh
+﻿# ArcanaVTT — Módulo 07: Sistemas, Compêndio, Homebrews & P2P Mesh
 
 ---
 
@@ -64,12 +64,12 @@
   3. **⭐ Meus Sistemas:**
      - Agrupador pessoal de todos os sistemas criados pelo próprio usuário e sistemas oficiais/comunitários que ele **favoritou/salvou** para acesso rápido e criação de campanhas.
   4. **🌐 Comunidade (Homebrews, Compêndio & Pacotes de Conteúdo):**
-     - Hub social onde a comunidade compartilha **Pacotes Homebrew** estruturados nos **5 tipos fundamentais de compêndio**:
-       1. *🧪 Itens Consumíveis:* Poções, ferramentas, kits utilitários e suprimentos;
-       2. *⚔️ Equipamentos & Armas:* Armas brancas, armas de fogo, armaduras e escudos;
-       3. *🐉 Criaturas & NPCs:* Bestiário completo com fichas de ameaças e aliados;
-       4. *✨ Poderes & Magias:* Grimórios arcanos, dons sobrenaturais e rituais;
-       5. *📜 Pistas, Segredos & Lore:* Relíquias narrativas e enigmas investigativos.
+     - Hub social onde a comunidade compartilha **Pacotes Homebrew** estruturados nas **5 categorias universais fixas do compêndio**:
+       1. *🧪 Itens:* Poções, ferramentas, kits utilitários e suprimentos;
+       2. *⚔️ Equipamentos:* Armas brancas, armas de fogo, armaduras e escudos;
+       3. *🐉 Seres:* Bestiário completo com fichas de ameaças e aliados;
+       4. *✨ Poderes:* Grimórios arcanos, dons sobrenaturais e rituais;
+       5. *📜 Pistas:* Relíquias narrativas e enigmas investigativos.
      - **Herança Delta & Esqueletos Padronizados:** Todo pacote homebrew é baseado em deltas leves sobre o sistema base, aproveitando os esqueletos de dados padronizados e a biblioteca de assets vetoriais universais (SVG transparente com personalização dinâmica de cor por CSS).
      - **Filtro Dinâmico Inteligente de Categorias:** As homebrews utilizam as mesmas categorias da *Oficina do Mestre*. **Regra estrita de UX:** categorias que não possuam nenhum conteúdo criado ficam automaticamente ocultadas do menu de filtros para não poluir a interface com buscas vazias.
 
