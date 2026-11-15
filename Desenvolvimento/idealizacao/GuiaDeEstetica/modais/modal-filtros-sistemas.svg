@@ -1,0 +1,243 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 860" width="440" height="860">
+
+  <defs>
+    <style>
+      
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap');
+* { box-sizing: border-box; }
+.cinzel { font-family: 'Cinzel', serif; letter-spacing: 0.5px; }
+.inter { font-family: 'Inter', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+    </style>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8BE62"/>
+      <stop offset="50%" stop-color="#D4A34B"/>
+      <stop offset="100%" stop-color="#B8862D"/>
+    </linearGradient>
+    <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5B758"/>
+      <stop offset="100%" stop-color="#8A6421"/>
+    </linearGradient>
+    <linearGradient id="surfaceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#161426"/>
+      <stop offset="100%" stop-color="#0E0D1A"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1A182B"/>
+      <stop offset="100%" stop-color="#121120"/>
+    </linearGradient>
+    <linearGradient id="heroBannerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#221C35"/>
+      <stop offset="50%" stop-color="#171426"/>
+      <stop offset="100%" stop-color="#0D0C18"/>
+    </linearGradient>
+    <linearGradient id="crimsonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="100%" stop-color="#991B1B"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="50%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#1A162B" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#080811" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="shadowSoft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+    <filter id="shadowCard" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Phone Screen Canvas -->
+  <rect width="440" height="860" rx="28" fill="#080811"/>
+  <rect width="440" height="860" rx="28" fill="url(#vignette)"/>
+  <rect x="1" y="1" width="438" height="858" rx="27" fill="none" stroke="#25253E" stroke-width="1.5"/>
+  
+    <!-- Android Native Status Bar -->
+    <g opacity="0.92">
+      <text x="26" y="24" class="inter" font-size="12" font-weight="600" fill="#F4F4F8">22:47</text>
+      <!-- Camera Punch Hole -->
+      <circle cx="220.0" cy="18" r="6" fill="#040408" stroke="#1E1E30" stroke-width="0.8"/>
+      <!-- Right Icons: Wifi, Signal, Battery, Percentage (Well-Spaced, Zero Overlap) -->
+      <g transform="translate(330, 11) scale(0.583)" stroke="#F4F4F8" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01" />
+  <path d="M2 8.82a15 15 0 0 1 20 0" />
+  <path d="M5 12.859a10 10 0 0 1 14 0" />
+  <path d="M8.5 16.429a5 5 0 0 1 7 0" /></g>
+      <path d="M350 24 L360 13 L360 24 Z" fill="#F4F4F8"/>
+      <rect x="368" y="13" width="7" height="11" rx="1.5" fill="#F4F4F8"/>
+      <rect x="370" y="11" width="3" height="2" rx="0.5" fill="#F4F4F8"/>
+      <text x="416" y="23" class="inter" font-size="11" font-weight="700" fill="#F4F4F8" text-anchor="end">87%</text>
+    </g>
+    
+  
+    <!-- Mobile Modal Sheet Container -->
+    <rect x="8" y="38" width="424" height="814" rx="24" fill="url(#surfaceGrad)" stroke="#2A2640" stroke-width="1.2" filter="url(#shadowSoft)"/>
+    <!-- Drag Handle Pill -->
+    <rect x="198.0" y="46" width="44" height="4" rx="2" fill="#D4A34B" fill-opacity="0.45"/>
+
+    <!-- Header Icon Emblem (Octagonal/Heraldic Box) -->
+    <g transform="translate(24, 56)">
+      <rect width="46" height="46" rx="12" fill="#1C192E" stroke="url(#goldBorderGrad)" stroke-width="1.5"/>
+      <rect x="3" y="3" width="40" height="40" rx="9" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.4"/>
+      <g transform="translate(11, 11) scale(1.000)" stroke="#E5B758" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v16" />
+  <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /></g>
+    </g>
+
+    <!-- Title & Subtitle -->
+    <text x="80" y="75" class="cinzel" font-size="15.0" font-weight="700" fill="#E5B758">FILTRAR COMPÊNDIO</text>
+    <text x="80" y="95" class="inter" font-size="11.5" fill="#9CA3AF">Categorias Universais do Sistema</text>
+    
+        <rect x="306.0" y="60" width="68.0" height="24" rx="12" fill="#E5B758" fill-opacity="0.16" stroke="#E5B758" stroke-width="1.2"/>
+        <text x="340.0" y="76" class="inter" font-size="9.5" font-weight="700" fill="#E5B758" text-anchor="middle">4 ATIVAS</text>
+        
+    
+        <g cursor="pointer">
+          <rect x="384" y="54" width="34" height="34" rx="10" fill="#18182C" stroke="#25253E" stroke-width="1.2"/>
+          <g transform="translate(392, 62) scale(0.750)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" />
+  <path d="m6 6 12 12" /></g>
+        </g>
+        
+
+    <!-- Ornamental Gold Divider with Center Diamond (Inspired by Guide Image) -->
+    <line x1="24" y1="116" x2="214.0" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    <polygon points="220.0,112 225.0,116 220.0,120 215.0,116" fill="#131322" stroke="#E5B758" stroke-width="1.3"/>
+    <line x1="226.0" y1="116" x2="416" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    
+  
+    <!-- Seção 5 Categorias Universais -->
+    
+    <g>
+      <g transform="translate(24, 135) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v16" />
+  <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /></g>
+      <text x="52" y="151" class="cinzel" font-size="13.5" font-weight="700" fill="#F4F4F8">As 5 Categorias do Compêndio</text>
+      <line x1="340.40000000000003" y1="146" x2="401" y2="146" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,142 410,146 406,150 402,146" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    <text x="24" y="178" class="inter" font-size="12" fill="#9CA3AF">Toque para ativar ou ocultar módulos na consulta:</text>
+
+    <!-- Categoria 1: Itens & Consumíveis -->
+    
+    <rect x="24" y="196" width="392" height="68" rx="14" fill="url(#cardGrad)" stroke="#D4A34B" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="200" width="384" height="60" rx="10" fill="none" stroke="#E5B758" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(40, 212)">
+      <rect width="36" height="36" rx="10" fill="#2A2218" stroke="#E5B758" stroke-width="1.2"/>
+      <g transform="translate(8, 8) scale(0.833)" stroke="#E5B758" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2" />
+  <path d="M6.453 15h11.094" />
+  <path d="M8.5 2h7" /></g>
+    </g>
+    <text x="90" y="226" class="inter" font-size="14" font-weight="700" fill="#F4F4F8">Itens &amp; Consumíveis</text>
+    <text x="90" y="246" class="inter" font-size="11" fill="#9CA3AF">Poções, elixires, pergaminhos e suprimentos</text>
+    <text x="396" y="235" class="mono" font-size="12" font-weight="700" fill="#10B981" text-anchor="end">142 ✓</text>
+
+    <!-- Categoria 2: Equipamentos & Armas -->
+    
+    <rect x="24" y="276" width="392" height="68" rx="14" fill="url(#cardGrad)" stroke="#D4A34B" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="280" width="384" height="60" rx="10" fill="none" stroke="#E5B758" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(40, 292)">
+      <rect width="36" height="36" rx="10" fill="#2A2218" stroke="#E5B758" stroke-width="1.2"/>
+      <g transform="translate(8, 8) scale(0.833)" stroke="#E5B758" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m13 19 6-6" />
+  <path d="M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5" />
+  <path d="m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586" />
+  <path d="m16 16 4 4" />
+  <path d="m19 21 2-2" />
+  <path d="m5 14 4 4" />
+  <path d="m5 21-2-2" />
+  <path d="M7.5 16.5 4 20" /></g>
+    </g>
+    <text x="90" y="306" class="inter" font-size="14" font-weight="700" fill="#F4F4F8">Equipamentos &amp; Armas</text>
+    <text x="90" y="326" class="inter" font-size="11" fill="#9CA3AF">Armas brancas, armaduras e foco dos 12 slots</text>
+    <text x="396" y="315" class="mono" font-size="12" font-weight="700" fill="#10B981" text-anchor="end">89 ✓</text>
+
+    <!-- Categoria 3: Seres & Bestiário -->
+    
+    <rect x="24" y="356" width="392" height="68" rx="14" fill="url(#cardGrad)" stroke="#D4A34B" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="360" width="384" height="60" rx="10" fill="none" stroke="#E5B758" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(40, 372)">
+      <rect width="36" height="36" rx="10" fill="#2A2218" stroke="#E5B758" stroke-width="1.2"/>
+      <g transform="translate(8, 8) scale(0.833)" stroke="#E5B758" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m12.5 17-.5-1-.5 1h1z" />
+  <path d="M15 22a1 1 0 0 0 1-1v-1a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20v1a1 1 0 0 0 1 1z" />
+  <circle cx="15" cy="12" r="1" />
+  <circle cx="9" cy="12" r="1" /></g>
+    </g>
+    <text x="90" y="386" class="inter" font-size="14" font-weight="700" fill="#F4F4F8">Seres &amp; Bestiário</text>
+    <text x="90" y="406" class="inter" font-size="11" fill="#9CA3AF">Criaturas, NPCs aliados e chefes de masmorra</text>
+    <text x="396" y="395" class="mono" font-size="12" font-weight="700" fill="#10B981" text-anchor="end">54 ✓</text>
+
+    <!-- Categoria 4: Poderes & Magias -->
+    
+    <rect x="24" y="436" width="392" height="68" rx="14" fill="url(#cardGrad)" stroke="#D4A34B" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="440" width="384" height="60" rx="10" fill="none" stroke="#E5B758" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(40, 452)">
+      <rect width="36" height="36" rx="10" fill="#2A2218" stroke="#E5B758" stroke-width="1.2"/>
+      <g transform="translate(8, 8) scale(0.833)" stroke="#E5B758" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72" />
+  <path d="m14 7 3 3" />
+  <path d="M5 6v4" />
+  <path d="M19 14v4" />
+  <path d="M10 2v2" />
+  <path d="M7 8H3" />
+  <path d="M21 16h-4" />
+  <path d="M11 3H9" /></g>
+    </g>
+    <text x="90" y="466" class="inter" font-size="14" font-weight="700" fill="#F4F4F8">Poderes &amp; Magias</text>
+    <text x="90" y="486" class="inter" font-size="11" fill="#9CA3AF">Feitiços arcanos, talentos e técnicas de classe</text>
+    <text x="396" y="475" class="mono" font-size="12" font-weight="700" fill="#10B981" text-anchor="end">112 ✓</text>
+
+    <!-- Categoria 5: Pistas & Relíquias (Oculta automaticamente quando vazia) -->
+    
+    <rect x="24" y="516" width="392" height="68" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3" stroke-dasharray="6,4" filter="url(#shadowCard)"/>
+    <rect x="28" y="520" width="384" height="60" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(40, 532)" opacity="0.5">
+      <rect width="36" height="36" rx="10" fill="#18182C" stroke="#2D2C46" stroke-width="1"/>
+      <g transform="translate(8, 8) scale(0.833)" stroke="#64687A" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17V5a2 2 0 0 0-2-2H4" />
+  <path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" /></g>
+    </g>
+    <text x="90" y="546" class="inter" font-size="14" font-weight="600" fill="#64687A">Pistas &amp; Relíquias</text>
+    <text x="90" y="566" class="inter" font-size="11" fill="#64687A">Auto-oculta pela regra UX (0 registros neste módulo)</text>
+    <text x="396" y="555" class="mono" font-size="11" fill="#64687A" text-anchor="end">Vazia</text>
+
+    <!-- Nota Explicativa UX -->
+    
+    <rect x="24" y="602" width="392" height="56" rx="14" fill="#111E2E" stroke="#06B6D4" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="606" width="384" height="48" rx="10" fill="none" stroke="#06B6D4" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(42, 620) scale(0.750)" stroke="#06B6D4" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" />
+  <path d="M12 16v-4" />
+  <path d="M12 8h.01" /></g>
+    <text x="70" y="627" class="inter" font-size="11" font-weight="700" fill="#06B6D4">REGRA INTELIGENTE DO COMPÊNDIO</text>
+    <text x="70" y="644" class="inter" font-size="11" fill="#CFFAFE">Categorias com 0 itens somem da barra de filtros do jogador.</text>
+
+    <!-- Botões de Ação -->
+    
+    <g cursor="pointer">
+      <rect x="24" y="680" width="392" height="56" rx="28.0" fill="url(#goldGradient)" stroke="#F3D078" stroke-width="1" filter="url(#shadowCard)"/>
+      <rect x="28" y="684" width="384" height="48" rx="24.0" fill="none" stroke="#090910" stroke-width="1" stroke-opacity="0.3"/>
+      <g transform="translate(94.80000000000001, 698.0) scale(0.833)" stroke="#090910" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></g>
+      <text x="235.0" y="713.0" class="inter" font-size="14" font-weight="700" fill="#090910" text-anchor="middle">Filtrar Compêndio (397 Itens)</text>
+    </g>
+    
+    
+    <g cursor="pointer">
+      <rect x="24" y="750" width="392" height="48" rx="12" fill="#18182C" stroke="#2E2D48" stroke-width="1.2"/>
+      <g transform="translate(102.0, 765.0) scale(0.750)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v16" />
+  <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /></g>
+      <text x="233.0" y="779.0" class="inter" font-size="13" font-weight="600" fill="#E2E8F0" text-anchor="middle">Selecionar Todas as Categorias</text>
+    </g>
+    
+    
+  
+    <!-- Android Bottom Gesture Pill -->
+    <rect x="166.0" y="846" width="108" height="4" rx="2" fill="#E5B758" fill-opacity="0.35"/>
+    
+</svg>

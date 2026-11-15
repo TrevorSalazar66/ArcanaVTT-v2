@@ -1,0 +1,330 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 880" width="440" height="880">
+
+  <defs>
+    <style>
+      
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap');
+* { box-sizing: border-box; }
+.cinzel { font-family: 'Cinzel', serif; letter-spacing: 0.5px; }
+.inter { font-family: 'Inter', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+    </style>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8BE62"/>
+      <stop offset="50%" stop-color="#D4A34B"/>
+      <stop offset="100%" stop-color="#B8862D"/>
+    </linearGradient>
+    <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5B758"/>
+      <stop offset="100%" stop-color="#8A6421"/>
+    </linearGradient>
+    <linearGradient id="surfaceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#161426"/>
+      <stop offset="100%" stop-color="#0E0D1A"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1A182B"/>
+      <stop offset="100%" stop-color="#121120"/>
+    </linearGradient>
+    <linearGradient id="heroBannerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#221C35"/>
+      <stop offset="50%" stop-color="#171426"/>
+      <stop offset="100%" stop-color="#0D0C18"/>
+    </linearGradient>
+    <linearGradient id="crimsonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="100%" stop-color="#991B1B"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="50%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#1A162B" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#080811" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="shadowSoft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+    <filter id="shadowCard" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Phone Screen Canvas -->
+  <rect width="440" height="880" rx="28" fill="#080811"/>
+  <rect width="440" height="880" rx="28" fill="url(#vignette)"/>
+  <rect x="1" y="1" width="438" height="878" rx="27" fill="none" stroke="#25253E" stroke-width="1.5"/>
+  
+    <!-- Android Native Status Bar -->
+    <g opacity="0.92">
+      <text x="26" y="24" class="inter" font-size="12" font-weight="600" fill="#F4F4F8">22:47</text>
+      <!-- Camera Punch Hole -->
+      <circle cx="220.0" cy="18" r="6" fill="#040408" stroke="#1E1E30" stroke-width="0.8"/>
+      <!-- Right Icons: Wifi, Signal, Battery, Percentage (Well-Spaced, Zero Overlap) -->
+      <g transform="translate(330, 11) scale(0.583)" stroke="#F4F4F8" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01" />
+  <path d="M2 8.82a15 15 0 0 1 20 0" />
+  <path d="M5 12.859a10 10 0 0 1 14 0" />
+  <path d="M8.5 16.429a5 5 0 0 1 7 0" /></g>
+      <path d="M350 24 L360 13 L360 24 Z" fill="#F4F4F8"/>
+      <rect x="368" y="13" width="7" height="11" rx="1.5" fill="#F4F4F8"/>
+      <rect x="370" y="11" width="3" height="2" rx="0.5" fill="#F4F4F8"/>
+      <text x="416" y="23" class="inter" font-size="11" font-weight="700" fill="#F4F4F8" text-anchor="end">87%</text>
+    </g>
+    
+  
+    <!-- Mobile Modal Sheet Container -->
+    <rect x="8" y="38" width="424" height="834" rx="24" fill="url(#surfaceGrad)" stroke="#2A2640" stroke-width="1.2" filter="url(#shadowSoft)"/>
+    <!-- Drag Handle Pill -->
+    <rect x="198.0" y="46" width="44" height="4" rx="2" fill="#D4A34B" fill-opacity="0.45"/>
+
+    <!-- Header Icon Emblem (Octagonal/Heraldic Box) -->
+    <g transform="translate(24, 56)">
+      <rect width="46" height="46" rx="12" fill="#1C192E" stroke="url(#goldBorderGrad)" stroke-width="1.5"/>
+      <rect x="3" y="3" width="40" height="40" rx="9" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.4"/>
+      <g transform="translate(11, 11) scale(1.000)" stroke="#E5B758" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z" /></g>
+    </g>
+
+    <!-- Title & Subtitle -->
+    <text x="80" y="75" class="cinzel" font-size="15.0" font-weight="700" fill="#E5B758">FILTRAR CAMPANHAS</text>
+    <text x="80" y="95" class="inter" font-size="11.5" fill="#9CA3AF">Busca Avançada na Taverna Pública</text>
+    
+        <rect x="306.0" y="60" width="68.0" height="24" rx="12" fill="#10B981" fill-opacity="0.16" stroke="#10B981" stroke-width="1.2"/>
+        <text x="340.0" y="76" class="inter" font-size="9.5" font-weight="700" fill="#10B981" text-anchor="middle">14 MESAS</text>
+        
+    
+        <g cursor="pointer">
+          <rect x="384" y="54" width="34" height="34" rx="10" fill="#18182C" stroke="#25253E" stroke-width="1.2"/>
+          <g transform="translate(392, 62) scale(0.750)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" />
+  <path d="m6 6 12 12" /></g>
+        </g>
+        
+
+    <!-- Ornamental Gold Divider with Center Diamond (Inspired by Guide Image) -->
+    <line x1="24" y1="116" x2="214.0" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    <polygon points="220.0,112 225.0,116 220.0,120 215.0,116" fill="#131322" stroke="#E5B758" stroke-width="1.3"/>
+    <line x1="226.0" y1="116" x2="416" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    
+  
+    <!-- Seção Busca e Sistema -->
+    
+    <g>
+      <g transform="translate(24, 135) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17V5a2 2 0 0 0-2-2H4" />
+  <path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" /></g>
+      <text x="52" y="151" class="cinzel" font-size="14.5" font-weight="700" fill="#F4F4F8">Sistema de Regras</text>
+      <line x1="246.2" y1="146" x2="401" y2="146" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,142 410,146 406,150 402,146" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    
+    <g>
+      <text x="26" y="174" class="inter" font-size="12" font-weight="600" fill="#9CA3AF">Motor de RPG Desejado</text>
+      <rect x="24" y="184" width="392" height="52" rx="12" fill="#0D0D18" stroke="#2D2C46" stroke-width="1.3"/>
+      <g transform="translate(40, 201.0) scale(0.750)" stroke="#D4A34B" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="12" height="12" x="2" y="10" rx="2" ry="2" />
+  <path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6" />
+  <path d="M6 18h.01" />
+  <path d="M10 14h.01" />
+  <path d="M15 6h.01" />
+  <path d="M18 9h.01" /></g>
+      <text x="68" y="215.0" class="inter" font-size="13" fill="#F4F4F8">AlphaD6 RPG (Oficial)</text>
+      <g transform="translate(382, 201.0) scale(0.750)" stroke="#9CA3AF" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5H3" />
+  <path d="M12 19H3" />
+  <path d="M14 3v4" />
+  <path d="M16 17v4" />
+  <path d="M21 12h-9" />
+  <path d="M21 19h-5" />
+  <path d="M21 5h-7" />
+  <path d="M8 10v4" />
+  <path d="M8 12H3" /></g>
+      
+    </g>
+    
+
+    <!-- Seção Estado da Sessão -->
+    
+    <g>
+      <g transform="translate(24, 259) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" />
+  <path d="M12 6v6l4 2" /></g>
+      <text x="52" y="275" class="cinzel" font-size="14.5" font-weight="700" fill="#F4F4F8">Estado da Sessão</text>
+      <line x1="235.6" y1="270" x2="401" y2="270" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,266 410,270 406,274 402,270" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    <g transform="translate(24, 292)">
+      
+    <g cursor="pointer">
+      <rect x="0" y="0" width="124" height="38" rx="19.0" fill="#EF4444" fill-opacity="0.18" stroke="#EF4444" stroke-width="1.2"/>
+      <g transform="translate(12, 12.0) scale(0.583)" stroke="#EF4444" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4" /></g>
+      <text x="73.0" y="23.0" class="inter" font-size="11" font-weight="700" fill="#EF4444" text-anchor="middle">Ao Vivo</text>
+    </g>
+    
+      
+    <g cursor="pointer">
+      <rect x="134" y="0" width="124" height="38" rx="19.0" fill="#18182C" fill-opacity="1.0" stroke="#282640" stroke-width="1.2"/>
+      <g transform="translate(146, 12.0) scale(0.583)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></g>
+      <text x="207.0" y="23.0" class="inter" font-size="11" font-weight="500" fill="#9CA3AF" text-anchor="middle">Free Time</text>
+    </g>
+    
+      
+    <g cursor="pointer">
+      <rect x="268" y="0" width="124" height="38" rx="19.0" fill="#18182C" fill-opacity="1.0" stroke="#282640" stroke-width="1.2"/>
+      <g transform="translate(280, 12.0) scale(0.583)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v3" />
+  <path d="M16 2v3" />
+  <rect x="3" y="3" width="18" height="18" rx="2" />
+  <path d="M3 9h18" /></g>
+      <text x="341.0" y="23.0" class="inter" font-size="11" font-weight="500" fill="#9CA3AF" text-anchor="middle">Agendada</text>
+    </g>
+    
+    </g>
+
+    <!-- Seção Faixa Etária -->
+    
+    <g>
+      <g transform="translate(24, 353) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></g>
+      <text x="52" y="369" class="cinzel" font-size="14.5" font-weight="700" fill="#F4F4F8">Classificação Indicativa</text>
+      <line x1="320.4" y1="364" x2="401" y2="364" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,360 410,364 406,368 402,364" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    <g transform="translate(24, 386)">
+      
+    <g cursor="pointer">
+      <rect x="0" y="0" width="90" height="36" rx="18.0" fill="#18182C" fill-opacity="1.0" stroke="#282640" stroke-width="1.2"/>
+      
+      <text x="45.0" y="22.0" class="inter" font-size="11" font-weight="500" fill="#9CA3AF" text-anchor="middle">Livre</text>
+    </g>
+    
+      
+    <g cursor="pointer">
+      <rect x="100" y="0" width="90" height="36" rx="18.0" fill="#18182C" fill-opacity="1.0" stroke="#282640" stroke-width="1.2"/>
+      
+      <text x="145.0" y="22.0" class="inter" font-size="11" font-weight="500" fill="#9CA3AF" text-anchor="middle">14+ Anos</text>
+    </g>
+    
+      
+    <g cursor="pointer">
+      <rect x="200" y="0" width="90" height="36" rx="18.0" fill="#E5B758" fill-opacity="0.18" stroke="#E5B758" stroke-width="1.2"/>
+      
+      <text x="245.0" y="22.0" class="inter" font-size="11" font-weight="700" fill="#E5B758" text-anchor="middle">16+ Anos</text>
+    </g>
+    
+      
+    <g cursor="pointer">
+      <rect x="300" y="0" width="92" height="36" rx="18.0" fill="#18182C" fill-opacity="1.0" stroke="#282640" stroke-width="1.2"/>
+      
+      <text x="346.0" y="22.0" class="inter" font-size="11" font-weight="500" fill="#9CA3AF" text-anchor="middle">18+ Adulto</text>
+    </g>
+    
+    </g>
+
+    <!-- Seção Tags Temáticas -->
+    
+    <g>
+      <g transform="translate(24, 445) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="9" y2="9" />
+  <line x1="4" x2="20" y1="15" y2="15" />
+  <line x1="10" x2="8" y1="3" y2="21" />
+  <line x1="16" x2="14" y1="3" y2="21" /></g>
+      <text x="52" y="461" class="cinzel" font-size="14.5" font-weight="700" fill="#F4F4F8">Tags de Ambientação (#)</text>
+      <line x1="309.79999999999995" y1="456" x2="401" y2="456" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,452 410,456 406,460 402,456" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    <g transform="translate(24, 478)">
+      
+    <g cursor="pointer">
+      <rect x="0" y="0" width="118" height="36" rx="18.0" fill="#E5B758" fill-opacity="0.18" stroke="#E5B758" stroke-width="1.2"/>
+      
+      <text x="59.0" y="22.0" class="inter" font-size="11" font-weight="700" fill="#E5B758" text-anchor="middle">#terror</text>
+    </g>
+    
+      
+    <g cursor="pointer">
+      <rect x="128" y="0" width="136" height="36" rx="18.0" fill="#E5B758" fill-opacity="0.18" stroke="#E5B758" stroke-width="1.2"/>
+      
+      <text x="196.0" y="22.0" class="inter" font-size="11" font-weight="700" fill="#E5B758" text-anchor="middle">#investigacao</text>
+    </g>
+    
+      
+    <g cursor="pointer">
+      <rect x="274" y="0" width="118" height="36" rx="18.0" fill="#18182C" fill-opacity="1.0" stroke="#282640" stroke-width="1.2"/>
+      
+      <text x="333.0" y="22.0" class="inter" font-size="11" font-weight="500" fill="#9CA3AF" text-anchor="middle">#darkfantasy</text>
+    </g>
+    
+    </g>
+    <g transform="translate(24, 524)">
+      
+    <g cursor="pointer">
+      <rect x="0" y="0" width="124" height="36" rx="18.0" fill="#18182C" fill-opacity="1.0" stroke="#282640" stroke-width="1.2"/>
+      
+      <text x="62.0" y="22.0" class="inter" font-size="11" font-weight="500" fill="#9CA3AF" text-anchor="middle">#alta-fantasia</text>
+    </g>
+    
+      
+    <g cursor="pointer">
+      <rect x="134" y="0" width="124" height="36" rx="18.0" fill="#18182C" fill-opacity="1.0" stroke="#282640" stroke-width="1.2"/>
+      
+      <text x="196.0" y="22.0" class="inter" font-size="11" font-weight="500" fill="#9CA3AF" text-anchor="middle">#cyberpunk</text>
+    </g>
+    
+      
+    <g cursor="pointer">
+      <rect x="268" y="0" width="124" height="36" rx="18.0" fill="#18182C" fill-opacity="1.0" stroke="#282640" stroke-width="1.2"/>
+      
+      <text x="330.0" y="22.0" class="inter" font-size="11" font-weight="500" fill="#9CA3AF" text-anchor="middle">+ Explorar Tags</text>
+    </g>
+    
+    </g>
+
+    <!-- Card Toggle Somente Vagas Abertas -->
+    
+    <rect x="24" y="584" width="392" height="64" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="588" width="384" height="56" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(42, 606) scale(0.833)" stroke="#10B981" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+  <path d="M16 3.128a4 4 0 0 1 0 7.744" />
+  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+  <circle cx="9" cy="7" r="4" /></g>
+    <text x="72" y="612" class="inter" font-size="13" font-weight="600" fill="#F4F4F8">Exibir apenas mesas com vagas</text>
+    <text x="72" y="632" class="inter" font-size="11" fill="#9CA3AF">Oculta campanhas com grupo fechado</text>
+    <rect x="358" y="605" width="42" height="22" rx="11" fill="#10B981"/>
+    <circle cx="389" cy="616" r="8" fill="#FFFFFF"/>
+
+    <!-- Botões de Ação -->
+    
+    <g cursor="pointer">
+      <rect x="24" y="676" width="392" height="56" rx="28.0" fill="url(#goldGradient)" stroke="#F3D078" stroke-width="1" filter="url(#shadowCard)"/>
+      <rect x="28" y="680" width="384" height="48" rx="24.0" fill="none" stroke="#090910" stroke-width="1" stroke-opacity="0.3"/>
+      <g transform="translate(106.2, 694.0) scale(0.833)" stroke="#090910" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34" />
+  <circle cx="11" cy="11" r="8" /></g>
+      <text x="235.0" y="709.0" class="inter" font-size="14" font-weight="700" fill="#090910" text-anchor="middle">Aplicar Filtros (14 Mesas)</text>
+    </g>
+    
+    
+    <g cursor="pointer">
+      <rect x="24" y="748" width="392" height="48" rx="12" fill="#18182C" stroke="#2E2D48" stroke-width="1.2"/>
+      <g transform="translate(126.5, 763.0) scale(0.750)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6" />
+  <path d="M14 11v6" />
+  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+  <path d="M3 6h18" />
+  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></g>
+      <text x="233.0" y="777.0" class="inter" font-size="13" font-weight="600" fill="#E2E8F0" text-anchor="middle">Limpar Todos os Filtros</text>
+    </g>
+    
+
+    <text x="220" y="832" class="inter" font-size="11" fill="#64687A" text-anchor="middle">Indexação instantânea via Cloudflare D1 Edge</text>
+    
+  
+    <!-- Android Bottom Gesture Pill -->
+    <rect x="166.0" y="866" width="108" height="4" rx="2" fill="#E5B758" fill-opacity="0.35"/>
+    
+</svg>

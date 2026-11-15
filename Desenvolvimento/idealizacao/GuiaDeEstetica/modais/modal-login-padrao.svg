@@ -1,0 +1,212 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 840" width="440" height="840">
+
+  <defs>
+    <style>
+      
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap');
+* { box-sizing: border-box; }
+.cinzel { font-family: 'Cinzel', serif; letter-spacing: 0.5px; }
+.inter { font-family: 'Inter', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+    </style>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8BE62"/>
+      <stop offset="50%" stop-color="#D4A34B"/>
+      <stop offset="100%" stop-color="#B8862D"/>
+    </linearGradient>
+    <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5B758"/>
+      <stop offset="100%" stop-color="#8A6421"/>
+    </linearGradient>
+    <linearGradient id="surfaceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#161426"/>
+      <stop offset="100%" stop-color="#0E0D1A"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1A182B"/>
+      <stop offset="100%" stop-color="#121120"/>
+    </linearGradient>
+    <linearGradient id="heroBannerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#221C35"/>
+      <stop offset="50%" stop-color="#171426"/>
+      <stop offset="100%" stop-color="#0D0C18"/>
+    </linearGradient>
+    <linearGradient id="crimsonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="100%" stop-color="#991B1B"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="50%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#1A162B" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#080811" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="shadowSoft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+    <filter id="shadowCard" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Phone Screen Canvas -->
+  <rect width="440" height="840" rx="28" fill="#080811"/>
+  <rect width="440" height="840" rx="28" fill="url(#vignette)"/>
+  <rect x="1" y="1" width="438" height="838" rx="27" fill="none" stroke="#25253E" stroke-width="1.5"/>
+  
+    <!-- Android Native Status Bar -->
+    <g opacity="0.92">
+      <text x="26" y="24" class="inter" font-size="12" font-weight="600" fill="#F4F4F8">22:47</text>
+      <!-- Camera Punch Hole -->
+      <circle cx="220.0" cy="18" r="6" fill="#040408" stroke="#1E1E30" stroke-width="0.8"/>
+      <!-- Right Icons: Wifi, Signal, Battery, Percentage (Well-Spaced, Zero Overlap) -->
+      <g transform="translate(330, 11) scale(0.583)" stroke="#F4F4F8" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01" />
+  <path d="M2 8.82a15 15 0 0 1 20 0" />
+  <path d="M5 12.859a10 10 0 0 1 14 0" />
+  <path d="M8.5 16.429a5 5 0 0 1 7 0" /></g>
+      <path d="M350 24 L360 13 L360 24 Z" fill="#F4F4F8"/>
+      <rect x="368" y="13" width="7" height="11" rx="1.5" fill="#F4F4F8"/>
+      <rect x="370" y="11" width="3" height="2" rx="0.5" fill="#F4F4F8"/>
+      <text x="416" y="23" class="inter" font-size="11" font-weight="700" fill="#F4F4F8" text-anchor="end">87%</text>
+    </g>
+    
+  
+    <!-- Mobile Modal Sheet Container -->
+    <rect x="8" y="38" width="424" height="794" rx="24" fill="url(#surfaceGrad)" stroke="#2A2640" stroke-width="1.2" filter="url(#shadowSoft)"/>
+    <!-- Drag Handle Pill -->
+    <rect x="198.0" y="46" width="44" height="4" rx="2" fill="#D4A34B" fill-opacity="0.45"/>
+
+    <!-- Header Icon Emblem (Octagonal/Heraldic Box) -->
+    <g transform="translate(24, 56)">
+      <rect width="46" height="46" rx="12" fill="#1C192E" stroke="url(#goldBorderGrad)" stroke-width="1.5"/>
+      <rect x="3" y="3" width="40" height="40" rx="9" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.4"/>
+      <g transform="translate(11, 11) scale(1.000)" stroke="#E5B758" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" />
+  <path d="M5 21h14" /></g>
+    </g>
+
+    <!-- Title & Subtitle -->
+    <text x="80" y="75" class="cinzel" font-size="16.0" font-weight="700" fill="#E5B758">ARCANA VTT</text>
+    <text x="80" y="95" class="inter" font-size="11.5" fill="#9CA3AF">Portal de Autenticação Google OAuth</text>
+    
+        <rect x="341.5" y="60" width="74.5" height="24" rx="12" fill="#E5B758" fill-opacity="0.16" stroke="#E5B758" stroke-width="1.2"/>
+        <text x="378.75" y="76" class="inter" font-size="9.5" font-weight="700" fill="#E5B758" text-anchor="middle">OAUTH 2.0</text>
+        
+    
+
+    <!-- Ornamental Gold Divider with Center Diamond (Inspired by Guide Image) -->
+    <line x1="24" y1="116" x2="214.0" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    <polygon points="220.0,112 225.0,116 220.0,120 215.0,116" fill="#131322" stroke="#E5B758" stroke-width="1.3"/>
+    <line x1="226.0" y1="116" x2="416" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    
+  
+    <!-- Hero Emblem Banner Card (Guide Image Style) -->
+    
+    <rect x="24" y="136" width="392" height="132" rx="14" fill="url(#cardGrad)" stroke="#D4A34B" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="140" width="384" height="124" rx="10" fill="none" stroke="#E5B758" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(220, 178)">
+      <!-- Heraldic D20 / Compass Emblem -->
+      <circle r="28" fill="#181528" stroke="#E5B758" stroke-width="1.6"/>
+      <polygon points="0,-22 19,-11 19,11 0,22 -19,11 -19,-11" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      <g transform="translate(-11, -11) scale(0.917)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="12" height="12" x="2" y="10" rx="2" ry="2" />
+  <path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6" />
+  <path d="M6 18h.01" />
+  <path d="M10 14h.01" />
+  <path d="M15 6h.01" />
+  <path d="M18 9h.01" /></g>
+    </g>
+    <text x="220" y="228" class="cinzel" font-size="16" font-weight="700" fill="#F4F4F8" text-anchor="middle">Saudações, Aventureiro</text>
+    <text x="220" y="250" class="inter" font-size="12" fill="#9CA3AF" text-anchor="middle">Acesso exclusivo e sem senhas via Google OAuth 2.0</text>
+
+    <!-- Seção Autenticação Oficial OAuth 2.0 -->
+    
+    <g>
+      <g transform="translate(24, 287) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></g>
+      <text x="52" y="303" class="cinzel" font-size="13.5" font-weight="700" fill="#F4F4F8">Autenticação Google OAuth</text>
+      <line x1="311.0" y1="298" x2="401" y2="298" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,294 410,298 406,302 402,298" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    <!-- Card Conta Google Detectada no Android (1-Tap) -->
+    
+    <rect x="24" y="320" width="392" height="92" rx="14" fill="url(#cardGrad)" stroke="#D4A34B" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="324" width="384" height="84" rx="10" fill="none" stroke="#E5B758" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(42, 344)">
+      <circle cx="22" cy="22" r="22" fill="#FFFFFF"/>
+      <text x="22" y="28" class="inter" font-size="20" font-weight="700" fill="#EA4335" text-anchor="middle">G</text>
+    </g>
+    <text x="100" y="356" class="inter" font-size="14" font-weight="700" fill="#F4F4F8">Conta Google do Aparelho</text>
+    <text x="100" y="376" class="mono" font-size="12" fill="#E5B758">arthur.pendelton@gmail.com</text>
+    <text x="100" y="396" class="inter" font-size="11" fill="#10B981">Identidade OAuth 2.0 Pronta • Zero Senhas</text>
+    <rect x="330" y="344" width="68" height="24" rx="12" fill="#10B981" fill-opacity="0.16" stroke="#10B981" stroke-width="1"/>
+    <text x="364" y="360" class="inter" font-size="10" font-weight="700" fill="#10B981" text-anchor="middle">1-Toque</text>
+
+    <!-- Botão Principal Ornado: Entrar com o Google -->
+    
+    <g cursor="pointer">
+      <rect x="24" y="430" width="392" height="58" rx="29.0" fill="url(#goldGradient)" stroke="#F3D078" stroke-width="1" filter="url(#shadowCard)"/>
+      <rect x="28" y="434" width="384" height="50" rx="25.0" fill="none" stroke="#090910" stroke-width="1" stroke-opacity="0.3"/>
+      <g transform="translate(117.60000000000001, 449.0) scale(0.833)" stroke="#090910" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" />
+  <path d="M20 2v4" />
+  <path d="M22 4h-4" />
+  <circle cx="4" cy="20" r="2" /></g>
+      <text x="235.0" y="464.0" class="inter" font-size="14" font-weight="700" fill="#090910" text-anchor="middle">Entrar com Conta Google</text>
+    </g>
+    
+
+    <!-- Botão Secundário: Escolher Outra Conta Google -->
+    
+    <g cursor="pointer">
+      <rect x="24" y="502" width="392" height="48" rx="12" fill="#1F1B2C" stroke="#D4A34B" stroke-width="1.2"/>
+      <g transform="translate(67.0, 517.0) scale(0.750)" stroke="#E5B758" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+  <circle cx="12" cy="7" r="4" /></g>
+      <text x="233.0" y="531.0" class="inter" font-size="13" font-weight="600" fill="#E5B758" text-anchor="middle">Selecionar Outra Conta Google no Android</text>
+    </g>
+    
+
+    <!-- Seção Segurança do Aparelho -->
+    
+    <g>
+      <g transform="translate(24, 573) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+  <path d="M7 11V7a5 5 0 0 1 10 0v4" /></g>
+      <text x="52" y="589" class="cinzel" font-size="13.5" font-weight="700" fill="#F4F4F8">Segurança &amp; Sessão Persistente</text>
+      <line x1="360.0" y1="584" x2="401" y2="584" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,580 410,584 406,588 402,584" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    <!-- Card Dispositivo Confiável -->
+    
+    <rect x="24" y="606" width="392" height="64" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="610" width="384" height="56" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(40, 628) scale(0.833)" stroke="#10B981" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></g>
+    <text x="70" y="633" class="inter" font-size="13" font-weight="600" fill="#F4F4F8">Confiar neste aparelho Android</text>
+    <text x="70" y="653" class="inter" font-size="11" fill="#9CA3AF">Sessão automática de 15 a 30 dias via Keystore</text>
+    <rect x="358" y="627" width="42" height="22" rx="11" fill="#10B981"/>
+    <circle cx="389" cy="638" r="8" fill="#FFFFFF"/>
+
+    <!-- Card Garantias Zero-Custody -->
+    
+    <rect x="24" y="684" width="392" height="82" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="688" width="384" height="74" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(42, 704) scale(0.667)" stroke="#E5B758" stroke-width="2.3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></g>
+    <text x="68" y="717" class="inter" font-size="11.5" fill="#F4F4F8">Zero custódia de senhas: login 100% delegado ao Google.</text>
+    <g transform="translate(42, 732) scale(0.667)" stroke="#E5B758" stroke-width="2.3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></g>
+    <text x="68" y="745" class="inter" font-size="11.5" fill="#9CA3AF">Criação automática de perfil no primeiro acesso OAuth.</text>
+
+    <text x="220" y="802" class="inter" font-size="11" fill="#64687A" text-anchor="middle">Protegido por TLS 1.3 • Conformidade LGPD • 60 FPS</text>
+    
+  
+    <!-- Android Bottom Gesture Pill -->
+    <rect x="166.0" y="826" width="108" height="4" rx="2" fill="#E5B758" fill-opacity="0.35"/>
+    
+</svg>

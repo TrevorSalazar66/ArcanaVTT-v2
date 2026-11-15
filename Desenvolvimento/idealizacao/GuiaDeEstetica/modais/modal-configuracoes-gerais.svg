@@ -1,0 +1,246 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 980" width="440" height="980">
+
+  <defs>
+    <style>
+      
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap');
+* { box-sizing: border-box; }
+.cinzel { font-family: 'Cinzel', serif; letter-spacing: 0.5px; }
+.inter { font-family: 'Inter', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+    </style>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8BE62"/>
+      <stop offset="50%" stop-color="#D4A34B"/>
+      <stop offset="100%" stop-color="#B8862D"/>
+    </linearGradient>
+    <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5B758"/>
+      <stop offset="100%" stop-color="#8A6421"/>
+    </linearGradient>
+    <linearGradient id="surfaceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#161426"/>
+      <stop offset="100%" stop-color="#0E0D1A"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1A182B"/>
+      <stop offset="100%" stop-color="#121120"/>
+    </linearGradient>
+    <linearGradient id="heroBannerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#221C35"/>
+      <stop offset="50%" stop-color="#171426"/>
+      <stop offset="100%" stop-color="#0D0C18"/>
+    </linearGradient>
+    <linearGradient id="crimsonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="100%" stop-color="#991B1B"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="50%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#1A162B" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#080811" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="shadowSoft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+    <filter id="shadowCard" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Phone Screen Canvas -->
+  <rect width="440" height="980" rx="28" fill="#080811"/>
+  <rect width="440" height="980" rx="28" fill="url(#vignette)"/>
+  <rect x="1" y="1" width="438" height="978" rx="27" fill="none" stroke="#25253E" stroke-width="1.5"/>
+  
+    <!-- Android Native Status Bar -->
+    <g opacity="0.92">
+      <text x="26" y="24" class="inter" font-size="12" font-weight="600" fill="#F4F4F8">22:47</text>
+      <!-- Camera Punch Hole -->
+      <circle cx="220.0" cy="18" r="6" fill="#040408" stroke="#1E1E30" stroke-width="0.8"/>
+      <!-- Right Icons: Wifi, Signal, Battery, Percentage (Well-Spaced, Zero Overlap) -->
+      <g transform="translate(330, 11) scale(0.583)" stroke="#F4F4F8" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01" />
+  <path d="M2 8.82a15 15 0 0 1 20 0" />
+  <path d="M5 12.859a10 10 0 0 1 14 0" />
+  <path d="M8.5 16.429a5 5 0 0 1 7 0" /></g>
+      <path d="M350 24 L360 13 L360 24 Z" fill="#F4F4F8"/>
+      <rect x="368" y="13" width="7" height="11" rx="1.5" fill="#F4F4F8"/>
+      <rect x="370" y="11" width="3" height="2" rx="0.5" fill="#F4F4F8"/>
+      <text x="416" y="23" class="inter" font-size="11" font-weight="700" fill="#F4F4F8" text-anchor="end">87%</text>
+    </g>
+    
+  
+    <!-- Mobile Modal Sheet Container -->
+    <rect x="8" y="38" width="424" height="934" rx="24" fill="url(#surfaceGrad)" stroke="#2A2640" stroke-width="1.2" filter="url(#shadowSoft)"/>
+    <!-- Drag Handle Pill -->
+    <rect x="198.0" y="46" width="44" height="4" rx="2" fill="#D4A34B" fill-opacity="0.45"/>
+
+    <!-- Header Icon Emblem (Octagonal/Heraldic Box) -->
+    <g transform="translate(24, 56)">
+      <rect width="46" height="46" rx="12" fill="#1C192E" stroke="url(#goldBorderGrad)" stroke-width="1.5"/>
+      <rect x="3" y="3" width="40" height="40" rx="9" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.4"/>
+      <g transform="translate(11, 11) scale(1.000)" stroke="#E5B758" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
+  <circle cx="12" cy="12" r="3" /></g>
+    </g>
+
+    <!-- Title & Subtitle -->
+    <text x="80" y="75" class="cinzel" font-size="16.0" font-weight="700" fill="#E5B758">CONFIGURAÇÕES</text>
+    <text x="80" y="95" class="inter" font-size="11.5" fill="#9CA3AF">Ajustes Visuais, Áudio 4 Canais e Segurança</text>
+    
+        <rect x="312.5" y="60" width="61.5" height="24" rx="12" fill="#E5B758" fill-opacity="0.16" stroke="#E5B758" stroke-width="1.2"/>
+        <text x="343.25" y="76" class="inter" font-size="9.5" font-weight="700" fill="#E5B758" text-anchor="middle">SISTEMA</text>
+        
+    
+        <g cursor="pointer">
+          <rect x="384" y="54" width="34" height="34" rx="10" fill="#18182C" stroke="#25253E" stroke-width="1.2"/>
+          <g transform="translate(392, 62) scale(0.750)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" />
+  <path d="m6 6 12 12" /></g>
+        </g>
+        
+
+    <!-- Ornamental Gold Divider with Center Diamond (Inspired by Guide Image) -->
+    <line x1="24" y1="116" x2="214.0" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    <polygon points="220.0,112 225.0,116 220.0,120 215.0,116" fill="#131322" stroke="#E5B758" stroke-width="1.3"/>
+    <line x1="226.0" y1="116" x2="416" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    
+  
+    <!-- Seção 1: Interface e Acessibilidade -->
+    
+    <g>
+      <g transform="translate(24, 135) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
+  <circle cx="12" cy="12" r="3" /></g>
+      <text x="52" y="151" class="cinzel" font-size="13.5" font-weight="700" fill="#F4F4F8">Interface &amp; Acessibilidade</text>
+      <line x1="320.8" y1="146" x2="401" y2="146" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,142 410,146 406,150 402,146" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    
+    <rect x="24" y="168" width="392" height="138" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="172" width="384" height="130" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <text x="42" y="198" class="inter" font-size="13" fill="#9CA3AF">Tema Visual:</text>
+    <text x="396" y="198" class="inter" font-size="13" font-weight="700" fill="#E5B758" text-anchor="end">Escuro Heráldico (Padrão)</text>
+    <line x1="42" y1="212" x2="396" y2="212" stroke="#25253E" stroke-width="1"/>
+
+    <text x="42" y="238" class="inter" font-size="13" fill="#9CA3AF">Vibração Tátil (Haptics):</text>
+    <text x="396" y="238" class="inter" font-size="13" font-weight="700" fill="#10B981" text-anchor="end">Médio (Ao Rolar Dados)</text>
+    <line x1="42" y1="252" x2="396" y2="252" stroke="#25253E" stroke-width="1"/>
+
+    <text x="42" y="278" class="inter" font-size="13" fill="#9CA3AF">Escala Tipográfica:</text>
+    <text x="396" y="278" class="mono" font-size="13" font-weight="700" fill="#F4F4F8" text-anchor="end">100% (80% a 150%)</text>
+
+    <!-- Seção 2: Mixer de Áudio de 4 Canais -->
+    
+    <g>
+      <g transform="translate(24, 325) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" />
+  <path d="M16 9a5 5 0 0 1 0 6" />
+  <path d="M19.364 18.364a9 9 0 0 0 0-12.728" /></g>
+      <text x="52" y="341" class="cinzel" font-size="13.5" font-weight="700" fill="#F4F4F8">Mixer de Áudio (4 Canais)</text>
+      <line x1="311.0" y1="336" x2="401" y2="336" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,332 410,336 406,340 402,336" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    
+    <rect x="24" y="358" width="392" height="162" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="362" width="384" height="154" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <!-- Canal 1 -->
+    <text x="42" y="388" class="inter" font-size="12" fill="#F4F4F8">Geral</text>
+    <rect x="130" y="378" width="210" height="10" rx="5" fill="#0D0D18"/>
+    <rect x="130" y="378" width="168" height="10" rx="5" fill="url(#goldGradient)"/>
+    <text x="396" y="388" class="mono" font-size="12" font-weight="700" fill="#E5B758" text-anchor="end">80%</text>
+
+    <!-- Canal 2 -->
+    <text x="42" y="424" class="inter" font-size="12" fill="#F4F4F8">Dados SFX</text>
+    <rect x="130" y="414" width="210" height="10" rx="5" fill="#0D0D18"/>
+    <rect x="130" y="414" width="210" height="10" rx="5" fill="url(#goldGradient)"/>
+    <text x="396" y="424" class="mono" font-size="12" font-weight="700" fill="#E5B758" text-anchor="end">100%</text>
+
+    <!-- Canal 3 -->
+    <text x="42" y="460" class="inter" font-size="12" fill="#F4F4F8">Música</text>
+    <rect x="130" y="450" width="210" height="10" rx="5" fill="#0D0D18"/>
+    <rect x="130" y="450" width="136" height="10" rx="5" fill="url(#goldGradient)"/>
+    <text x="396" y="460" class="mono" font-size="12" font-weight="700" fill="#E5B758" text-anchor="end">65%</text>
+
+    <!-- Toggle Silenciar -->
+    <text x="42" y="498" class="inter" font-size="12" fill="#9CA3AF">Silenciar automaticamente em 2º plano:</text>
+    <text x="396" y="498" class="mono" font-size="12" font-weight="700" fill="#10B981" text-anchor="end">ATIVO</text>
+
+    <!-- Seção 3: Rede P2P & Cache Local -->
+    
+    <g>
+      <g transform="translate(24, 539) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01" />
+  <path d="M2 8.82a15 15 0 0 1 20 0" />
+  <path d="M5 12.859a10 10 0 0 1 14 0" />
+  <path d="M8.5 16.429a5 5 0 0 1 7 0" /></g>
+      <text x="52" y="555" class="cinzel" font-size="13.5" font-weight="700" fill="#F4F4F8">Malha P2P &amp; Armazenamento</text>
+      <line x1="311.0" y1="550" x2="401" y2="550" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,546 410,550 406,554 402,550" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    
+    <rect x="24" y="572" width="392" height="92" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="576" width="384" height="84" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <text x="42" y="600" class="inter" font-size="13" font-weight="600" fill="#F4F4F8">Cache P2P Local: <tspan fill="#E5B758">142 MB / 1.0 GB</tspan></text>
+    <text x="42" y="622" class="inter" font-size="11" fill="#9CA3AF">Mapas e trilhas distribuídos entre os membros da mesa</text>
+    <text x="42" y="644" class="inter" font-size="11" font-weight="600" fill="#E5B758">Toque para limpar arquivos temporários</text>
+    <g transform="translate(376, 608) scale(0.833)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6" />
+  <path d="M14 11v6" />
+  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+  <path d="M3 6h18" />
+  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></g>
+
+    <!-- Seção 4: Segurança & Lockout -->
+    
+    <g>
+      <g transform="translate(24, 683) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+  <path d="M7 11V7a5 5 0 0 1 10 0v4" /></g>
+      <text x="52" y="699" class="cinzel" font-size="13.5" font-weight="700" fill="#F4F4F8">Segurança &amp; Lockout Global</text>
+      <line x1="320.8" y1="694" x2="401" y2="694" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,690 410,694 406,698 402,694" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    
+    <rect x="24" y="716" width="392" height="98" rx="14" fill="#241118" stroke="#EF4444" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="720" width="384" height="90" rx="10" fill="none" stroke="#EF4444" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <text x="42" y="744" class="inter" font-size="12" font-weight="700" fill="#EF4444">2 APARELHOS CONECTADOS NA CONTA</text>
+    <text x="42" y="764" class="inter" font-size="11" fill="#FCA5A5">Android S23 (Atual) • Navegador Desktop Windows</text>
+    
+    <g cursor="pointer">
+      <rect x="42" y="774" width="356" height="32" rx="12" fill="#281219" stroke="#EF4444" stroke-width="1.2"/>
+      <g transform="translate(91.5, 781.0) scale(0.750)" stroke="#EF4444" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5" />
+  <path d="M21 12H9" />
+  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /></g>
+      <text x="233.0" y="795.0" class="inter" font-size="13" font-weight="600" fill="#FCA5A5" text-anchor="middle">Desconectar Todos os Dispositivos</text>
+    </g>
+    
+
+    <!-- Botão Salvar -->
+    
+    <g cursor="pointer">
+      <rect x="24" y="836" width="392" height="56" rx="28.0" fill="url(#goldGradient)" stroke="#F3D078" stroke-width="1" filter="url(#shadowCard)"/>
+      <rect x="28" y="840" width="384" height="48" rx="24.0" fill="none" stroke="#090910" stroke-width="1" stroke-opacity="0.3"/>
+      <g transform="translate(91.0, 854.0) scale(0.833)" stroke="#090910" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></g>
+      <text x="235.0" y="869.0" class="inter" font-size="14" font-weight="700" fill="#090910" text-anchor="middle">Salvar Preferências da Taverna</text>
+    </g>
+    
+    
+  
+    <!-- Android Bottom Gesture Pill -->
+    <rect x="166.0" y="966" width="108" height="4" rx="2" fill="#E5B758" fill-opacity="0.35"/>
+    
+</svg>

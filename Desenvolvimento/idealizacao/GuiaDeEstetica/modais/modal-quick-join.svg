@@ -1,0 +1,266 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 820" width="440" height="820">
+
+  <defs>
+    <style>
+      
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap');
+* { box-sizing: border-box; }
+.cinzel { font-family: 'Cinzel', serif; letter-spacing: 0.5px; }
+.inter { font-family: 'Inter', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+    </style>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8BE62"/>
+      <stop offset="50%" stop-color="#D4A34B"/>
+      <stop offset="100%" stop-color="#B8862D"/>
+    </linearGradient>
+    <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5B758"/>
+      <stop offset="100%" stop-color="#8A6421"/>
+    </linearGradient>
+    <linearGradient id="surfaceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#161426"/>
+      <stop offset="100%" stop-color="#0E0D1A"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1A182B"/>
+      <stop offset="100%" stop-color="#121120"/>
+    </linearGradient>
+    <linearGradient id="heroBannerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#221C35"/>
+      <stop offset="50%" stop-color="#171426"/>
+      <stop offset="100%" stop-color="#0D0C18"/>
+    </linearGradient>
+    <linearGradient id="crimsonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="100%" stop-color="#991B1B"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="50%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#1A162B" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#080811" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="shadowSoft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+    <filter id="shadowCard" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Phone Screen Canvas -->
+  <rect width="440" height="820" rx="28" fill="#080811"/>
+  <rect width="440" height="820" rx="28" fill="url(#vignette)"/>
+  <rect x="1" y="1" width="438" height="818" rx="27" fill="none" stroke="#25253E" stroke-width="1.5"/>
+  
+    <!-- Android Native Status Bar -->
+    <g opacity="0.92">
+      <text x="26" y="24" class="inter" font-size="12" font-weight="600" fill="#F4F4F8">22:47</text>
+      <!-- Camera Punch Hole -->
+      <circle cx="220.0" cy="18" r="6" fill="#040408" stroke="#1E1E30" stroke-width="0.8"/>
+      <!-- Right Icons: Wifi, Signal, Battery, Percentage (Well-Spaced, Zero Overlap) -->
+      <g transform="translate(330, 11) scale(0.583)" stroke="#F4F4F8" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01" />
+  <path d="M2 8.82a15 15 0 0 1 20 0" />
+  <path d="M5 12.859a10 10 0 0 1 14 0" />
+  <path d="M8.5 16.429a5 5 0 0 1 7 0" /></g>
+      <path d="M350 24 L360 13 L360 24 Z" fill="#F4F4F8"/>
+      <rect x="368" y="13" width="7" height="11" rx="1.5" fill="#F4F4F8"/>
+      <rect x="370" y="11" width="3" height="2" rx="0.5" fill="#F4F4F8"/>
+      <text x="416" y="23" class="inter" font-size="11" font-weight="700" fill="#F4F4F8" text-anchor="end">87%</text>
+    </g>
+    
+  
+    <!-- Mobile Modal Sheet Container -->
+    <rect x="8" y="38" width="424" height="774" rx="24" fill="url(#surfaceGrad)" stroke="#2A2640" stroke-width="1.2" filter="url(#shadowSoft)"/>
+    <!-- Drag Handle Pill -->
+    <rect x="198.0" y="46" width="44" height="4" rx="2" fill="#D4A34B" fill-opacity="0.45"/>
+
+    <!-- Header Icon Emblem (Octagonal/Heraldic Box) -->
+    <g transform="translate(24, 56)">
+      <rect width="46" height="46" rx="12" fill="#1C192E" stroke="url(#goldBorderGrad)" stroke-width="1.5"/>
+      <rect x="3" y="3" width="40" height="40" rx="9" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.4"/>
+      <g transform="translate(11, 11) scale(1.000)" stroke="#E5B758" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1" />
+  <rect width="5" height="5" x="16" y="3" rx="1" />
+  <rect width="5" height="5" x="3" y="16" rx="1" />
+  <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+  <path d="M21 21v.01" />
+  <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+  <path d="M3 12h.01" />
+  <path d="M12 3h.01" />
+  <path d="M12 16v.01" />
+  <path d="M16 12h1" />
+  <path d="M21 12v.01" />
+  <path d="M12 21v-1" /></g>
+    </g>
+
+    <!-- Title & Subtitle -->
+    <text x="80" y="75" class="cinzel" font-size="16.0" font-weight="700" fill="#E5B758">ENTRADA RÁPIDA</text>
+    <text x="80" y="95" class="inter" font-size="11.5" fill="#9CA3AF">Ingresso Instantâneo via Código ou QR</text>
+    
+        <rect x="293.0" y="60" width="81.0" height="24" rx="12" fill="#E5B758" fill-opacity="0.16" stroke="#E5B758" stroke-width="1.2"/>
+        <text x="333.5" y="76" class="inter" font-size="9.5" font-weight="700" fill="#E5B758" text-anchor="middle">QUICK JOIN</text>
+        
+    
+        <g cursor="pointer">
+          <rect x="384" y="54" width="34" height="34" rx="10" fill="#18182C" stroke="#25253E" stroke-width="1.2"/>
+          <g transform="translate(392, 62) scale(0.750)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" />
+  <path d="m6 6 12 12" /></g>
+        </g>
+        
+
+    <!-- Ornamental Gold Divider with Center Diamond (Inspired by Guide Image) -->
+    <line x1="24" y1="116" x2="214.0" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    <polygon points="220.0,112 225.0,116 220.0,120 215.0,116" fill="#131322" stroke="#E5B758" stroke-width="1.3"/>
+    <line x1="226.0" y1="116" x2="416" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    
+  
+    <!-- Seção Código Alfanumérico -->
+    
+    <g>
+      <g transform="translate(24, 135) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="9" y2="9" />
+  <line x1="4" x2="20" y1="15" y2="15" />
+  <line x1="10" x2="8" y1="3" y2="21" />
+  <line x1="16" x2="14" y1="3" y2="21" /></g>
+      <text x="52" y="151" class="cinzel" font-size="13.5" font-weight="700" fill="#F4F4F8">Código de Convite (6 Dígitos)</text>
+      <line x1="350.20000000000005" y1="146" x2="401" y2="146" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,142 410,146 406,150 402,146" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    <text x="24" y="182" class="inter" font-size="12" fill="#9CA3AF">Digite o código informado pelo Mestre da sessão:</text>
+
+    <!-- 6 Slots Bem Espaçados (Zero Sobreposição: 6 * 56px + 5 * 11px = 391px) -->
+    <g transform="translate(24, 198)">
+      <!-- Slot 1 -->
+      <rect x="0" y="0" width="56" height="68" rx="12" fill="#0D0D18" stroke="#E5B758" stroke-width="1.6"/>
+      <text x="28" y="44" class="mono" font-size="26" font-weight="700" fill="#E5B758" text-anchor="middle">K</text>
+      <!-- Slot 2 -->
+      <rect x="67" y="0" width="56" height="68" rx="12" fill="#0D0D18" stroke="#E5B758" stroke-width="1.6"/>
+      <text x="95" y="44" class="mono" font-size="26" font-weight="700" fill="#E5B758" text-anchor="middle">8</text>
+      <!-- Slot 3 -->
+      <rect x="134" y="0" width="56" height="68" rx="12" fill="#0D0D18" stroke="#E5B758" stroke-width="1.6"/>
+      <text x="162" y="44" class="mono" font-size="26" font-weight="700" fill="#E5B758" text-anchor="middle">F</text>
+      <!-- Slot 4 -->
+      <rect x="201" y="0" width="56" height="68" rx="12" fill="#0D0D18" stroke="#E5B758" stroke-width="1.6"/>
+      <text x="229" y="44" class="mono" font-size="26" font-weight="700" fill="#E5B758" text-anchor="middle">2</text>
+      <!-- Slot 5 -->
+      <rect x="268" y="0" width="56" height="68" rx="12" fill="#0D0D18" stroke="#E5B758" stroke-width="1.6"/>
+      <text x="296" y="44" class="mono" font-size="26" font-weight="700" fill="#E5B758" text-anchor="middle">M</text>
+      <!-- Slot 6 -->
+      <rect x="335" y="0" width="56" height="68" rx="12" fill="#0D0D18" stroke="#E5B758" stroke-width="1.6"/>
+      <text x="363" y="44" class="mono" font-size="26" font-weight="700" fill="#E5B758" text-anchor="middle">9</text>
+    </g>
+
+    <!-- Seção Leitura por Câmera -->
+    
+    <g>
+      <g transform="translate(24, 293) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1" />
+  <rect width="5" height="5" x="16" y="3" rx="1" />
+  <rect width="5" height="5" x="3" y="16" rx="1" />
+  <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+  <path d="M21 21v.01" />
+  <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+  <path d="M3 12h.01" />
+  <path d="M12 3h.01" />
+  <path d="M12 16v.01" />
+  <path d="M16 12h1" />
+  <path d="M21 12v.01" />
+  <path d="M12 21v-1" /></g>
+      <text x="52" y="309" class="cinzel" font-size="14.5" font-weight="700" fill="#F4F4F8">Leitura Óptica QR Code</text>
+      <line x1="299.2" y1="304" x2="401" y2="304" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,300 410,304 406,308 402,304" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    <!-- Botão Escanear QR Code -->
+    
+    <g cursor="pointer">
+      <rect x="24" y="326" width="392" height="54" rx="12" fill="#1F1B2C" stroke="#D4A34B" stroke-width="1.2"/>
+      <g transform="translate(84.5, 344.0) scale(0.750)" stroke="#E5B758" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1" />
+  <rect width="5" height="5" x="16" y="3" rx="1" />
+  <rect width="5" height="5" x="3" y="16" rx="1" />
+  <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+  <path d="M21 21v.01" />
+  <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+  <path d="M3 12h.01" />
+  <path d="M12 3h.01" />
+  <path d="M12 16v.01" />
+  <path d="M16 12h1" />
+  <path d="M21 12v.01" />
+  <path d="M12 21v-1" /></g>
+      <text x="233.0" y="358.0" class="inter" font-size="13" font-weight="600" fill="#E5B758" text-anchor="middle">Apontar Câmera para QR Code da Mesa</text>
+    </g>
+    
+
+    <!-- Seção Mesa Localizada -->
+    
+    <g>
+      <g transform="translate(24, 407) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m13 19 6-6" />
+  <path d="M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5" />
+  <path d="m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586" />
+  <path d="m16 16 4 4" />
+  <path d="m19 21 2-2" />
+  <path d="m5 14 4 4" />
+  <path d="m5 21-2-2" />
+  <path d="M7.5 16.5 4 20" /></g>
+      <text x="52" y="423" class="cinzel" font-size="14.5" font-weight="700" fill="#F4F4F8">Campanha Identificada</text>
+      <line x1="288.6" y1="418" x2="401" y2="418" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,414 410,418 406,422 402,418" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    
+    <rect x="24" y="440" width="392" height="138" rx="14" fill="url(#cardGrad)" stroke="#D4A34B" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="444" width="384" height="130" rx="10" fill="none" stroke="#E5B758" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(42, 460)">
+      <rect width="48" height="48" rx="12" fill="#064E3B" stroke="#10B981" stroke-width="1.4"/>
+      <g transform="translate(12, 12) scale(1.000)" stroke="#10B981" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" />
+  <path d="m16 9-5.5 5.5L8 12" /></g>
+    </g>
+    <text x="104" y="476" class="inter" font-size="11" font-weight="700" fill="#10B981">MESA SINCRONIZADA PRONTA</text>
+    <text x="104" y="498" class="cinzel" font-size="16" font-weight="700" fill="#F4F4F8">A Torre das Sombras</text>
+    <text x="104" y="518" class="inter" font-size="12" fill="#9CA3AF">Mestre: <tspan fill="#E5B758">@gabriel_mestre</tspan> • AlphaD6 RPG</text>
+    <line x1="42" y1="534" x2="396" y2="534" stroke="#282640" stroke-width="1"/>
+    <text x="42" y="558" class="mono" font-size="11" fill="#10B981">Vagas Abertas: 1 / 5 • Sessão Ao Vivo Agora</text>
+
+    <!-- Botão Principal -->
+    
+    <g cursor="pointer">
+      <rect x="24" y="608" width="392" height="56" rx="28.0" fill="url(#goldGradient)" stroke="#F3D078" stroke-width="1" filter="url(#shadowCard)"/>
+      <rect x="28" y="612" width="384" height="48" rx="24.0" fill="none" stroke="#090910" stroke-width="1" stroke-opacity="0.3"/>
+      <g transform="translate(125.2, 626.0) scale(0.833)" stroke="#090910" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m13 19 6-6" />
+  <path d="M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5" />
+  <path d="m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586" />
+  <path d="m16 16 4 4" />
+  <path d="m19 21 2-2" />
+  <path d="m5 14 4 4" />
+  <path d="m5 21-2-2" />
+  <path d="M7.5 16.5 4 20" /></g>
+      <text x="235.0" y="641.0" class="inter" font-size="14" font-weight="700" fill="#090910" text-anchor="middle">Ingressar na Campanha</text>
+    </g>
+    
+
+    
+    <g cursor="pointer">
+      <rect x="24" y="680" width="392" height="48" rx="12" fill="#18182C" stroke="#2E2D48" stroke-width="1.2"/>
+      <g transform="translate(112.5, 695.0) scale(0.750)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7" />
+  <path d="M19 12H5" /></g>
+      <text x="233.0" y="709.0" class="inter" font-size="13" font-weight="600" fill="#E2E8F0" text-anchor="middle">Cancelar e Voltar ao Início</text>
+    </g>
+    
+
+    <text x="220" y="766" class="inter" font-size="11" fill="#64687A" text-anchor="middle">Novos membros passam pela aprovação rápida do Mestre</text>
+    
+  
+    <!-- Android Bottom Gesture Pill -->
+    <rect x="166.0" y="806" width="108" height="4" rx="2" fill="#E5B758" fill-opacity="0.35"/>
+    
+</svg>

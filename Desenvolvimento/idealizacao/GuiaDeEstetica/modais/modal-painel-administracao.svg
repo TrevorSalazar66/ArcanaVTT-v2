@@ -1,0 +1,247 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 980" width="440" height="980">
+
+  <defs>
+    <style>
+      
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap');
+* { box-sizing: border-box; }
+.cinzel { font-family: 'Cinzel', serif; letter-spacing: 0.5px; }
+.inter { font-family: 'Inter', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+    </style>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8BE62"/>
+      <stop offset="50%" stop-color="#D4A34B"/>
+      <stop offset="100%" stop-color="#B8862D"/>
+    </linearGradient>
+    <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5B758"/>
+      <stop offset="100%" stop-color="#8A6421"/>
+    </linearGradient>
+    <linearGradient id="surfaceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#161426"/>
+      <stop offset="100%" stop-color="#0E0D1A"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1A182B"/>
+      <stop offset="100%" stop-color="#121120"/>
+    </linearGradient>
+    <linearGradient id="heroBannerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#221C35"/>
+      <stop offset="50%" stop-color="#171426"/>
+      <stop offset="100%" stop-color="#0D0C18"/>
+    </linearGradient>
+    <linearGradient id="crimsonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="100%" stop-color="#991B1B"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="50%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#1A162B" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#080811" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="shadowSoft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+    <filter id="shadowCard" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Phone Screen Canvas -->
+  <rect width="440" height="980" rx="28" fill="#080811"/>
+  <rect width="440" height="980" rx="28" fill="url(#vignette)"/>
+  <rect x="1" y="1" width="438" height="978" rx="27" fill="none" stroke="#25253E" stroke-width="1.5"/>
+  
+    <!-- Android Native Status Bar -->
+    <g opacity="0.92">
+      <text x="26" y="24" class="inter" font-size="12" font-weight="600" fill="#F4F4F8">22:47</text>
+      <!-- Camera Punch Hole -->
+      <circle cx="220.0" cy="18" r="6" fill="#040408" stroke="#1E1E30" stroke-width="0.8"/>
+      <!-- Right Icons: Wifi, Signal, Battery, Percentage (Well-Spaced, Zero Overlap) -->
+      <g transform="translate(330, 11) scale(0.583)" stroke="#F4F4F8" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01" />
+  <path d="M2 8.82a15 15 0 0 1 20 0" />
+  <path d="M5 12.859a10 10 0 0 1 14 0" />
+  <path d="M8.5 16.429a5 5 0 0 1 7 0" /></g>
+      <path d="M350 24 L360 13 L360 24 Z" fill="#F4F4F8"/>
+      <rect x="368" y="13" width="7" height="11" rx="1.5" fill="#F4F4F8"/>
+      <rect x="370" y="11" width="3" height="2" rx="0.5" fill="#F4F4F8"/>
+      <text x="416" y="23" class="inter" font-size="11" font-weight="700" fill="#F4F4F8" text-anchor="end">87%</text>
+    </g>
+    
+  
+    <!-- Mobile Modal Sheet Container -->
+    <rect x="8" y="38" width="424" height="934" rx="24" fill="url(#surfaceGrad)" stroke="#2A2640" stroke-width="1.2" filter="url(#shadowSoft)"/>
+    <!-- Drag Handle Pill -->
+    <rect x="198.0" y="46" width="44" height="4" rx="2" fill="#D4A34B" fill-opacity="0.45"/>
+
+    <!-- Header Icon Emblem (Octagonal/Heraldic Box) -->
+    <g transform="translate(24, 56)">
+      <rect width="46" height="46" rx="12" fill="#1C192E" stroke="url(#goldBorderGrad)" stroke-width="1.5"/>
+      <rect x="3" y="3" width="40" height="40" rx="9" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.4"/>
+      <g transform="translate(11, 11) scale(1.000)" stroke="#E5B758" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></g>
+    </g>
+
+    <!-- Title & Subtitle -->
+    <text x="80" y="75" class="cinzel" font-size="16.0" font-weight="700" fill="#E5B758">PAINEL ADMIN</text>
+    <text x="80" y="95" class="inter" font-size="11.5" fill="#9CA3AF">Governança, Moderação e Telemetria</text>
+    
+        <rect x="293.0" y="60" width="81.0" height="24" rx="12" fill="#A855F7" fill-opacity="0.16" stroke="#A855F7" stroke-width="1.2"/>
+        <text x="333.5" y="76" class="inter" font-size="9.5" font-weight="700" fill="#A855F7" text-anchor="middle">SUPERADMIN</text>
+        
+    
+        <g cursor="pointer">
+          <rect x="384" y="54" width="34" height="34" rx="10" fill="#18182C" stroke="#25253E" stroke-width="1.2"/>
+          <g transform="translate(392, 62) scale(0.750)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" />
+  <path d="m6 6 12 12" /></g>
+        </g>
+        
+
+    <!-- Ornamental Gold Divider with Center Diamond (Inspired by Guide Image) -->
+    <line x1="24" y1="116" x2="214.0" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    <polygon points="220.0,112 225.0,116 220.0,120 215.0,116" fill="#131322" stroke="#E5B758" stroke-width="1.3"/>
+    <line x1="226.0" y1="116" x2="416" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    
+  
+    <!-- Banner Governança Suprema -->
+    
+    <rect x="24" y="136" width="392" height="68" rx="14" fill="url(#cardGrad)" stroke="#D4A34B" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="140" width="384" height="60" rx="10" fill="none" stroke="#E5B758" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(42, 158) scale(0.917)" stroke="#E5B758" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" />
+  <path d="M5 21h14" /></g>
+    <text x="74" y="166" class="cinzel" font-size="12" font-weight="700" fill="#E5B758">GOVERNANÇA SUPREMA ZERO-TRUST</text>
+    <text x="74" y="186" class="inter" font-size="11" fill="#9CA3AF">Assinatura JWT Edge validada • Auditoria Colegiada</text>
+
+    <!-- Seção Telemetria em Tempo Real -->
+    
+    <g>
+      <g transform="translate(24, 223) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01" />
+  <path d="M2 8.82a15 15 0 0 1 20 0" />
+  <path d="M5 12.859a10 10 0 0 1 14 0" />
+  <path d="M8.5 16.429a5 5 0 0 1 7 0" /></g>
+      <text x="52" y="239" class="cinzel" font-size="13.5" font-weight="700" fill="#F4F4F8">Telemetria Global da Taverna</text>
+      <line x1="340.40000000000003" y1="234" x2="401" y2="234" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,230 410,234 406,238 402,234" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    <g transform="translate(24, 256)">
+      
+    <rect x="0" y="0" width="124" height="84" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="4" y="4" width="116" height="76" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+      <text x="62" y="28" class="inter" font-size="10" font-weight="600" fill="#9CA3AF" text-anchor="middle">AVENTUREIROS</text>
+      <text x="62" y="58" class="mono" font-size="20" font-weight="700" fill="#F4F4F8" text-anchor="middle">3.842</text>
+      <text x="62" y="74" class="mono" font-size="9" fill="#10B981" text-anchor="middle">412 Online</text>
+
+      
+    <rect x="134" y="0" width="124" height="84" rx="14" fill="url(#cardGrad)" stroke="#D4A34B" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="138" y="4" width="116" height="76" rx="10" fill="none" stroke="#E5B758" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+      <text x="196" y="28" class="inter" font-size="10" font-weight="700" fill="#E5B758" text-anchor="middle">CAMPANHAS</text>
+      <text x="196" y="58" class="mono" font-size="20" font-weight="700" fill="#E5B758" text-anchor="middle">418</text>
+      <text x="196" y="74" class="mono" font-size="9" fill="#EF4444" text-anchor="middle">38 Ao Vivo</text>
+
+      
+    <rect x="268" y="0" width="124" height="84" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="272" y="4" width="116" height="76" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+      <text x="330" y="28" class="inter" font-size="10" font-weight="600" fill="#9CA3AF" text-anchor="middle">ECONOMIA P2P</text>
+      <text x="330" y="58" class="mono" font-size="20" font-weight="700" fill="#10B981" text-anchor="middle">89.4%</text>
+      <text x="330" y="74" class="mono" font-size="9" fill="#10B981" text-anchor="middle">Banda Salva</text>
+    </g>
+
+    <!-- Seção Módulos de Moderação -->
+    
+    <g>
+      <g transform="translate(24, 361) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></g>
+      <text x="52" y="377" class="cinzel" font-size="14.5" font-weight="700" fill="#F4F4F8">Módulos de Fiscalização</text>
+      <line x1="309.79999999999995" y1="372" x2="401" y2="372" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,368 410,372 406,376 402,372" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    <!-- Módulo 1: Fila Colegiada de Denúncia Universal -->
+    
+    <rect x="24" y="394" width="392" height="118" rx="14" fill="#241118" stroke="#EF4444" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="398" width="384" height="110" rx="10" fill="none" stroke="#EF4444" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(42, 412)">
+      <rect width="40" height="40" rx="10" fill="#3B1219" stroke="#EF4444" stroke-width="1.2"/>
+      <g transform="translate(10, 10) scale(0.833)" stroke="#EF4444" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" /></g>
+    </g>
+    <text x="96" y="426" class="cinzel" font-size="13" font-weight="700" fill="#EF4444">FILA DE DENÚNCIA UNIVERSAL (3)</text>
+    <text x="96" y="446" class="inter" font-size="11" fill="#FCA5A5">Autotag: [MENSAGEM_CHAT] • #discurso-de-odio</text>
+    <text x="96" y="464" class="inter" font-size="11" fill="#F87171">Exige votação colegiada (3 Admins) p/ Banimento</text>
+    
+    <g cursor="pointer">
+      <rect x="42" y="474" width="356" height="30" rx="12" fill="#281219" stroke="#EF4444" stroke-width="1.2"/>
+      
+      <text x="220.0" y="494.0" class="inter" font-size="13" font-weight="600" fill="#FCA5A5" text-anchor="middle">Abrir Fila de Votação Colegiada</text>
+    </g>
+    
+
+    <!-- Módulo 2: Auditoria & Hardware Ban -->
+    
+    <rect x="24" y="526" width="392" height="96" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="530" width="384" height="88" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(42, 548)">
+      <rect width="42" height="42" rx="10" fill="#18182C" stroke="#D4A34B" stroke-width="1.2"/>
+      <g transform="translate(11, 11) scale(0.833)" stroke="#E5B758" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34" />
+  <circle cx="11" cy="11" r="8" /></g>
+    </g>
+    <text x="98" y="560" class="cinzel" font-size="13" font-weight="700" fill="#E5B758">AUDITORIA &amp; HARDWARE BAN</text>
+    <text x="98" y="580" class="inter" font-size="11" fill="#F4F4F8">Busca por E-mail OAuth, UUID/DRM ou IP</text>
+    <text x="98" y="598" class="mono" font-size="10" fill="#9CA3AF">14 Aparelhos bloqueados na Lista Negra</text>
+    <g transform="translate(380, 564) scale(0.833)" stroke="#E5B758" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></g>
+
+    <!-- Módulo 3: Modo Espectador Invisível (Ghost Spectator) -->
+    
+    <rect x="24" y="636" width="392" height="96" rx="14" fill="#111E2E" stroke="#06B6D4" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="640" width="384" height="88" rx="10" fill="none" stroke="#06B6D4" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(42, 658)">
+      <rect width="42" height="42" rx="10" fill="#082F38" stroke="#06B6D4" stroke-width="1.2"/>
+      <g transform="translate(11, 11) scale(0.833)" stroke="#06B6D4" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
+  <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+  <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
+  <path d="m2 2 20 20" /></g>
+    </g>
+    <text x="98" y="670" class="cinzel" font-size="13" font-weight="700" fill="#06B6D4">GHOST SPECTATOR (INVISÍVEL)</text>
+    <text x="98" y="690" class="inter" font-size="11" fill="#CFFAFE">Inspecione mesas ao vivo sem aparecer na lista</text>
+    <text x="98" y="708" class="mono" font-size="10" fill="#06B6D4">Trava de Não-Interferência: rolagens bloqueadas</text>
+    <g transform="translate(380, 674) scale(0.833)" stroke="#06B6D4" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></g>
+
+    <!-- Módulo 4: Gestão de Admins -->
+    
+    <rect x="24" y="746" width="392" height="82" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="750" width="384" height="74" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(42, 774) scale(0.917)" stroke="#A855F7" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m2 21 9.6-9.6" />
+  <path d="m7.5 15.5 2.3 2.3a1 1 0 0 1 0 1.4l-2.1 2.1a1 1 0 0 1-1.4 0L4 19" />
+  <circle cx="15.5" cy="7.5" r="5.5" /></g>
+    <text x="76" y="778" class="cinzel" font-size="13" font-weight="700" fill="#E5B758">CREDENCIAIS DE ADMIN &amp; BANCO D1</text>
+    <text x="76" y="798" class="inter" font-size="11" fill="#9CA3AF">Conceder/Revogar cargos • Workers GRU / SCL</text>
+
+    
+    <g cursor="pointer">
+      <rect x="24" y="848" width="392" height="52" rx="12" fill="#18182C" stroke="#2E2D48" stroke-width="1.2"/>
+      <g transform="translate(112.5, 865.0) scale(0.750)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7" />
+  <path d="M19 12H5" /></g>
+      <text x="233.0" y="879.0" class="inter" font-size="13" font-weight="600" fill="#E2E8F0" text-anchor="middle">Fechar Painel de Governança</text>
+    </g>
+    
+    
+  
+    <!-- Android Bottom Gesture Pill -->
+    <rect x="166.0" y="966" width="108" height="4" rx="2" fill="#E5B758" fill-opacity="0.35"/>
+    
+</svg>

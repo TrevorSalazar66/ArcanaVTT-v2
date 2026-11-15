@@ -1,0 +1,199 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 840" width="440" height="840">
+
+  <defs>
+    <style>
+      
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap');
+* { box-sizing: border-box; }
+.cinzel { font-family: 'Cinzel', serif; letter-spacing: 0.5px; }
+.inter { font-family: 'Inter', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+    </style>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8BE62"/>
+      <stop offset="50%" stop-color="#D4A34B"/>
+      <stop offset="100%" stop-color="#B8862D"/>
+    </linearGradient>
+    <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5B758"/>
+      <stop offset="100%" stop-color="#8A6421"/>
+    </linearGradient>
+    <linearGradient id="surfaceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#161426"/>
+      <stop offset="100%" stop-color="#0E0D1A"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1A182B"/>
+      <stop offset="100%" stop-color="#121120"/>
+    </linearGradient>
+    <linearGradient id="heroBannerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#221C35"/>
+      <stop offset="50%" stop-color="#171426"/>
+      <stop offset="100%" stop-color="#0D0C18"/>
+    </linearGradient>
+    <linearGradient id="crimsonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="100%" stop-color="#991B1B"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="50%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#1A162B" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#080811" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="shadowSoft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+    <filter id="shadowCard" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Phone Screen Canvas -->
+  <rect width="440" height="840" rx="28" fill="#080811"/>
+  <rect width="440" height="840" rx="28" fill="url(#vignette)"/>
+  <rect x="1" y="1" width="438" height="838" rx="27" fill="none" stroke="#25253E" stroke-width="1.5"/>
+  
+    <!-- Android Native Status Bar -->
+    <g opacity="0.92">
+      <text x="26" y="24" class="inter" font-size="12" font-weight="600" fill="#F4F4F8">22:47</text>
+      <!-- Camera Punch Hole -->
+      <circle cx="220.0" cy="18" r="6" fill="#040408" stroke="#1E1E30" stroke-width="0.8"/>
+      <!-- Right Icons: Wifi, Signal, Battery, Percentage (Well-Spaced, Zero Overlap) -->
+      <g transform="translate(330, 11) scale(0.583)" stroke="#F4F4F8" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01" />
+  <path d="M2 8.82a15 15 0 0 1 20 0" />
+  <path d="M5 12.859a10 10 0 0 1 14 0" />
+  <path d="M8.5 16.429a5 5 0 0 1 7 0" /></g>
+      <path d="M350 24 L360 13 L360 24 Z" fill="#F4F4F8"/>
+      <rect x="368" y="13" width="7" height="11" rx="1.5" fill="#F4F4F8"/>
+      <rect x="370" y="11" width="3" height="2" rx="0.5" fill="#F4F4F8"/>
+      <text x="416" y="23" class="inter" font-size="11" font-weight="700" fill="#F4F4F8" text-anchor="end">87%</text>
+    </g>
+    
+  
+    <!-- Mobile Modal Sheet Container -->
+    <rect x="8" y="38" width="424" height="794" rx="24" fill="url(#surfaceGrad)" stroke="#2A2640" stroke-width="1.2" filter="url(#shadowSoft)"/>
+    <!-- Drag Handle Pill -->
+    <rect x="198.0" y="46" width="44" height="4" rx="2" fill="#D4A34B" fill-opacity="0.45"/>
+
+    <!-- Header Icon Emblem (Octagonal/Heraldic Box) -->
+    <g transform="translate(24, 56)">
+      <rect width="46" height="46" rx="12" fill="#1C192E" stroke="url(#goldBorderGrad)" stroke-width="1.5"/>
+      <rect x="3" y="3" width="40" height="40" rx="9" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.4"/>
+      <g transform="translate(11, 11) scale(1.000)" stroke="#E5B758" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" />
+  <path d="m16 9-5.5 5.5L8 12" /></g>
+    </g>
+
+    <!-- Title & Subtitle -->
+    <text x="80" y="75" class="cinzel" font-size="15.0" font-weight="700" fill="#E5B758">SESSÃO AUTORIZADA</text>
+    <text x="80" y="95" class="inter" font-size="11.5" fill="#9CA3AF">Acesso OAuth Criptografado Concluído</text>
+    
+        <rect x="361.0" y="60" width="55.0" height="24" rx="12" fill="#10B981" fill-opacity="0.16" stroke="#10B981" stroke-width="1.2"/>
+        <text x="388.5" y="76" class="inter" font-size="9.5" font-weight="700" fill="#10B981" text-anchor="middle">ONLINE</text>
+        
+    
+
+    <!-- Ornamental Gold Divider with Center Diamond (Inspired by Guide Image) -->
+    <line x1="24" y1="116" x2="214.0" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    <polygon points="220.0,112 225.0,116 220.0,120 215.0,116" fill="#131322" stroke="#E5B758" stroke-width="1.3"/>
+    <line x1="226.0" y1="116" x2="416" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    
+  
+    <!-- Card Principal de Confirmação com Aura Esmeralda & Ouro -->
+    
+    <rect x="24" y="136" width="392" height="196" rx="14" fill="url(#cardGrad)" stroke="#D4A34B" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="140" width="384" height="188" rx="10" fill="none" stroke="#E5B758" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(220, 192)">
+      <circle r="38" fill="#10B981" fill-opacity="0.14" stroke="#10B981" stroke-width="1.5"/>
+      <circle r="28" fill="#064E3B" stroke="#E5B758" stroke-width="1.8"/>
+      <g transform="translate(-14, -14) scale(1.167)" stroke="#10B981" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></g>
+    </g>
+    <text x="220" y="258" class="cinzel" font-size="20" font-weight="700" fill="#F4F4F8" text-anchor="middle">Saudações, Aventureiro.</text>
+    <text x="220" y="282" class="inter" font-size="13" fill="#10B981" font-weight="600" text-anchor="middle">Identidade validada via Google OAuth 2.0</text>
+    <text x="220" y="306" class="mono" font-size="11" fill="#9CA3AF" text-anchor="middle">Token JWT Edge • Criptografia P2P Ativa</text>
+
+    <!-- Seção Cartão do Aventureiro (Idêntico ao Card da Imagem Guia) -->
+    
+    <g>
+      <g transform="translate(24, 353) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+  <circle cx="12" cy="7" r="4" /></g>
+      <text x="52" y="369" class="cinzel" font-size="14.5" font-weight="700" fill="#F4F4F8">Credencial Autenticada</text>
+      <line x1="299.2" y1="364" x2="401" y2="364" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,360 410,364 406,368 402,364" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    
+    <rect x="24" y="386" width="392" height="98" rx="14" fill="url(#cardGrad)" stroke="#D4A34B" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="390" width="384" height="90" rx="10" fill="none" stroke="#E5B758" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <!-- Medallion Avatar Box -->
+    <g transform="translate(42, 403)">
+      <circle cx="32" cy="32" r="30" fill="#1C182B" stroke="#E5B758" stroke-width="2"/>
+      <circle cx="32" cy="32" r="25" fill="none" stroke="#D4A34B" stroke-width="0.8" stroke-opacity="0.5"/>
+      <g transform="translate(18, 18) scale(1.167)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" />
+  <path d="M5 21h14" /></g>
+    </g>
+    <line x1="120" y1="400" x2="120" y2="470" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.35"/>
+
+    <text x="138" y="422" class="inter" font-size="16" font-weight="700" fill="#F4F4F8">Arthur Pendelton</text>
+    <text x="138" y="442" class="inter" font-size="13" fill="#9CA3AF">@arthur_gm</text>
+    <rect x="138" y="450" width="84" height="22" rx="6" fill="#2A2218" stroke="#D4A34B" stroke-width="1"/>
+    <text x="180" y="465" class="inter" font-size="10" font-weight="700" fill="#E5B758" text-anchor="middle">MESTRE</text>
+    <rect x="230" y="450" width="106" height="22" rx="6" fill="#10B981" fill-opacity="0.15" stroke="#10B981" stroke-width="1"/>
+    <text x="283" y="465" class="mono" font-size="10" font-weight="600" fill="#10B981" text-anchor="middle">ID: usr_8f29a1</text>
+    <g transform="translate(380, 425) scale(0.833)" stroke="#D4A34B" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></g>
+
+    <!-- Seção Sincronização P2P -->
+    
+    <g>
+      <g transform="translate(24, 507) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01" />
+  <path d="M2 8.82a15 15 0 0 1 20 0" />
+  <path d="M5 12.859a10 10 0 0 1 14 0" />
+  <path d="M8.5 16.429a5 5 0 0 1 7 0" /></g>
+      <text x="52" y="523" class="cinzel" font-size="14.5" font-weight="700" fill="#F4F4F8">Estado da Malha P2P</text>
+      <line x1="267.4" y1="518" x2="401" y2="518" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,514 410,518 406,522 402,518" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    
+    <rect x="24" y="540" width="392" height="104" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="544" width="384" height="96" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <text x="44" y="570" class="inter" font-size="13" font-weight="600" fill="#F4F4F8">Sincronizando Compêndios &amp; Mesas...</text>
+    <text x="396" y="570" class="mono" font-size="12" font-weight="700" fill="#10B981" text-anchor="end">100% Pronto</text>
+    <rect x="44" y="584" width="352" height="10" rx="5" fill="#0D0D18" stroke="#25253E" stroke-width="1"/>
+    <rect x="44" y="584" width="352" height="10" rx="5" fill="url(#goldGradient)"/>
+    <text x="44" y="622" class="inter" font-size="11" fill="#9CA3AF">3 Campanhas carregadas • Motor Gráfico 60 FPS calibrado</text>
+
+    <!-- Botão Principal Ornado -->
+    
+    <g cursor="pointer">
+      <rect x="24" y="672" width="392" height="56" rx="28.0" fill="url(#goldGradient)" stroke="#F3D078" stroke-width="1" filter="url(#shadowCard)"/>
+      <rect x="28" y="676" width="384" height="48" rx="24.0" fill="none" stroke="#090910" stroke-width="1" stroke-opacity="0.3"/>
+      <g transform="translate(102.4, 690.0) scale(0.833)" stroke="#090910" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m13 19 6-6" />
+  <path d="M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5" />
+  <path d="m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586" />
+  <path d="m16 16 4 4" />
+  <path d="m19 21 2-2" />
+  <path d="m5 14 4 4" />
+  <path d="m5 21-2-2" />
+  <path d="M7.5 16.5 4 20" /></g>
+      <text x="235.0" y="705.0" class="inter" font-size="14" font-weight="700" fill="#090910" text-anchor="middle">Ingressar no Hub da Taverna</text>
+    </g>
+    
+
+    <text x="220" y="775" class="inter" font-size="11" fill="#64687A" text-anchor="middle">Redirecionamento automático ativado • Bem-vindo à Taverna</text>
+    
+  
+    <!-- Android Bottom Gesture Pill -->
+    <rect x="166.0" y="826" width="108" height="4" rx="2" fill="#E5B758" fill-opacity="0.35"/>
+    
+</svg>

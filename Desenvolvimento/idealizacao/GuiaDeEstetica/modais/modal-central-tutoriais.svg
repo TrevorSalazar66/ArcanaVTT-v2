@@ -1,0 +1,266 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 920" width="440" height="920">
+
+  <defs>
+    <style>
+      
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap');
+* { box-sizing: border-box; }
+.cinzel { font-family: 'Cinzel', serif; letter-spacing: 0.5px; }
+.inter { font-family: 'Inter', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+    </style>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8BE62"/>
+      <stop offset="50%" stop-color="#D4A34B"/>
+      <stop offset="100%" stop-color="#B8862D"/>
+    </linearGradient>
+    <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5B758"/>
+      <stop offset="100%" stop-color="#8A6421"/>
+    </linearGradient>
+    <linearGradient id="surfaceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#161426"/>
+      <stop offset="100%" stop-color="#0E0D1A"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1A182B"/>
+      <stop offset="100%" stop-color="#121120"/>
+    </linearGradient>
+    <linearGradient id="heroBannerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#221C35"/>
+      <stop offset="50%" stop-color="#171426"/>
+      <stop offset="100%" stop-color="#0D0C18"/>
+    </linearGradient>
+    <linearGradient id="crimsonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="100%" stop-color="#991B1B"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="50%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#1A162B" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#080811" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="shadowSoft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+    <filter id="shadowCard" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Phone Screen Canvas -->
+  <rect width="440" height="920" rx="28" fill="#080811"/>
+  <rect width="440" height="920" rx="28" fill="url(#vignette)"/>
+  <rect x="1" y="1" width="438" height="918" rx="27" fill="none" stroke="#25253E" stroke-width="1.5"/>
+  
+    <!-- Android Native Status Bar -->
+    <g opacity="0.92">
+      <text x="26" y="24" class="inter" font-size="12" font-weight="600" fill="#F4F4F8">22:47</text>
+      <!-- Camera Punch Hole -->
+      <circle cx="220.0" cy="18" r="6" fill="#040408" stroke="#1E1E30" stroke-width="0.8"/>
+      <!-- Right Icons: Wifi, Signal, Battery, Percentage (Well-Spaced, Zero Overlap) -->
+      <g transform="translate(330, 11) scale(0.583)" stroke="#F4F4F8" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01" />
+  <path d="M2 8.82a15 15 0 0 1 20 0" />
+  <path d="M5 12.859a10 10 0 0 1 14 0" />
+  <path d="M8.5 16.429a5 5 0 0 1 7 0" /></g>
+      <path d="M350 24 L360 13 L360 24 Z" fill="#F4F4F8"/>
+      <rect x="368" y="13" width="7" height="11" rx="1.5" fill="#F4F4F8"/>
+      <rect x="370" y="11" width="3" height="2" rx="0.5" fill="#F4F4F8"/>
+      <text x="416" y="23" class="inter" font-size="11" font-weight="700" fill="#F4F4F8" text-anchor="end">87%</text>
+    </g>
+    
+  
+    <!-- Mobile Modal Sheet Container -->
+    <rect x="8" y="38" width="424" height="874" rx="24" fill="url(#surfaceGrad)" stroke="#2A2640" stroke-width="1.2" filter="url(#shadowSoft)"/>
+    <!-- Drag Handle Pill -->
+    <rect x="198.0" y="46" width="44" height="4" rx="2" fill="#D4A34B" fill-opacity="0.45"/>
+
+    <!-- Header Icon Emblem (Octagonal/Heraldic Box) -->
+    <g transform="translate(24, 56)">
+      <rect width="46" height="46" rx="12" fill="#1C192E" stroke="url(#goldBorderGrad)" stroke-width="1.5"/>
+      <rect x="3" y="3" width="40" height="40" rx="9" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.4"/>
+      <g transform="translate(11, 11) scale(1.000)" stroke="#E5B758" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" />
+  <path d="M12 16v-4" />
+  <path d="M12 8h.01" /></g>
+    </g>
+
+    <!-- Title & Subtitle -->
+    <text x="80" y="75" class="cinzel" font-size="14.0" font-weight="700" fill="#E5B758">CENTRAL DE TUTORIAIS</text>
+    <text x="80" y="95" class="inter" font-size="11.5" fill="#9CA3AF">Treinamento Guiado nas 5 Macro Funções</text>
+    
+        <rect x="312.5" y="60" width="61.5" height="24" rx="12" fill="#10B981" fill-opacity="0.16" stroke="#10B981" stroke-width="1.2"/>
+        <text x="343.25" y="76" class="inter" font-size="9.5" font-weight="700" fill="#10B981" text-anchor="middle">SANDBOX</text>
+        
+    
+        <g cursor="pointer">
+          <rect x="384" y="54" width="34" height="34" rx="10" fill="#18182C" stroke="#25253E" stroke-width="1.2"/>
+          <g transform="translate(392, 62) scale(0.750)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" />
+  <path d="m6 6 12 12" /></g>
+        </g>
+        
+
+    <!-- Ornamental Gold Divider with Center Diamond (Inspired by Guide Image) -->
+    <line x1="24" y1="116" x2="214.0" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    <polygon points="220.0,112 225.0,116 220.0,120 215.0,116" fill="#131322" stroke="#E5B758" stroke-width="1.3"/>
+    <line x1="226.0" y1="116" x2="416" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    
+  
+    <!-- Aviso de Ambiente Isolado -->
+    
+    <rect x="24" y="136" width="392" height="68" rx="14" fill="#111E2E" stroke="#06B6D4" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="140" width="384" height="60" rx="10" fill="none" stroke="#06B6D4" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(42, 158) scale(0.917)" stroke="#06B6D4" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></g>
+    <text x="74" y="166" class="inter" font-size="12" font-weight="700" fill="#06B6D4">AMBIENTE SANDBOXED LOCAL (OFFLINE)</text>
+    <text x="74" y="186" class="inter" font-size="11" fill="#CFFAFE">Treine à vontade: nada altera suas fichas ou banco D1.</text>
+
+    <!-- Seção Módulos Interativos -->
+    
+    <g>
+      <g transform="translate(24, 223) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v16" />
+  <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /></g>
+      <text x="52" y="239" class="cinzel" font-size="14.5" font-weight="700" fill="#F4F4F8">Módulos de Treinamento</text>
+      <line x1="299.2" y1="234" x2="401" y2="234" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,230 410,234 406,238 402,234" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    <!-- Tutorial 1: Concluído -->
+    
+    <rect x="24" y="256" width="392" height="82" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="260" width="384" height="74" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(40, 276)">
+      <rect width="42" height="42" rx="10" fill="#064E3B" stroke="#10B981" stroke-width="1.2"/>
+      <g transform="translate(10, 10) scale(0.917)" stroke="#10B981" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></g>
+    </g>
+    <text x="96" y="288" class="inter" font-size="14" font-weight="700" fill="#F4F4F8">1. Criação &amp; Gestão de Mesas</text>
+    <text x="96" y="308" class="inter" font-size="11" fill="#9CA3AF">Setup em 4 etapas, convites e compêndio</text>
+    <text x="396" y="300" class="mono" font-size="11" font-weight="700" fill="#10B981" text-anchor="end">FEITO</text>
+
+    <!-- Tutorial 2: Em Destaque -->
+    
+    <rect x="24" y="350" width="392" height="86" rx="14" fill="url(#cardGrad)" stroke="#D4A34B" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="354" width="384" height="78" rx="10" fill="none" stroke="#E5B758" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(40, 372)">
+      <rect width="42" height="42" rx="10" fill="#2A2218" stroke="#E5B758" stroke-width="1.4"/>
+      <g transform="translate(10, 10) scale(0.917)" stroke="#E5B758" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" />
+  <path d="M15 5.764v15" />
+  <path d="M9 3.236v15" /></g>
+    </g>
+    <text x="94" y="384" class="inter" font-size="13" font-weight="700" fill="#E5B758">2. Oficina &amp; Os 6 Modelos</text>
+    <text x="94" y="404" class="inter" font-size="11" fill="#F4F4F8">Grid 2D, Mahjong, Cofres e Terminal</text>
+    
+    <g cursor="pointer">
+      <rect x="316" y="372" width="82" height="42" rx="12" fill="#1F1B2C" stroke="#D4A34B" stroke-width="1.2"/>
+      
+      <text x="357.0" y="398.0" class="inter" font-size="13" font-weight="600" fill="#E5B758" text-anchor="middle">Iniciar</text>
+    </g>
+    
+
+    <!-- Tutorial 3 -->
+    
+    <rect x="24" y="448" width="392" height="82" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="452" width="384" height="74" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(40, 468)">
+      <rect width="42" height="42" rx="10" fill="#18182C" stroke="#2D2C46" stroke-width="1.2"/>
+      <g transform="translate(10, 10) scale(0.917)" stroke="#9CA3AF" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m13 19 6-6" />
+  <path d="M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5" />
+  <path d="m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586" />
+  <path d="m16 16 4 4" />
+  <path d="m19 21 2-2" />
+  <path d="m5 14 4 4" />
+  <path d="m5 21-2-2" />
+  <path d="M7.5 16.5 4 20" /></g>
+    </g>
+    <text x="94" y="480" class="inter" font-size="13" font-weight="700" fill="#F4F4F8">3. Jogabilidade do Herói</text>
+    <text x="94" y="500" class="inter" font-size="11" fill="#9CA3AF">Fichas, dados d6 e 12 slots corporais</text>
+    
+    <g cursor="pointer">
+      <rect x="316" y="468" width="82" height="42" rx="12" fill="#18182C" stroke="#2E2D48" stroke-width="1.2"/>
+      
+      <text x="357.0" y="494.0" class="inter" font-size="13" font-weight="600" fill="#E2E8F0" text-anchor="middle">Iniciar</text>
+    </g>
+    
+
+    <!-- Tutorial 4 -->
+    
+    <rect x="24" y="542" width="392" height="82" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="546" width="384" height="74" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(40, 562)">
+      <rect width="42" height="42" rx="10" fill="#18182C" stroke="#2D2C46" stroke-width="1.2"/>
+      <g transform="translate(10, 10) scale(0.917)" stroke="#9CA3AF" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+  <path d="M16 3.128a4 4 0 0 1 0 7.744" />
+  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+  <circle cx="9" cy="7" r="4" /></g>
+    </g>
+    <text x="94" y="574" class="inter" font-size="13" font-weight="700" fill="#F4F4F8">4. Comunidades &amp; Guildas</text>
+    <text x="94" y="594" class="inter" font-size="11" fill="#9CA3AF">Shared World, clãs e denúncia</text>
+    
+    <g cursor="pointer">
+      <rect x="316" y="562" width="82" height="42" rx="12" fill="#18182C" stroke="#2E2D48" stroke-width="1.2"/>
+      
+      <text x="357.0" y="588.0" class="inter" font-size="13" font-weight="600" fill="#E2E8F0" text-anchor="middle">Iniciar</text>
+    </g>
+    
+
+    <!-- Tutorial 5 -->
+    
+    <rect x="24" y="636" width="392" height="82" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="640" width="384" height="74" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(40, 656)">
+      <rect width="42" height="42" rx="10" fill="#18182C" stroke="#2D2C46" stroke-width="1.2"/>
+      <g transform="translate(10, 10) scale(0.917)" stroke="#9CA3AF" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72" />
+  <path d="m14 7 3 3" />
+  <path d="M5 6v4" />
+  <path d="M19 14v4" />
+  <path d="M10 2v2" />
+  <path d="M7 8H3" />
+  <path d="M21 16h-4" />
+  <path d="M11 3H9" /></g>
+    </g>
+    <text x="94" y="668" class="inter" font-size="13" font-weight="700" fill="#F4F4F8">5. Forja de Sistemas</text>
+    <text x="94" y="688" class="inter" font-size="11" fill="#9CA3AF">Motores de regras e homebrews</text>
+    
+    <g cursor="pointer">
+      <rect x="316" y="656" width="82" height="42" rx="12" fill="#18182C" stroke="#2E2D48" stroke-width="1.2"/>
+      
+      <text x="357.0" y="682.0" class="inter" font-size="13" font-weight="600" fill="#E2E8F0" text-anchor="middle">Iniciar</text>
+    </g>
+    
+
+    <!-- Botões Inferiores -->
+    
+    <g cursor="pointer">
+      <rect x="24" y="744" width="392" height="56" rx="28.0" fill="url(#goldGradient)" stroke="#F3D078" stroke-width="1" filter="url(#shadowCard)"/>
+      <rect x="28" y="748" width="384" height="48" rx="24.0" fill="none" stroke="#090910" stroke-width="1" stroke-opacity="0.3"/>
+      <g transform="translate(91.0, 762.0) scale(0.833)" stroke="#090910" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" />
+  <path d="M20 2v4" />
+  <path d="M22 4h-4" />
+  <circle cx="4" cy="20" r="2" /></g>
+      <text x="235.0" y="777.0" class="inter" font-size="14" font-weight="700" fill="#090910" text-anchor="middle">Continuar Tutorial 2 (Oficina)</text>
+    </g>
+    
+    
+    <g cursor="pointer">
+      <rect x="24" y="816" width="392" height="48" rx="12" fill="#18182C" stroke="#2E2D48" stroke-width="1.2"/>
+      <g transform="translate(123.0, 831.0) scale(0.750)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7" />
+  <path d="M19 12H5" /></g>
+      <text x="233.0" y="845.0" class="inter" font-size="13" font-weight="600" fill="#E2E8F0" text-anchor="middle">Voltar ao Hub da Taverna</text>
+    </g>
+    
+    
+  
+    <!-- Android Bottom Gesture Pill -->
+    <rect x="166.0" y="906" width="108" height="4" rx="2" fill="#E5B758" fill-opacity="0.35"/>
+    
+</svg>

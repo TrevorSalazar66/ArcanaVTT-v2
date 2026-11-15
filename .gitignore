@@ -1,19 +1,39 @@
 # Logs e arquivos temporários
 *.log
+**/logs/
 node_modules/
+**/node_modules/
 .DS_Store
+Thumbs.db
 .env
-.env.local
-.env.*.local
+**/.env*
+.dev.vars
+**/.dev.vars
 
-# Build e artefatos
+# Build, caches e artefatos Flutter/Gradle/Cloudflare
 dist/
+**/dist/
 build/
+**/build/
 .next/
 out/
 .dart_tool/
+**/.dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+.wrangler/
+**/.wrangler/
+**/android/.gradle/
+**/android/local.properties
+**/android/app/build/
+**/Desenvolvimento/releases/*.apk
+
+# Binários pesados proibidos no Git
+*.apk
+**/*.apk
+*.aab
+**/*.aab
+*.ipa
 
 # IDEs e editores
 .idea/

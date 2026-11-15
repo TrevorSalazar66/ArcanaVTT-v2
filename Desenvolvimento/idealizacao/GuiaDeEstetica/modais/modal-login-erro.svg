@@ -1,0 +1,230 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 860" width="440" height="860">
+
+  <defs>
+    <style>
+      
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap');
+* { box-sizing: border-box; }
+.cinzel { font-family: 'Cinzel', serif; letter-spacing: 0.5px; }
+.inter { font-family: 'Inter', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+    </style>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8BE62"/>
+      <stop offset="50%" stop-color="#D4A34B"/>
+      <stop offset="100%" stop-color="#B8862D"/>
+    </linearGradient>
+    <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5B758"/>
+      <stop offset="100%" stop-color="#8A6421"/>
+    </linearGradient>
+    <linearGradient id="surfaceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#161426"/>
+      <stop offset="100%" stop-color="#0E0D1A"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1A182B"/>
+      <stop offset="100%" stop-color="#121120"/>
+    </linearGradient>
+    <linearGradient id="heroBannerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#221C35"/>
+      <stop offset="50%" stop-color="#171426"/>
+      <stop offset="100%" stop-color="#0D0C18"/>
+    </linearGradient>
+    <linearGradient id="crimsonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="100%" stop-color="#991B1B"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="50%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#1A162B" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#080811" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="shadowSoft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+    <filter id="shadowCard" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Phone Screen Canvas -->
+  <rect width="440" height="860" rx="28" fill="#080811"/>
+  <rect width="440" height="860" rx="28" fill="url(#vignette)"/>
+  <rect x="1" y="1" width="438" height="858" rx="27" fill="none" stroke="#25253E" stroke-width="1.5"/>
+  
+    <!-- Android Native Status Bar -->
+    <g opacity="0.92">
+      <text x="26" y="24" class="inter" font-size="12" font-weight="600" fill="#F4F4F8">22:47</text>
+      <!-- Camera Punch Hole -->
+      <circle cx="220.0" cy="18" r="6" fill="#040408" stroke="#1E1E30" stroke-width="0.8"/>
+      <!-- Right Icons: Wifi, Signal, Battery, Percentage (Well-Spaced, Zero Overlap) -->
+      <g transform="translate(330, 11) scale(0.583)" stroke="#F4F4F8" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01" />
+  <path d="M2 8.82a15 15 0 0 1 20 0" />
+  <path d="M5 12.859a10 10 0 0 1 14 0" />
+  <path d="M8.5 16.429a5 5 0 0 1 7 0" /></g>
+      <path d="M350 24 L360 13 L360 24 Z" fill="#F4F4F8"/>
+      <rect x="368" y="13" width="7" height="11" rx="1.5" fill="#F4F4F8"/>
+      <rect x="370" y="11" width="3" height="2" rx="0.5" fill="#F4F4F8"/>
+      <text x="416" y="23" class="inter" font-size="11" font-weight="700" fill="#F4F4F8" text-anchor="end">87%</text>
+    </g>
+    
+  
+    <!-- Mobile Modal Sheet Container -->
+    <rect x="8" y="38" width="424" height="814" rx="24" fill="url(#surfaceGrad)" stroke="#2A2640" stroke-width="1.2" filter="url(#shadowSoft)"/>
+    <!-- Drag Handle Pill -->
+    <rect x="198.0" y="46" width="44" height="4" rx="2" fill="#D4A34B" fill-opacity="0.45"/>
+
+    <!-- Header Icon Emblem (Octagonal/Heraldic Box) -->
+    <g transform="translate(24, 56)">
+      <rect width="46" height="46" rx="12" fill="#1C192E" stroke="url(#goldBorderGrad)" stroke-width="1.5"/>
+      <rect x="3" y="3" width="40" height="40" rx="9" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.4"/>
+      <g transform="translate(11, 11) scale(1.000)" stroke="#E5B758" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></g>
+    </g>
+
+    <!-- Title & Subtitle -->
+    <text x="80" y="75" class="cinzel" font-size="16.0" font-weight="700" fill="#E5B758">FALHA NO OAUTH</text>
+    <text x="80" y="95" class="inter" font-size="11.5" fill="#9CA3AF">Verificação de Conformidade Google</text>
+    
+        <rect x="341.5" y="60" width="74.5" height="24" rx="12" fill="#EF4444" fill-opacity="0.16" stroke="#EF4444" stroke-width="1.2"/>
+        <text x="378.75" y="76" class="inter" font-size="9.5" font-weight="700" fill="#EF4444" text-anchor="middle">BLOQUEADO</text>
+        
+    
+
+    <!-- Ornamental Gold Divider with Center Diamond (Inspired by Guide Image) -->
+    <line x1="24" y1="116" x2="214.0" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    <polygon points="220.0,112 225.0,116 220.0,120 215.0,116" fill="#131322" stroke="#E5B758" stroke-width="1.3"/>
+    <line x1="226.0" y1="116" x2="416" y2="116" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.5"/>
+    
+  
+    <!-- Banner de Alerta Crítico Carmesim -->
+    
+    <rect x="24" y="136" width="392" height="108" rx="14" fill="#241118" stroke="#EF4444" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="140" width="384" height="100" rx="10" fill="none" stroke="#EF4444" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(42, 156)">
+      <rect width="42" height="42" rx="10" fill="#3B1219" stroke="#EF4444" stroke-width="1.2"/>
+      <g transform="translate(10, 10) scale(0.917)" stroke="#EF4444" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></g>
+    </g>
+    <text x="98" y="168" class="cinzel" font-size="14" font-weight="700" fill="#EF4444">ACESSO OAUTH BLOQUEADO</text>
+    <text x="98" y="188" class="inter" font-size="12" font-weight="600" fill="#FCA5A5">Restrição de Idade Detectada (&lt; 16 Anos)</text>
+    <text x="98" y="208" class="inter" font-size="11" fill="#F87171">A conta Google informada não atende à idade mínima.</text>
+    <text x="98" y="226" class="mono" font-size="10" fill="#FCA5A5">Código: ERR_OAUTH_AGE_POLICY_403</text>
+
+    <!-- Seção Cenários de Bloqueio -->
+    
+    <g>
+      <g transform="translate(24, 263) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" /></g>
+      <text x="52" y="279" class="cinzel" font-size="14.5" font-weight="700" fill="#F4F4F8">Variações de Bloqueio</text>
+      <line x1="288.6" y1="274" x2="401" y2="274" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,270 410,274 406,278 402,274" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    <!-- 3 Chips de Estado de Erro com Ícones SVG (Zero Sobreposição) -->
+    <g transform="translate(24, 296)">
+      
+    <g cursor="pointer">
+      <rect x="0" y="0" width="126" height="36" rx="18.0" fill="#EF4444" fill-opacity="0.18" stroke="#EF4444" stroke-width="1.2"/>
+      <g transform="translate(12, 11.0) scale(0.583)" stroke="#EF4444" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+  <path d="M7 11V7a5 5 0 0 1 10 0v4" /></g>
+      <text x="74.0" y="22.0" class="inter" font-size="11" font-weight="700" fill="#EF4444" text-anchor="middle">Menor 16</text>
+    </g>
+    
+      
+    <g cursor="pointer">
+      <rect x="133" y="0" width="126" height="36" rx="18.0" fill="#18182C" fill-opacity="1.0" stroke="#282640" stroke-width="1.2"/>
+      <g transform="translate(145, 11.0) scale(0.583)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></g>
+      <text x="207.0" y="22.0" class="inter" font-size="11" font-weight="500" fill="#9CA3AF" text-anchor="middle">Ban Aparelho</text>
+    </g>
+    
+      
+    <g cursor="pointer">
+      <rect x="266" y="0" width="126" height="36" rx="18.0" fill="#18182C" fill-opacity="1.0" stroke="#282640" stroke-width="1.2"/>
+      <g transform="translate(278, 11.0) scale(0.583)" stroke="#9CA3AF" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m2 21 9.6-9.6" />
+  <path d="m7.5 15.5 2.3 2.3a1 1 0 0 1 0 1.4l-2.1 2.1a1 1 0 0 1-1.4 0L4 19" />
+  <circle cx="15.5" cy="7.5" r="5.5" /></g>
+      <text x="340.0" y="22.0" class="inter" font-size="11" font-weight="500" fill="#9CA3AF" text-anchor="middle">Token Expirado</text>
+    </g>
+    
+    </g>
+
+    <!-- Seção Conta Google OAuth Inspecionada (Sem campo de senha!) -->
+    
+    <g>
+      <g transform="translate(24, 353) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+  <circle cx="12" cy="7" r="4" /></g>
+      <text x="52" y="369" class="cinzel" font-size="13.5" font-weight="700" fill="#F4F4F8">Conta Google OAuth Recusada</text>
+      <line x1="330.6" y1="364" x2="401" y2="364" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,360 410,364 406,368 402,364" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    
+    <rect x="24" y="386" width="392" height="118" rx="14" fill="#241118" stroke="#EF4444" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="390" width="384" height="110" rx="10" fill="none" stroke="#EF4444" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(42, 408)">
+      <circle cx="22" cy="22" r="22" fill="#FFFFFF"/>
+      <text x="22" y="28" class="inter" font-size="20" font-weight="700" fill="#EA4335" text-anchor="middle">G</text>
+    </g>
+    <text x="100" y="420" class="inter" font-size="14" font-weight="700" fill="#F4F4F8">Conta Google Selecionada</text>
+    <text x="100" y="440" class="mono" font-size="12" fill="#FCA5A5">jovem_aventureiro@gmail.com</text>
+    <line x1="42" y1="458" x2="396" y2="458" stroke="#EF4444" stroke-width="0.8" stroke-opacity="0.4"/>
+    <g transform="translate(42, 470) scale(0.625)" stroke="#EF4444" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" />
+  <path d="M12 16v-4" />
+  <path d="M12 8h.01" /></g>
+    <text x="64" y="482" class="inter" font-size="11" font-weight="500" fill="#FCA5A5">O perfil Google vinculado indica idade inferior a 16 anos.</text>
+
+    <!-- Seção Telemetria de Hardware -->
+    
+    <g>
+      <g transform="translate(24, 525) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19h8" />
+  <path d="m4 17 6-6-6-6" /></g>
+      <text x="52" y="541" class="cinzel" font-size="14.5" font-weight="700" fill="#F4F4F8">Telemetria de Segurança</text>
+      <line x1="309.79999999999995" y1="536" x2="401" y2="536" stroke="#D4A34B" stroke-width="1" stroke-opacity="0.55"/>
+      <polygon points="406,532 410,536 406,540 402,536" fill="none" stroke="#D4A34B" stroke-width="1.2"/>
+      
+    </g>
+    
+
+    
+    <rect x="24" y="558" width="392" height="82" rx="14" fill="url(#cardGrad)" stroke="#282640" stroke-width="1.3"  filter="url(#shadowCard)"/>
+    <rect x="28" y="562" width="384" height="74" rx="10" fill="none" stroke="#D4A34B" stroke-width="0.6" stroke-opacity="0.22"/>
+    
+    <g transform="translate(42, 580) scale(0.833)" stroke="#E5B758" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></g>
+    <text x="74" y="588" class="inter" font-size="12" font-weight="600" fill="#F4F4F8">Integridade do Aparelho Android</text>
+    <text x="74" y="608" class="mono" font-size="11" fill="#9CA3AF">Android 14 • Widevine ID Verificado</text>
+    <text x="74" y="626" class="mono" font-size="10" fill="#10B981">Status de Hardware: Limpo (Sem Banimento de ID)</text>
+
+    <!-- Botões de Ação -->
+    
+    <g cursor="pointer">
+      <rect x="24" y="662" width="392" height="52" rx="12" fill="#1F1B2C" stroke="#D4A34B" stroke-width="1.2"/>
+      <g transform="translate(98.5, 679.0) scale(0.750)" stroke="#E5B758" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+  <circle cx="12" cy="7" r="4" /></g>
+      <text x="233.0" y="693.0" class="inter" font-size="13" font-weight="600" fill="#E5B758" text-anchor="middle">Trocar de Conta no Google OAuth</text>
+    </g>
+    
+    
+    <g cursor="pointer">
+      <rect x="24" y="728" width="392" height="50" rx="12" fill="#281219" stroke="#EF4444" stroke-width="1.2"/>
+      <g transform="translate(77.5, 744.0) scale(0.750)" stroke="#EF4444" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v16" />
+  <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /></g>
+      <text x="233.0" y="758.0" class="inter" font-size="13" font-weight="600" fill="#FCA5A5" text-anchor="middle">Consultar Políticas de Proteção (ECA)</text>
+    </g>
+    
+
+    <text x="220" y="816" class="inter" font-size="11" fill="#64687A" text-anchor="middle">Dúvidas sobre bloqueios? Contate a Ouvidoria da Taverna</text>
+    
+  
+    <!-- Android Bottom Gesture Pill -->
+    <rect x="166.0" y="846" width="108" height="4" rx="2" fill="#E5B758" fill-opacity="0.35"/>
+    
+</svg>

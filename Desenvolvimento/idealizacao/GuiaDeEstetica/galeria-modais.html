@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArcanaVTT — Galeria Visual de Modais Primários (WebP &amp; SVG Icons)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-canvas: #080811;
+      --bg-surface: #131322;
+      --bg-elevated: #18182C;
+      --bg-input: #0D0D18;
+      --border-subtle: #25253E;
+      --border-gold: #D4A34B;
+      --accent-gold: #E5B758;
+      --text-white: #F4F4F8;
+      --text-gray: #9CA3AF;
+      --text-muted: #64687A;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: var(--bg-canvas);
+      background-image: radial-gradient(circle at 50% 10%, #16132C 0%, #080811 80%);
+      color: var(--text-white);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      padding: 32px 20px 80px;
+    }
+    header {
+      max-width: 1320px;
+      margin: 0 auto 32px;
+      text-align: center;
+    }
+    .badge-top {
+      display: inline-block;
+      padding: 4px 14px;
+      background: rgba(229, 183, 88, 0.12);
+      border: 1px solid var(--border-gold);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-gold);
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--accent-gold);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: var(--text-gray);
+      font-size: 15px;
+      max-width: 680px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+    
+    /* Filtros por Categoria */
+    .filter-bar {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 28px auto 36px;
+      max-width: 900px;
+    }
+    .filter-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-gray);
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .filter-btn:hover {
+      border-color: var(--border-gold);
+      color: var(--text-white);
+    }
+    .filter-btn.active {
+      background: rgba(229, 183, 88, 0.15);
+      border-color: var(--border-gold);
+      color: var(--accent-gold);
+      box-shadow: 0 0 12px rgba(212, 163, 75, 0.25);
+    }
+
+    /* Grid de Modais */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 28px;
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+    .modal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.25s ease;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+    }
+    .modal-card:hover {
+      border-color: var(--border-gold);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 32px rgba(212, 163, 75, 0.15);
+    }
+    .card-preview {
+      background: #080811;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-bottom: 1px solid var(--border-subtle);
+      min-height: 380px;
+      cursor: pointer;
+    }
+    .card-preview img {
+      max-width: 100%;
+      max-height: 420px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+      transition: transform 0.2s ease;
+    }
+    .card-preview:hover img {
+      transform: scale(1.02);
+    }
+    .card-info {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+    .card-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+    .card-title {
+      font-family: 'Cinzel', serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-white);
+      margin-bottom: 6px;
+    }
+    .card-desc {
+      font-size: 12px;
+      color: var(--text-gray);
+      line-height: 1.45;
+      margin-bottom: 16px;
+      flex-grow: 1;
+    }
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+    }
+    .btn-action {
+      flex: 1;
+      text-align: center;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, #E8BE62, #CE9B3E);
+      color: #090910;
+    }
+    .btn-gold:hover {
+      filter: brightness(1.1);
+    }
+    .btn-outline {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-white);
+    }
+    .btn-outline:hover {
+      border-color: var(--border-gold);
+      color: var(--accent-gold);
+    }
+
+    /* Modal Lightbox Viewer */
+    .lightbox {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(4, 4, 10, 0.94);
+      backdrop-filter: blur(10px);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+    .lightbox.active {
+      display: flex;
+    }
+    .lightbox-content {
+      max-width: 95vw;
+      max-height: 94vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-gold);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.9);
+    }
+    .lightbox-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .lightbox-body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: #080811;
+      overflow: auto;
+      max-height: calc(94vh - 65px);
+    }
+    .lightbox-body img {
+      max-width: 100%;
+      max-height: 80vh;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
+    }
+    .lightbox-close {
+      color: var(--text-gray);
+      font-size: 22px;
+      font-weight: 700;
+      cursor: pointer;
+      background: none;
+      border: none;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .lightbox-close:hover {
+      color: var(--text-white);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge-top">Design System • Mobile-First Android • SVG Icons &amp; WebP</div>
+    <h1>ArcanaVTT — Galeria de Modais Primários</h1>
+    <p class="subtitle">Inspeção visual em alta fidelidade de todos os 23 modais otimizados para dispositivos móveis Android: organização vertical heráldica com divisores em losango dourado, amplo conforto visual, zero sobreposição, tolerância zero a emojis e iconografia 100% SVG vetorial.</p>
+    
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterCategory('all', this)">Todos (23)</button>
+      <button class="filter-btn" onclick="filterCategory('login', this)">Autenticação (3)</button>
+      <button class="filter-btn" onclick="filterCategory('home', this)">Início &amp; Perfil (5)</button>
+      <button class="filter-btn" onclick="filterCategory('campanhas', this)">Campanhas &amp; Sistemas (6)</button>
+      <button class="filter-btn" onclick="filterCategory('comunidades', this)">Comunidades (3)</button>
+      <button class="filter-btn" onclick="filterCategory('admin', this)">Drawer, Admin &amp; Moderação (6)</button>
+    </div>
+  </header>
+
+  <main class="grid" id="modalGrid">
+    <!-- 1. Login Padrão -->
+    <div class="modal-card" data-category="login">
+      <div class="card-preview" onclick="openLightbox('modais/modal-login-padrao.webp?v=3')">
+        <img src="modais/modal-login-padrao.webp?v=3" alt="Login Padrão">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Autenticação • OAuth 2.0</div>
+        <h3 class="card-title">Login Padrão (100% Google OAuth)</h3>
+        <p class="card-desc">Autenticação exclusiva via Google OAuth 2.0 (zero senhas ou formulários de e-mail), conta Android em 1 toque, chave de dispositivo confiável via Keystore (15/30 dias) e garantias LGPD.</p>
+        <div class="card-actions">
+          <a href="modais/modal-login-padrao.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-login-padrao.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Login Erro -->
+    <div class="modal-card" data-category="login">
+      <div class="card-preview" onclick="openLightbox('modais/modal-login-erro.webp?v=3')">
+        <img src="modais/modal-login-erro.webp?v=3" alt="Login Erro">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Autenticação • Erros OAuth</div>
+        <h3 class="card-title">Login — Variação de Erro OAuth</h3>
+        <p class="card-desc">Banner crítico carmesim com os 3 cenários de bloqueio OAuth (Menor 16 anos, Ban Aparelho e Token Expirado), card da conta Google recusada e telemetria do aparelho Android.</p>
+        <div class="card-actions">
+          <a href="modais/modal-login-erro.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-login-erro.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Login Sucesso -->
+    <div class="modal-card" data-category="login">
+      <div class="card-preview" onclick="openLightbox('modais/modal-login-sucesso.webp?v=3')">
+        <img src="modais/modal-login-sucesso.webp?v=3" alt="Login Sucesso">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Autenticação • Sucesso</div>
+        <h3 class="card-title">Login — Transição Aprovada</h3>
+        <p class="card-desc">Confirmação esmeralda com aura dourada, card de identidade autenticado com badge [Mestre] e progresso de conexão P2P Mesh a 60 FPS.</p>
+        <div class="card-actions">
+          <a href="modais/modal-login-sucesso.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-login-sucesso.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Notificações -->
+    <div class="modal-card" data-category="home">
+      <div class="card-preview" onclick="openLightbox('modais/modal-notificacoes.webp?v=3')">
+        <img src="modais/modal-notificacoes.webp?v=3" alt="Central de Notificações">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Top AppBar</div>
+        <h3 class="card-title">Central de Notificações</h3>
+        <p class="card-desc">Alertas e recados da mesa com cards interativos de convite com ações [Aceitar] e [Recusar], DMs e avisos de atualização da taverna.</p>
+        <div class="card-actions">
+          <a href="modais/modal-notificacoes.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-notificacoes.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Perfil Social -->
+    <div class="modal-card" data-category="home">
+      <div class="card-preview" onclick="openLightbox('modais/modal-perfil-social.webp?v=3')">
+        <img src="modais/modal-perfil-social.webp?v=3" alt="Perfil Social">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Top AppBar • Social</div>
+        <h3 class="card-title">Perfil Social (Estilo Discord)</h3>
+        <p class="card-desc">Ficha de aventureiro com banner heráldico, avatar online, selos OAuth de contas conectadas (Discord, Steam, Twitch) e vitrine de métricas.</p>
+        <div class="card-actions">
+          <a href="modais/modal-perfil-social.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-perfil-social.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Quick Join -->
+    <div class="modal-card" data-category="home">
+      <div class="card-preview" onclick="openLightbox('modais/modal-quick-join.webp?v=3')">
+        <img src="modais/modal-quick-join.webp?v=3" alt="Quick Join">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Início • Entrada Rápida</div>
+        <h3 class="card-title">Quick Join (Código 6 Dígitos / QR)</h3>
+        <p class="card-desc">6 slots em fonte monoespaçada com contorno dourado, suporte a leitura de QR Code pela câmera e validação de mesa em tempo real.</p>
+        <div class="card-actions">
+          <a href="modais/modal-quick-join.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-quick-join.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Candidatura ao Mestre -->
+    <div class="modal-card" data-category="home">
+      <div class="card-preview" onclick="openLightbox('modais/modal-candidatura.webp?v=3')">
+        <img src="modais/modal-candidatura.webp?v=3" alt="Candidatura">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Início • Solicitação</div>
+        <h3 class="card-title">Solicitação ao Mestre</h3>
+        <p class="card-desc">Aviso formal sobre a regra rígida de criação de herói após aprovação e caixa de texto de até 200 caracteres de apresentação.</p>
+        <div class="card-actions">
+          <a href="modais/modal-candidatura.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-candidatura.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. Modal Geral da Campanha -->
+    <div class="modal-card" data-category="home">
+      <div class="card-preview" onclick="openLightbox('modais/modal-campanha-geral.webp?v=3')">
+        <img src="modais/modal-campanha-geral.webp?v=3" alt="Modal Geral da Campanha">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Início • Campanha</div>
+        <h3 class="card-title">Modal Geral da Mesa (Aba 1 Geral)</h3>
+        <p class="card-desc">A primeira tela da campanha com a barra das 7 sub-abas, sinopse, membros, regras AlphaD6, mural de avisos e atalho de ingresso ao vivo.</p>
+        <div class="card-actions">
+          <a href="modais/modal-campanha-geral.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-campanha-geral.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 9. Criar Campanha -->
+    <div class="modal-card" data-category="campanhas">
+      <div class="card-preview" onclick="openLightbox('modais/modal-criar-campanha.webp?v=3')">
+        <img src="modais/modal-criar-campanha.webp?v=3" alt="Criar Campanha">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Campanhas • Wizard</div>
+        <h3 class="card-title">Criar Campanha (Etapa 1/4)</h3>
+        <p class="card-desc">Definição da identidade visual com nome da história, galeria de ícones SVG e preview dinâmico do card 16:7 para o celular.</p>
+        <div class="card-actions">
+          <a href="modais/modal-criar-campanha.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-criar-campanha.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10. Herói em Destaque -->
+    <div class="modal-card" data-category="campanhas">
+      <div class="card-preview" onclick="openLightbox('modais/modal-heroi-destaque.webp?v=3')">
+        <img src="modais/modal-heroi-destaque.webp?v=3" alt="Ficha Herói Destaque">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Ficha • Aventureiro</div>
+        <h3 class="card-title">Ficha do Herói em Destaque</h3>
+        <p class="card-desc">Barras de Ânima e Energia, atributos AlphaD6 (Corpo, Mente, Social, Espírito), 12 slots de equipamento e botões de rolagem rápida.</p>
+        <div class="card-actions">
+          <a href="modais/modal-heroi-destaque.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-heroi-destaque.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 11. Filtros Campanhas -->
+    <div class="modal-card" data-category="campanhas">
+      <div class="card-preview" onclick="openLightbox('modais/modal-filtros-campanhas.webp?v=3')">
+        <img src="modais/modal-filtros-campanhas.webp?v=3" alt="Filtros Campanhas">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Campanhas • Busca</div>
+        <h3 class="card-title">Filtros Avançados de Mesas</h3>
+        <p class="card-desc">Filtro multicamada por sistema, status da sessão (Ao Vivo, Free Time, Agendada), faixa etária, tags # e mesas com vagas.</p>
+        <div class="card-actions">
+          <a href="modais/modal-filtros-campanhas.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-filtros-campanhas.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 12. Filtros Sistemas -->
+    <div class="modal-card" data-category="campanhas">
+      <div class="card-preview" onclick="openLightbox('modais/modal-filtros-sistemas.webp?v=3')">
+        <img src="modais/modal-filtros-sistemas.webp?v=3" alt="Filtros Sistemas">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Sistemas • Compêndio</div>
+        <h3 class="card-title">Filtro de Categorias do Compêndio</h3>
+        <p class="card-desc">Seleção das 5 categorias universais (Itens, Equipamentos, Seres, Poderes, Pistas) aplicando a regra UX que oculta categorias vazias.</p>
+        <div class="card-actions">
+          <a href="modais/modal-filtros-sistemas.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-filtros-sistemas.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 13. Prévia de Sistema -->
+    <div class="modal-card" data-category="campanhas">
+      <div class="card-preview" onclick="openLightbox('modais/modal-previa-sistema.webp?v=3')">
+        <img src="modais/modal-previa-sistema.webp?v=3" alt="Prévia Sistema">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Sistemas • Catálogo</div>
+        <h3 class="card-title">Prévia de Sistema (AlphaD6 Oficial)</h3>
+        <p class="card-desc">Métricas comunitárias, livro de regras em licença livre, contadores das 5 categorias e botão de download para consulta offline.</p>
+        <div class="card-actions">
+          <a href="modais/modal-previa-sistema.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-previa-sistema.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 14. Forja de Sistema Próprio -->
+    <div class="modal-card" data-category="campanhas">
+      <div class="card-preview" onclick="openLightbox('modais/modal-forja-sistema.webp?v=3')">
+        <img src="modais/modal-forja-sistema.webp?v=3" alt="Forja de Sistema">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Sistemas • Forja</div>
+        <h3 class="card-title">Forja de Sistema Próprio</h3>
+        <p class="card-desc">Formulário de criação independente com detecção de Key de licença, configuração de dados (d6 pool, d20, etc.) e licença de uso.</p>
+        <div class="card-actions">
+          <a href="modais/modal-forja-sistema.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-forja-sistema.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 15. Painel de Guilda -->
+    <div class="modal-card" data-category="comunidades">
+      <div class="card-preview" onclick="openLightbox('modais/modal-painel-guilda.webp?v=3')">
+        <img src="modais/modal-painel-guilda.webp?v=3" alt="Painel de Guilda">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Comunidades • Guildas</div>
+        <h3 class="card-title">Painel de Guilda (Shared World)</h3>
+        <p class="card-desc">Universo compartilhado persistente com barra de evolução coletiva (Guild Boost), clãs fundados, membros e atalho para a World Wiki.</p>
+        <div class="card-actions">
+          <a href="modais/modal-painel-guilda.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-painel-guilda.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 16. Criar Tópico Fórum -->
+    <div class="modal-card" data-category="comunidades">
+      <div class="card-preview" onclick="openLightbox('modais/modal-criar-topico-forum.webp?v=3')">
+        <img src="modais/modal-criar-topico-forum.webp?v=3" alt="Criar Tópico Fórum">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Comunidades • Fórum</div>
+        <h3 class="card-title">Criar Tópico no Fórum</h3>
+        <p class="card-desc">Publicação estilo Reddit com seletor de tags (#dúvidas, #recrutamento), toolbar de Markdown, tags extras e rolagem d6 embutida.</p>
+        <div class="card-actions">
+          <a href="modais/modal-criar-topico-forum.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-criar-topico-forum.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 17. Chat Comunitário -->
+    <div class="modal-card" data-category="comunidades">
+      <div class="card-preview" onclick="openLightbox('modais/modal-chat-comunitario.webp?v=3')">
+        <img src="modais/modal-chat-comunitario.webp?v=3" alt="Chat Comunitário">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Comunidades • WhatsApp + Discord</div>
+        <h3 class="card-title">Chat Comunitário / Grupos</h3>
+        <p class="card-desc">Híbrido WhatsApp + Discord: cabeçalho de canal (#regras-e-oficina • 84 online), balões recebidos à esquerda com cargo/avatar, balões enviados à direita com duplo check, embed de dados 3d6, reply e barra inferior nativa.</p>
+        <div class="card-actions">
+          <a href="modais/modal-chat-comunitario.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-chat-comunitario.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 18. Gestão de Amigos -->
+    <div class="modal-card" data-category="admin">
+      <div class="card-preview" onclick="openLightbox('modais/modal-gestao-amigos.webp?v=3')">
+        <img src="modais/modal-gestao-amigos.webp?v=3" alt="Lista de Amigos">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Drawer • Social</div>
+        <h3 class="card-title">Lista de Amigos do Aventureiro</h3>
+        <p class="card-desc">Abas de amigos e solicitações pendentes, busca por @nickname, indicador de status ao vivo nas mesas e atalho para DM privada.</p>
+        <div class="card-actions">
+          <a href="modais/modal-gestao-amigos.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-gestao-amigos.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 19. Central de Tutoriais -->
+    <div class="modal-card" data-category="admin">
+      <div class="card-preview" onclick="openLightbox('modais/modal-central-tutoriais.webp?v=3')">
+        <img src="modais/modal-central-tutoriais.webp?v=3" alt="Central de Tutoriais">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Drawer • Guia</div>
+        <h3 class="card-title">Central de Tutoriais (Sandboxed)</h3>
+        <p class="card-desc">Os 5 tutoriais interativos por macro função rodando em ambiente emulado local sem gerar custos ou registros no banco de dados.</p>
+        <div class="card-actions">
+          <a href="modais/modal-central-tutoriais.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-central-tutoriais.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 20. Configurações Gerais -->
+    <div class="modal-card" data-category="admin">
+      <div class="card-preview" onclick="openLightbox('modais/modal-configuracoes-gerais.webp?v=3')">
+        <img src="modais/modal-configuracoes-gerais.webp?v=3" alt="Configurações Gerais">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Drawer • Preferências</div>
+        <h3 class="card-title">Configurações Gerais da Taverna</h3>
+        <p class="card-desc">Ajustes visuais, acessibilidade, haptics, mixer de áudio de 4 canais com sliders de volume, cota de cache P2P e Lockout seguro.</p>
+        <div class="card-actions">
+          <a href="modais/modal-configuracoes-gerais.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-configuracoes-gerais.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 21. Painel Admin -->
+    <div class="modal-card" data-category="admin">
+      <div class="card-preview" onclick="openLightbox('modais/modal-painel-administracao.webp?v=3')">
+        <img src="modais/modal-painel-administracao.webp?v=3" alt="Painel Admin">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Drawer • Governança</div>
+        <h3 class="card-title">Painel de Administração (Zero-Trust)</h3>
+        <p class="card-desc">Telemetria de tráfego P2P economizado, fila colegiada de denúncia, auditoria de usuários com Hardware Ban e Ghost Spectator.</p>
+        <div class="card-actions">
+          <a href="modais/modal-painel-administracao.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-painel-administracao.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 22. Logout Seguro -->
+    <div class="modal-card" data-category="admin">
+      <div class="card-preview" onclick="openLightbox('modais/modal-logout.webp?v=3')">
+        <img src="modais/modal-logout.webp?v=3" alt="Logout Seguro">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Drawer • Segurança</div>
+        <h3 class="card-title">Confirmação de Logout Seguro</h3>
+        <p class="card-desc">Caixa de confirmação detalhando os passos de sanitização criptográfica do Android Keystore e revogação de tokens no Edge.</p>
+        <div class="card-actions">
+          <a href="modais/modal-logout.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-logout.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 23. Denúncia Universal -->
+    <div class="modal-card" data-category="admin">
+      <div class="card-preview" onclick="openLightbox('modais/modal-denuncia-universal.webp?v=3')">
+        <img src="modais/modal-denuncia-universal.webp?v=3" alt="Denúncia Universal">
+      </div>
+      <div class="card-info">
+        <div class="card-tag">Ubíqua • Moderação</div>
+        <h3 class="card-title">Denúncia Universal (Global Report)</h3>
+        <p class="card-desc">Opção ubíqua nos 7 grupos de conteúdo com anexo automático de autotag de entidade, justificativa e pacote de evidências inviolável.</p>
+        <div class="card-actions">
+          <a href="modais/modal-denuncia-universal.webp?v=3" target="_blank" class="btn-action btn-gold">Abrir WebP</a>
+          <button class="btn-action btn-outline" onclick="openLightbox('modais/modal-denuncia-universal.webp?v=3')">Inspecionar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Lightbox Viewer Modal -->
+  <div class="lightbox" id="lightboxModal" onclick="closeLightbox(event)">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+      <div class="lightbox-header">
+        <div>
+          <span id="lightboxTag" class="card-tag">Design System</span>
+          <h3 id="lightboxTitle" class="card-title" style="margin:0; font-size: 18px;">Visualizador de Modal</h3>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <a id="lightboxOpenBtn" href="#" target="_blank" class="btn-action btn-gold" style="padding: 6px 14px; font-size: 12px;">Abrir Imagem WebP ↗</a>
+          <button class="lightbox-close" onclick="closeLightboxDirect()">✕</button>
+        </div>
+      </div>
+      <div class="lightbox-body">
+        <img id="lightboxImg" src="" alt="Modal Viewer">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function filterCategory(cat, btn) {
+      const cards = document.querySelectorAll('.modal-card');
+      const btns = document.querySelectorAll('.filter-btn');
+      
+      btns.forEach(b => b.classList.remove('active'));
+      if (btn) {
+        btn.classList.add('active');
+      } else if (window.event && window.event.target) {
+        window.event.target.classList.add('active');
+      }
+
+      cards.forEach(card => {
+        if (cat === 'all' || card.getAttribute('data-category') === cat) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    function openLightbox(src, title, tag) {
+      if (!title) {
+        const img = document.querySelector(`.card-preview img[src="${src}"]`);
+        if (img) {
+          const card = img.closest('.modal-card');
+          if (card) {
+            title = card.querySelector('.card-title')?.textContent || '';
+            tag = card.querySelector('.card-tag')?.textContent || '';
+          }
+        }
+      }
+      document.getElementById('lightboxImg').src = src;
+      document.getElementById('lightboxTitle').textContent = title || 'Visualizador de Modal';
+      document.getElementById('lightboxTag').textContent = tag || 'Design System';
+      document.getElementById('lightboxOpenBtn').href = src;
+      document.getElementById('lightboxModal').classList.add('active');
+    }
+
+    function closeLightboxDirect() {
+      document.getElementById('lightboxModal').classList.remove('active');
+    }
+
+    function closeLightbox(e) {
+      if (e.target.id === 'lightboxModal' || e.target.classList.contains('lightbox-close')) {
+        closeLightboxDirect();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightboxDirect();
+    });
+  </script>
+</body>
+</html>
+
