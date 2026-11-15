@@ -2,25 +2,264 @@ import 'package:flutter/material.dart';
 import '../../controllers/app_controller.dart';
 import '../../core/constants/svg_icons.dart';
 import '../../core/theme/arcana_colors.dart';
+import '../../domain/entities/arcana_entities.dart';
 import '../widgets/heraldic_buttons.dart';
 import '../widgets/heraldic_card.dart';
 import '../widgets/heraldic_section_divider.dart';
 import 'modal_shell.dart';
 
-/// Modal de Ficha Rápida do Herói em Destaque (AlphaD6 Core: 3d6 e 12 Slots).
-class HeroSheetHighlightModal extends StatelessWidget {
+/// Modal de Ficha Rápida e Criação/Edição do Herói em Destaque (AlphaD6 Core: 3d6 e 12 Slots).
+class HeroSheetHighlightModal extends StatefulWidget {
   final AppController controller;
 
   const HeroSheetHighlightModal({super.key, required this.controller});
 
   @override
+  State<HeroSheetHighlightModal> createState() =>
+      _HeroSheetHighlightModalState();
+}
+
+class _HeroSheetHighlightModalState extends State<HeroSheetHighlightModal> {
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _classCtrl;
+  late final TextEditingController _campaignCtrl;
+  late final TextEditingController _slotsCtrl;
+
+  int _level = 1;
+  int _corpo = 2;
+  int _mente = 2;
+  int _espirito = 2;
+  bool _editing = false;
+  bool _saving = false;
+  String? _formError;
+
+  @override
+  void initState() {
+    super.initState();
+    final h = widget.controller.hero;
+    _nameCtrl = TextEditingController(text: h?.name ?? '');
+    _classCtrl = TextEditingController(text: h?.heroClass ?? '');
+    _campaignCtrl = TextEditingController(
+      text: h?.campaignTitle ??
+          (widget.controller.campaigns.isNotEmpty
+              ? widget.controller.campaigns.first.title
+              : 'Mesa Livre'),
+    );
+    _slotsCtrl = TextEditingController(
+      text: h != null ? h.slots.join(', ') : '',
+    );
+    _level = h?.level ?? 1;
+    _corpo = h?.corpo ?? 2;
+    _mente = h?.mente ?? 2;
+    _espirito = h?.espirito ?? 2;
+    _editing = h == null;
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _classCtrl.dispose();
+    _campaignCtrl.dispose();
+    _slotsCtrl.dispose();
+    super.dispose();
+  }
+
+  void _openEditor(HeroCharacter h) {
+    setState(() {
+      _nameCtrl.text = h.name;
+      _classCtrl.text = h.heroClass;
+      _campaignCtrl.text = h.campaignTitle;
+      _slotsCtrl.text = h.slots.join(', ');
+      _level = h.level;
+      _corpo = h.corpo;
+      _mente = h.mente;
+      _espirito = h.espirito;
+      _formError = null;
+      _editing = true;
+    });
+  }
+
+  Future<void> _saveHero() async {
+    final name = _nameCtrl.text.trim();
+    if (name.length < 2) {
+      setState(() {
+        _formError = 'Informe um nome de herói com pelo menos 2 caracteres.';
+      });
+      return;
+    }
+    final heroClass = _classCtrl.text.trim().isEmpty
+        ? 'Aventureiro'
+        : _classCtrl.text.trim();
+    final campaignTitle = _campaignCtrl.text.trim().isEmpty
+        ? 'Mesa Livre'
+        : _campaignCtrl.text.trim();
+    final slots = _slotsCtrl.text
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .take(12)
+        .toList();
+
+    setState(() {
+      _saving = true;
+      _formError = null;
+    });
+
+    final ok = await widget.controller.saveHeroCharacter(
+      name: name,
+      heroClass: heroClass,
+      campaignTitle: campaignTitle,
+      level: _level,
+      corpo: _corpo,
+      mente: _mente,
+      espirito: _espirito,
+      slots: slots,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _saving = false;
+      if (ok) {
+        _editing = false;
+      } else {
+        _formError = widget.controller.lastSyncError ??
+            'Falha ao sincronizar ficha com o Cloudflare D1.';
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final p = context.arcana;
     return ListenableBuilder(
-      listenable: controller,
+      listenable: widget.controller,
       builder: (context, _) {
-        final h = controller.hero;
-        final lastRoll = controller.lastHeroRoll;
+        final h = widget.controller.hero;
+        final lastRoll = widget.controller.lastHeroRoll;
+        final showForm = h == null || _editing;
+
+        if (showForm) {
+          return ArcanaModalScaffold(
+            svgIcon: ArcanaSvgIcons.swords,
+            title: h == null ? 'FORJAR FICHA DE HERÓI' : 'EDITAR FICHA',
+            subtitle: 'Sistema Oficial AlphaD6 Core (3d6 • 12 Slots)',
+            badgeLabel: 'ALPHAD6',
+            badgeColor: p.goldPrimary,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _nameCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Nome do Herói',
+                    hintText: 'Ex: Kaelen Silvaris',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _classCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Classe / Arquétipo',
+                    hintText: 'Ex: Lâmina Arcana',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _campaignCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Campanha Vinculada',
+                    hintText: 'Ex: Mesa Livre ou nome da campanha',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    _stepperCard(
+                      context,
+                      'Nível',
+                      _level,
+                      1,
+                      20,
+                      (v) => setState(() => _level = v),
+                      p,
+                    ),
+                    const SizedBox(width: 8),
+                    _stepperCard(
+                      context,
+                      'Corpo',
+                      _corpo,
+                      0,
+                      6,
+                      (v) => setState(() => _corpo = v),
+                      p,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    _stepperCard(
+                      context,
+                      'Mente',
+                      _mente,
+                      0,
+                      6,
+                      (v) => setState(() => _mente = v),
+                      p,
+                    ),
+                    const SizedBox(width: 8),
+                    _stepperCard(
+                      context,
+                      'Espírito',
+                      _espirito,
+                      0,
+                      6,
+                      (v) => setState(() => _espirito = v),
+                      p,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _slotsCtrl,
+                  maxLines: 2,
+                  decoration: const InputDecoration(
+                    labelText: 'Equipamentos / Mochila (separados por vírgula)',
+                    hintText: 'Ex: Espada Curta, Tocha, Cantil, Corda 10m',
+                  ),
+                ),
+                if (_formError != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _formError!,
+                    style: TextStyle(color: p.crimson, fontSize: 12),
+                  ),
+                ],
+                const SizedBox(height: 14),
+                PrimaryGoldPillButton(
+                  label: _saving
+                      ? 'Salvando Ficha na Nuvem...'
+                      : 'Salvar Ficha AlphaD6',
+                  svgIcon: ArcanaSvgIcons.check,
+                  onPressed: _saving ? null : _saveHero,
+                ),
+                if (h != null) ...[
+                  const SizedBox(height: 8),
+                  SecondaryHeraldicButton(
+                    label: 'Cancelar Edição',
+                    expand: true,
+                    onPressed: _saving
+                        ? null
+                        : () => setState(() {
+                              _editing = false;
+                              _formError = null;
+                            }),
+                  ),
+                ],
+              ],
+            ),
+          );
+        }
 
         return ArcanaModalScaffold(
           svgIcon: ArcanaSvgIcons.swords,
@@ -33,11 +272,12 @@ class HeroSheetHighlightModal extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  _attrCard(context, 'Corpo', h.corpo, p, controller),
+                  _attrCard(context, 'Corpo', h.corpo, p, widget.controller),
                   const SizedBox(width: 8),
-                  _attrCard(context, 'Mente', h.mente, p, controller),
+                  _attrCard(context, 'Mente', h.mente, p, widget.controller),
                   const SizedBox(width: 8),
-                  _attrCard(context, 'Espírito', h.espirito, p, controller),
+                  _attrCard(
+                      context, 'Espírito', h.espirito, p, widget.controller),
                 ],
               ),
               const SizedBox(height: 12),
@@ -47,7 +287,8 @@ class HeroSheetHighlightModal extends StatelessWidget {
                   children: [
                     _barRow('Vitalidade', h.hpCurrent, h.hpMax, p.emerald),
                     const SizedBox(height: 8),
-                    _barRow('Reserva de Ânima', h.animaCurrent, h.animaMax, p.infoBlue),
+                    _barRow('Reserva de Ânima', h.animaCurrent, h.animaMax,
+                        p.infoBlue),
                     const SizedBox(height: 8),
                     Text(
                       'Exaustão Atual: ${h.exhaustion} nível • Peso em Mochila: ${h.slots.length}/12 Slots',
@@ -75,7 +316,8 @@ class HeroSheetHighlightModal extends StatelessWidget {
                       Text(
                         'Dados: [${lastRoll.dice.join(', ')}] -> ${lastRoll.outcome}',
                         style: TextStyle(
-                          color: lastRoll.successes > 0 ? p.emerald : p.crimson,
+                          color:
+                              lastRoll.successes > 0 ? p.emerald : p.crimson,
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
                         ),
@@ -89,25 +331,91 @@ class HeroSheetHighlightModal extends StatelessWidget {
                 svgIcon: ArcanaSvgIcons.shield,
                 title: 'INVENTÁRIO (12 SLOTS)',
               ),
-              ...h.slots.map(
-                (slot) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: HeraldicCard(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    child: Text(slot, style: Theme.of(context).textTheme.bodyMedium),
+              if (h.slots.isEmpty)
+                HeraldicCard(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Text(
+                    'Nenhum equipamento na mochila ainda.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                )
+              else
+                ...h.slots.map(
+                  (slot) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: HeraldicCard(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      child:
+                          Text(slot, style: Theme.of(context).textTheme.bodyMedium),
+                    ),
                   ),
                 ),
-              ),
               const SizedBox(height: 10),
               PrimaryGoldPillButton(
                 label: 'Executar Teste de Espírito (3d6)',
                 svgIcon: ArcanaSvgIcons.dices,
-                onPressed: () => controller.rollHeroAttributeTest('ESPÍRITO'),
+                onPressed: () =>
+                    widget.controller.rollHeroAttributeTest('ESPÍRITO'),
+              ),
+              const SizedBox(height: 8),
+              SecondaryHeraldicButton(
+                label: 'Editar Ficha de Herói',
+                svgIcon: ArcanaSvgIcons.feather,
+                borderColor: p.goldBorder,
+                expand: true,
+                onPressed: () => _openEditor(h),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _stepperCard(
+    BuildContext context,
+    String label,
+    int value,
+    int min,
+    int max,
+    ValueChanged<int> onChanged,
+    ArcanaPalette p,
+  ) {
+    return Expanded(
+      child: HeraldicCard(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                    '$value',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(color: p.goldPrimary),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              onPressed: value > min ? () => onChanged(value - 1) : null,
+              icon: const Text('−', style: TextStyle(fontSize: 18)),
+            ),
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              onPressed: value < max ? () => onChanged(value + 1) : null,
+              icon: const Text('+', style: TextStyle(fontSize: 16)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -157,7 +465,7 @@ class HeroSheetHighlightModal extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         LinearProgressIndicator(
-          value: (cur / max).clamp(0.0, 1.0),
+          value: (max <= 0 ? 0.0 : cur / max).clamp(0.0, 1.0),
           minHeight: 7,
           borderRadius: BorderRadius.circular(99),
           color: barColor,

@@ -53,7 +53,7 @@ export async function listCampaignsUseCase(
     }
   });
 
-  return { ok: true, campaigns: filtered };
+  return { ok: true, campaigns: filtered, memberships };
 }
 
 export async function quickJoinCampaignUseCase(

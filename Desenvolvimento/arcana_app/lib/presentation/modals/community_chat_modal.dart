@@ -5,6 +5,7 @@ import '../../core/theme/arcana_colors.dart';
 import '../../domain/entities/arcana_entities.dart';
 import '../widgets/heraldic_buttons.dart';
 import '../widgets/svg_icon_widget.dart';
+import '../widgets/heraldic_card.dart';
 import 'modal_shell.dart';
 import 'universal_report_modal.dart';
 
@@ -122,7 +123,7 @@ class _CommunityChatModalState extends State<CommunityChatModal> {
                             ],
                           ),
                           Text(
-                            '#regras-e-oficina • 84 online agora',
+                            '#regras-e-oficina • ${messages.length} mensagens sincronizadas',
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -159,11 +160,38 @@ class _CommunityChatModalState extends State<CommunityChatModal> {
               ),
               Divider(color: p.goldBorder.withValues(alpha: 0.35), height: 1),
               Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  itemCount: messages.length,
-                  itemBuilder: (ctx, idx) => _buildBubble(ctx, messages[idx], p),
-                ),
+                child: messages.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: HeraldicCard(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SvgIconWidget(
+                                  ArcanaSvgIcons.messagesSquare,
+                                  size: 28,
+                                  color: p.goldPrimary,
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  'Nenhuma mensagem neste canal ainda. Envie a primeira mensagem ou role 3d6!',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
+                        itemCount: messages.length,
+                        itemBuilder: (ctx, idx) =>
+                            _buildBubble(ctx, messages[idx], p),
+                      ),
               ),
               if (_replyingPreview != null)
                 Container(

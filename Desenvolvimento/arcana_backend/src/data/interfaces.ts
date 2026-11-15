@@ -194,10 +194,26 @@ export interface P2pSignalRecord {
   created_at: string;
 }
 
+export interface CharacterRecord {
+  id: string;
+  user_id: string;
+  campaign_id: string | null;
+  name: string;
+  title: string;
+  system_id: string;
+  level: number;
+  attributes_json: string;
+  slots_json: string;
+  statuses_json: string;
+  updated_at: string;
+}
+
 export interface IArcanaRepository {
   findUserByGoogleSubOrEmail(googleSub: string, email: string): Promise<UserRecord | null>;
   findUserById(userId: string): Promise<UserRecord | null>;
+  countRealUsers(): Promise<number>;
   createUserWithProfile(user: UserRecord, profile: UserProfileRecord): Promise<void>;
+  updateUserRole(userId: string, role: UserRole): Promise<void>;
   updateUserStatusAndLockout(userId: string, status: AccountStatus, lockoutHash: string | null): Promise<void>;
   findProfileByUserId(userId: string): Promise<UserProfileRecord | null>;
   findProfileByUsername(username: string): Promise<UserProfileRecord | null>;
@@ -224,6 +240,8 @@ export interface IArcanaRepository {
   listCompendiumBySystem(systemId: string): Promise<CompendiumItemRecord[]>;
 
   listGuilds(): Promise<GuildRecord[]>;
+  createGuild(guild: GuildRecord): Promise<void>;
+  boostGuild(guildId: string, points: number): Promise<GuildRecord | null>;
   listForumTopics(): Promise<ForumTopicRecord[]>;
   createForumTopic(topic: ForumTopicRecord): Promise<void>;
   upvoteForumTopic(topicId: string): Promise<ForumTopicRecord | null>;
@@ -232,8 +250,13 @@ export interface IArcanaRepository {
   createChatMessage(message: ChatMessageRecord): Promise<void>;
 
   listFriendships(userId: string): Promise<FriendshipRecord[]>;
+  addFriendship(record: FriendshipRecord): Promise<void>;
   listNotifications(userId: string): Promise<NotificationRecord[]>;
+  createNotification(notification: NotificationRecord): Promise<void>;
   markNotificationsRead(userId: string, notificationId?: string): Promise<void>;
+
+  listCharactersByUser(userId: string): Promise<CharacterRecord[]>;
+  upsertCharacter(character: CharacterRecord): Promise<void>;
 
   createReport(report: UniversalReportRecord): Promise<void>;
   listReports(): Promise<UniversalReportRecord[]>;

@@ -193,6 +193,7 @@ class _CampaignsTabScreenState extends State<CampaignsTabScreen> {
                               onPressed: () => showArcanaModal(
                                 context,
                                 builder: (_) => CampaignApplicationModal(
+                                  controller: ctrl,
                                   campaign: cmp,
                                 ),
                               ),

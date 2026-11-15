@@ -57,51 +57,81 @@ class _CommunitiesTabScreenState extends State<CommunitiesTabScreen> {
               ),
             ),
           )
-        else if (_segmentIdx == 1)
-          ...ctrl.guilds.map(
-            (g) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: HeraldicCard(
-                goldAccent: true,
-                onTap: () => showArcanaModal(
-                  context,
-                  builder: (_) =>
-                      GuildPanelModal(controller: ctrl, guildId: g.id),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Flexible(
-                          child: Text(g.name,
-                              style: Theme.of(context).textTheme.titleMedium),
-                        ),
-                        HeraldicChipPill(label: '[${g.tag}]', color: p.goldPrimary),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(g.description, style: Theme.of(context).textTheme.bodySmall),
-                    const SizedBox(height: 10),
-                    LinearProgressIndicator(
-                      value: (g.boostPoints / g.boostGoal).clamp(0.0, 1.0),
-                      minHeight: 6,
-                      borderRadius: BorderRadius.circular(99),
-                      color: p.goldPrimary,
-                      backgroundColor: p.surfaceElevated,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Boost: ${g.boostPoints}/${g.boostGoal} • ${g.memberCount} Membros • Toque para abrir Guilda',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
+        else if (_segmentIdx == 1) ...[
+          PrimaryGoldPillButton(
+            label: 'Fundar Nova Guilda',
+            svgIcon: ArcanaSvgIcons.plus,
+            onPressed: () => showArcanaModal(
+              context,
+              builder: (_) => CreateGuildModal(controller: ctrl),
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (ctrl.guilds.isEmpty)
+            HeraldicCard(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Nenhuma guilda fundada ainda.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Funde a primeira guilda para gerenciar mesas em Shared World e acumular Guild Boost.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            )
+          else
+            ...ctrl.guilds.map(
+              (g) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: HeraldicCard(
+                  goldAccent: true,
+                  onTap: () => showArcanaModal(
+                    context,
+                    builder: (_) =>
+                        GuildPanelModal(controller: ctrl, guildId: g.id),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Text(g.name,
+                                style: Theme.of(context).textTheme.titleMedium),
+                          ),
+                          HeraldicChipPill(label: '[${g.tag}]', color: p.goldPrimary),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(g.description, style: Theme.of(context).textTheme.bodySmall),
+                      const SizedBox(height: 10),
+                      LinearProgressIndicator(
+                        value: (g.boostGoal <= 0 ? 0.0 : g.boostPoints / g.boostGoal).clamp(0.0, 1.0),
+                        minHeight: 6,
+                        borderRadius: BorderRadius.circular(99),
+                        color: p.goldPrimary,
+                        backgroundColor: p.surfaceElevated,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Boost: ${g.boostPoints}/${g.boostGoal} • ${g.memberCount} Membros • Toque para abrir Guilda',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          )
-        else if (_segmentIdx == 2) ...[
+        ] else if (_segmentIdx == 2) ...[
           PrimaryGoldPillButton(
             label: 'Criar Tópico no Fórum',
             svgIcon: ArcanaSvgIcons.plus,
@@ -111,52 +141,73 @@ class _CommunitiesTabScreenState extends State<CommunitiesTabScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          ...ctrl.forumTopics.map(
-            (topic) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: HeraldicCard(
-                goldAccent: topic.pinned,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        HeraldicChipPill(
-                          label: topic.category,
-                          color: topic.pinned ? p.goldPrimary : p.infoBlue,
-                        ),
-                        Text(
-                          '${topic.authorHandle} • ${topic.timeAgo}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(topic.title, style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 4),
-                    Text(topic.content, style: Theme.of(context).textTheme.bodySmall),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        SecondaryHeraldicButton(
-                          label: 'Curtir (${topic.upvotes})',
-                          svgIcon: ArcanaSvgIcons.heart,
-                          borderColor: p.goldBorder,
-                          onPressed: () => ctrl.upvoteTopic(topic.id),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          '${topic.repliesCount} respostas',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ],
+          if (ctrl.forumTopics.isEmpty)
+            HeraldicCard(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Nenhum tópico publicado no fórum ainda.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Inicie uma discussão sobre regras AlphaD6, crônicas ou recrutamento de jogadores.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            )
+          else
+            ...ctrl.forumTopics.map(
+              (topic) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: HeraldicCard(
+                  goldAccent: topic.pinned,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          HeraldicChipPill(
+                            label: topic.category,
+                            color: topic.pinned ? p.goldPrimary : p.infoBlue,
+                          ),
+                          Text(
+                            '${topic.authorHandle} • ${topic.timeAgo}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(topic.title, style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 4),
+                      Text(topic.content, style: Theme.of(context).textTheme.bodySmall),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          SecondaryHeraldicButton(
+                            label: 'Curtir (${topic.upvotes})',
+                            svgIcon: ArcanaSvgIcons.heart,
+                            borderColor: p.goldBorder,
+                            onPressed: () => ctrl.upvoteTopic(topic.id),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            '${topic.repliesCount} respostas',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
         ] else ...[
           HeraldicCard(
             goldAccent: true,

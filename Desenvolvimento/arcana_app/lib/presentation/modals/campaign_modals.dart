@@ -353,12 +353,12 @@ class _CreateCampaignWizardModalState extends State<CreateCampaignWizardModal> {
                 flex: 2,
                 child: PrimaryGoldPillButton(
                   label: _step < 3 ? 'Próxima Etapa' : 'Forjar Campanha',
-                  onPressed: () {
+                  onPressed: () async {
                     if (_step < 3) {
                       setState(() => _step += 1);
                       return;
                     }
-                    widget.controller.createCampaign(
+                    await widget.controller.createCampaign(
                       title: _titleCtrl.text.trim().isEmpty
                           ? 'Nova Crônica Heráldica'
                           : _titleCtrl.text.trim(),
@@ -371,7 +371,7 @@ class _CreateCampaignWizardModalState extends State<CreateCampaignWizardModal> {
                       maxSlots: _maxSlots,
                       isPublic: _isPublic,
                     );
-                    Navigator.of(context).pop();
+                    if (context.mounted) Navigator.of(context).pop();
                   },
                 ),
               ),
@@ -385,9 +385,14 @@ class _CreateCampaignWizardModalState extends State<CreateCampaignWizardModal> {
 
 /// Modal de Candidatura do Jogador a uma Campanha Pública.
 class CampaignApplicationModal extends StatefulWidget {
+  final AppController controller;
   final Campaign campaign;
 
-  const CampaignApplicationModal({super.key, required this.campaign});
+  const CampaignApplicationModal({
+    super.key,
+    required this.controller,
+    required this.campaign,
+  });
 
   @override
   State<CampaignApplicationModal> createState() =>
@@ -395,11 +400,23 @@ class CampaignApplicationModal extends StatefulWidget {
 }
 
 class _CampaignApplicationModalState extends State<CampaignApplicationModal> {
+  late final TextEditingController _charCtrl;
   final TextEditingController _pitchCtrl = TextEditingController();
+  bool _submitting = false;
   bool _sent = false;
+  String? _errorMsg;
+
+  @override
+  void initState() {
+    super.initState();
+    _charCtrl = TextEditingController(
+      text: widget.controller.hero?.name ?? '',
+    );
+  }
 
   @override
   void dispose() {
+    _charCtrl.dispose();
     _pitchCtrl.dispose();
     super.dispose();
   }
@@ -423,6 +440,14 @@ class _CampaignApplicationModalState extends State<CampaignApplicationModal> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextField(
+                  controller: _charCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Nome do Personagem',
+                    hintText: 'Ex: Lyra Vespera',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
                   controller: _pitchCtrl,
                   maxLines: 3,
                   decoration: const InputDecoration(
@@ -430,11 +455,44 @@ class _CampaignApplicationModalState extends State<CampaignApplicationModal> {
                     hintText: 'Conte seu estilo de jogo e ideia de herói...',
                   ),
                 ),
+                if (_errorMsg != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _errorMsg!,
+                    style: TextStyle(color: p.crimson, fontSize: 12),
+                  ),
+                ],
                 const SizedBox(height: 14),
                 PrimaryGoldPillButton(
-                  label: 'Enviar Candidatura',
+                  label: _submitting ? 'Enviando Candidatura...' : 'Enviar Candidatura',
                   svgIcon: ArcanaSvgIcons.check,
-                  onPressed: () => setState(() => _sent = true),
+                  onPressed: _submitting
+                      ? null
+                      : () async {
+                          setState(() {
+                            _submitting = true;
+                            _errorMsg = null;
+                          });
+                          final ok = await widget.controller.applyToCampaign(
+                            campaignId: widget.campaign.id,
+                            characterName: _charCtrl.text.trim().isEmpty
+                                ? widget.controller.currentUser.displayName
+                                : _charCtrl.text.trim(),
+                            pitch: _pitchCtrl.text.trim().isEmpty
+                                ? 'Interesse em participar da mesa.'
+                                : _pitchCtrl.text.trim(),
+                          );
+                          if (!mounted) return;
+                          setState(() {
+                            _submitting = false;
+                            if (ok) {
+                              _sent = true;
+                            } else {
+                              _errorMsg = widget.controller.lastSyncError ??
+                                  'Não foi possível registrar candidatura no servidor.';
+                            }
+                          });
+                        },
                 ),
               ],
             ),

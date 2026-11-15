@@ -15,7 +15,7 @@ export const profileSetupSchema = z.object({
     .regex(/^[a-z0-9_]{3,24}$/, 'Username deve ter 3-24 caracteres minusculos/numeros/_'),
   display_name: z.string().min(2).max(60),
   bio: z.string().max(280).default(''),
-  preferred_role: z.string().min(2).max(40).default('jogador'),
+  preferred_role: z.string().min(2).max(40).optional(),
   theme_preference: z
     .enum(['escuro_heraldico', 'oled', 'alto_contraste_solar'])
     .optional(),
@@ -99,8 +99,47 @@ export const chatSendMessageSchema = z.object({
   with_3d6_roll: z.boolean().default(false),
 });
 
+export const guildsCreateSchema = z.object({
+  action: z.literal('guilds.create'),
+  name: z.string().min(3).max(60),
+  tag: z.string().min(2).max(8),
+  description: z.string().min(6).max(300),
+  shared_world_name: z.string().min(2).max(60).default('Continente de Valen'),
+  current_season: z.string().min(2).max(60).default('Temporada I'),
+});
+
+export const guildsBoostSchema = z.object({
+  action: z.literal('guilds.boost'),
+  guild_id: z.string().min(3).max(64),
+  points: z.number().int().min(10).max(500).default(50),
+});
+
 export const socialOverviewSchema = z.object({
   action: z.literal('social.overview'),
+});
+
+export const socialAddFriendSchema = z.object({
+  action: z.literal('social.add_friend'),
+  username: z.string().min(3).max(32),
+});
+
+export const charactersUpsertSchema = z.object({
+  action: z.literal('characters.upsert'),
+  id: z.string().max(64).optional(),
+  campaign_id: z.string().max(64).nullable().optional(),
+  name: z.string().min(2).max(60),
+  title: z.string().min(2).max(60),
+  system_id: z.string().min(3).max(64).default('sys_alphad6_v24'),
+  level: z.number().int().min(1).max(99).default(1),
+  corpo: z.number().int().min(1).max(20).default(3),
+  mente: z.number().int().min(1).max(20).default(3),
+  espirito: z.number().int().min(1).max(20).default(3),
+  hp_current: z.number().int().min(0).max(999).default(20),
+  hp_max: z.number().int().min(1).max(999).default(20),
+  anima_current: z.number().int().min(0).max(999).default(10),
+  anima_max: z.number().int().min(1).max(999).default(10),
+  exhaustion: z.number().int().min(0).max(10).default(0),
+  slots: z.array(z.string().max(120)).max(12).default([]),
 });
 
 export const notificationsMarkReadSchema = z.object({
@@ -157,10 +196,14 @@ export const syncPayloadSchema = z.discriminatedUnion('action', [
   systemsCreateSchema,
   compendiumQuerySchema,
   communitiesOverviewSchema,
+  guildsCreateSchema,
+  guildsBoostSchema,
   forumCreateTopicSchema,
   forumUpvoteSchema,
   chatSendMessageSchema,
   socialOverviewSchema,
+  socialAddFriendSchema,
+  charactersUpsertSchema,
   notificationsMarkReadSchema,
   reportSubmitSchema,
   adminOverviewSchema,

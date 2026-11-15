@@ -18,14 +18,18 @@ import {
   quickJoinCampaignUseCase,
 } from './domain/usecases/manage_campaigns';
 import {
+  boostGuildUseCase,
   createForumTopicUseCase,
+  createGuildUseCase,
   getCommunitiesOverviewUseCase,
   sendChatMessageUseCase,
   upvoteForumTopicUseCase,
 } from './domain/usecases/manage_communities';
 import {
+  addFriendUseCase,
   getSocialOverviewUseCase,
   markNotificationsReadUseCase,
+  upsertCharacterUseCase,
 } from './domain/usecases/manage_social';
 import {
   createSystemUseCase,
@@ -165,6 +169,10 @@ export function createApp(customRepo?: IArcanaRepository) {
         return c.json(await queryCompendiumUseCase(parsed, repo));
       case 'communities.overview':
         return c.json(await getCommunitiesOverviewUseCase(parsed, repo));
+      case 'guilds.create':
+        return c.json(await createGuildUseCase(authUser, parsed, repo), 201);
+      case 'guilds.boost':
+        return c.json(await boostGuildUseCase(parsed, repo));
       case 'forum.create_topic':
         return c.json(await createForumTopicUseCase(authUser, parsed, repo), 201);
       case 'forum.upvote':
@@ -173,6 +181,10 @@ export function createApp(customRepo?: IArcanaRepository) {
         return c.json(await sendChatMessageUseCase(authUser, parsed, repo), 201);
       case 'social.overview':
         return c.json(await getSocialOverviewUseCase(authUser.userId, repo));
+      case 'social.add_friend':
+        return c.json(await addFriendUseCase(authUser.userId, parsed, repo), 201);
+      case 'characters.upsert':
+        return c.json(await upsertCharacterUseCase(authUser.userId, parsed, repo), 201);
       case 'notifications.mark_read':
         return c.json(
           await markNotificationsReadUseCase(

@@ -22,6 +22,78 @@ describe('Camada 3 — Testes E2E HTTP do Worker Cloudflare (/api/health, /api/a
     expect(body.version).toBe('0.1.0-fase-1');
   });
 
+  it('banco limpo inicia sem dados ficticios e primeiro usuario real recebe papel superadmin', async () => {
+    const cleanRepo = new InMemoryArcanaRepository();
+    expect(await cleanRepo.listCampaigns()).toHaveLength(0);
+    expect(await cleanRepo.listGuilds()).toHaveLength(0);
+    expect(await cleanRepo.listForumTopics()).toHaveLength(0);
+    expect(await cleanRepo.listChatMessages('taverna-dos-mestres')).toHaveLength(0);
+
+    const cleanApp = createApp(cleanRepo);
+    const authRes = await cleanApp.request(
+      '/api/auth',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'oauth_google',
+          google_sub: 'sub_primeiro_real',
+          email: 'fundador@gmail.com',
+          display_name: 'Fundador Real',
+          birth_date: '1993-07-10',
+          device_fingerprint: 'fp_fundador_real',
+          trust_device: true,
+        }),
+      },
+      { ENVIRONMENT: 'production', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
+    );
+    expect(authRes.status).toBe(200);
+    const body = (await authRes.json()) as { token: string; user: { role: string } };
+    expect(body.user.role).toBe('superadmin');
+
+    const guildRes = await cleanApp.request(
+      '/api/sync',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${body.token}`,
+        },
+        body: JSON.stringify({
+          action: 'guilds.create',
+          name: 'Ordem Real',
+          tag: 'REAL',
+          description: 'Guilda real criada sem mocks no banco D1.',
+        }),
+      },
+      { ENVIRONMENT: 'production', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
+    );
+    expect(guildRes.status).toBe(201);
+
+    const charRes = await cleanApp.request(
+      '/api/sync',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${body.token}`,
+        },
+        body: JSON.stringify({
+          action: 'characters.upsert',
+          name: 'Kaelen Real',
+          title: 'Sentinelas D6',
+          level: 2,
+          corpo: 4,
+          mente: 4,
+          espirito: 3,
+          slots: ['Espada Longa (2 slots)'],
+        }),
+      },
+      { ENVIRONMENT: 'production', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
+    );
+    expect(charRes.status).toBe(201);
+  });
+
   it('POST /api/auth + /api/sync devem completar jornada OAuth -> Onboarding -> Chat 3d6 -> RBAC Admin', async () => {
     // 1. Login invalido Fail-Fast (Zod)
     const badRes = await app.request('/api/auth', {

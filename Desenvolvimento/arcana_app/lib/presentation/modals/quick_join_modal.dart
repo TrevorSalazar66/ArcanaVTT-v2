@@ -25,11 +25,12 @@ class _QuickJoinModalState extends State<QuickJoinModal> {
   late final TextEditingController _codeCtrl;
   String? _statusMsg;
   bool _isError = false;
+  bool _joining = false;
 
   @override
   void initState() {
     super.initState();
-    _codeCtrl = TextEditingController(text: widget.prefilledCode ?? 'ARC774');
+    _codeCtrl = TextEditingController(text: widget.prefilledCode ?? '');
   }
 
   @override
@@ -38,17 +39,22 @@ class _QuickJoinModalState extends State<QuickJoinModal> {
     super.dispose();
   }
 
-  void _join() {
-    final found = widget.controller.quickJoinByCode(_codeCtrl.text);
+  Future<void> _join() async {
     setState(() {
+      _joining = true;
+      _statusMsg = null;
+    });
+    final found = await widget.controller.quickJoinByCode(_codeCtrl.text);
+    if (!mounted) return;
+    setState(() {
+      _joining = false;
       if (found != null) {
         _isError = false;
         _statusMsg =
             'Conectado à mesa "${found.title}" (${found.quickJoinCode})!';
       } else {
         _isError = true;
-        _statusMsg =
-            'Código não localizado. Códigos ativos para teste: ARC774, CIN882, OBE309.';
+        _statusMsg = 'Código de campanha não encontrado no servidor.';
       }
     });
   }
@@ -60,7 +66,7 @@ class _QuickJoinModalState extends State<QuickJoinModal> {
       svgIcon: ArcanaSvgIcons.qrCode,
       title: 'QUICK JOIN & QR CODE',
       subtitle: 'Conecte-se em segundos a qualquer mesa aberta',
-      badgeLabel: 'P2P EDGE',
+      badgeLabel: 'CLOUDFLARE D1',
       badgeColor: p.infoBlue,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -70,18 +76,8 @@ class _QuickJoinModalState extends State<QuickJoinModal> {
             textCapitalization: TextCapitalization.characters,
             decoration: const InputDecoration(
               labelText: 'Código Alfanumérico da Mesa (6 dígitos)',
-              hintText: 'Ex: ARC774',
+              hintText: 'Ex: A1B2C3',
             ),
-          ),
-          const SizedBox(height: 12),
-          SecondaryHeraldicButton(
-            label: 'Simular Leitura QR Code da Mesa (ARC774)',
-            svgIcon: ArcanaSvgIcons.qrCode,
-            expand: true,
-            onPressed: () {
-              _codeCtrl.text = 'ARC774';
-              _join();
-            },
           ),
           if (_statusMsg != null) ...[
             const SizedBox(height: 12),
@@ -98,9 +94,9 @@ class _QuickJoinModalState extends State<QuickJoinModal> {
           ],
           const SizedBox(height: 16),
           PrimaryGoldPillButton(
-            label: 'Entrar na Campanha Agora',
+            label: _joining ? 'Consultando Servidor...' : 'Entrar na Campanha Agora',
             svgIcon: ArcanaSvgIcons.arrowRight,
-            onPressed: _join,
+            onPressed: _joining ? null : _join,
           ),
         ],
       ),

@@ -145,16 +145,17 @@ class _UniversalReportModalState extends State<UniversalReportModal> {
                 PrimaryGoldPillButton(
                   label: 'Enviar Denúncia Segura',
                   svgIcon: ArcanaSvgIcons.shield,
-                  onPressed: () {
+                  onPressed: () async {
                     final text = _descCtrl.text.trim().isEmpty
                         ? 'Ocorrência sinalizada via botão rápido de denúncia.'
                         : _descCtrl.text.trim();
-                    final created = widget.controller.submitUniversalReport(
+                    final created = await widget.controller.submitUniversalReport(
                       originType: widget.originType,
                       originId: widget.originId,
                       reasonCategory: _selectedReason,
                       description: text,
                     );
+                    if (!mounted) return;
                     setState(() {
                       _submitted = true;
                       _generatedTags = created.autoTags;

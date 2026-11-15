@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../controllers/app_controller.dart';
 import '../../core/constants/svg_icons.dart';
+import '../../core/security/rbac_guard.dart';
 import '../../core/theme/arcana_colors.dart';
 import '../../domain/usecases/authenticate_oauth_usecase.dart';
 import '../widgets/heraldic_buttons.dart';
@@ -9,7 +10,7 @@ import '../widgets/heraldic_section_divider.dart';
 import '../widgets/svg_icon_widget.dart';
 
 /// Portal de Autenticação 100% Google OAuth 2.0 (Zero Senhas).
-/// Implementa fielmente os estados Padrão OAuth, Erro/Bloqueio e Sucesso + Onboarding.
+/// Sincronizado com Cloudflare Workers + D1 em tempo real.
 class LoginScreen extends StatefulWidget {
   final AppController controller;
 
@@ -22,24 +23,103 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   late final TextEditingController _usernameCtrl;
   late final TextEditingController _displayNameCtrl;
+  late final TextEditingController _edgeUrlCtrl;
+  late final TextEditingController _googleClientIdCtrl;
+  final TextEditingController _recoveryEmailCtrl = TextEditingController();
   final TextEditingController _recoveryCodeCtrl = TextEditingController();
+
+  bool _showServerConfig = false;
+  bool _testingConnection = false;
+  bool? _connectionOk;
+  String? _connectionStatusText;
 
   @override
   void initState() {
     super.initState();
-    _usernameCtrl =
-        TextEditingController(text: widget.controller.currentUser.username);
-    _displayNameCtrl = TextEditingController(
-      text: widget.controller.selectedGoogleAccountName,
+    final user = widget.controller.currentUser;
+    _usernameCtrl = TextEditingController(text: user.username);
+    _displayNameCtrl = TextEditingController(text: user.displayName);
+    _edgeUrlCtrl = TextEditingController(
+      text: widget.controller.edgeClient.baseUrl,
     );
+    _googleClientIdCtrl = TextEditingController(
+      text: widget.controller.googleServerClientId,
+    );
+    widget.controller.addListener(_syncFromController);
+  }
+
+  void _syncFromController() {
+    if (!mounted) return;
+    final ctrl = widget.controller;
+    if (ctrl.loginViewState == OAuthSecurityState.sucessoAutenticado) {
+      if (_usernameCtrl.text.trim().isEmpty &&
+          ctrl.currentUser.username.isNotEmpty) {
+        _usernameCtrl.text = ctrl.currentUser.username;
+      }
+      if ((_displayNameCtrl.text.trim().isEmpty ||
+              _displayNameCtrl.text == 'Aventureiro') &&
+          ctrl.currentUser.displayName.isNotEmpty) {
+        _displayNameCtrl.text = ctrl.currentUser.displayName;
+      }
+    }
+    if (_edgeUrlCtrl.text != ctrl.edgeClient.baseUrl) {
+      _edgeUrlCtrl.text = ctrl.edgeClient.baseUrl;
+    }
+    if (_googleClientIdCtrl.text != ctrl.googleServerClientId) {
+      _googleClientIdCtrl.text = ctrl.googleServerClientId;
+    }
   }
 
   @override
   void dispose() {
+    widget.controller.removeListener(_syncFromController);
     _usernameCtrl.dispose();
     _displayNameCtrl.dispose();
+    _edgeUrlCtrl.dispose();
+    _googleClientIdCtrl.dispose();
+    _recoveryEmailCtrl.dispose();
     _recoveryCodeCtrl.dispose();
     super.dispose();
+  }
+
+  String _formatDate(DateTime d) {
+    final dd = d.day.toString().padLeft(2, '0');
+    final mm = d.month.toString().padLeft(2, '0');
+    return '$dd/$mm/${d.year}';
+  }
+
+  Future<void> _pickBirthDate(AppController ctrl) async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: ctrl.selectedBirthDate,
+      firstDate: DateTime(1920, 1, 1),
+      lastDate: now,
+      helpText: 'Data de Nascimento (LGPD >= 16 anos)',
+    );
+    if (picked != null && mounted) {
+      ctrl.setSelectedBirthDate(picked);
+    }
+  }
+
+  Future<void> _saveAndTestConnection(AppController ctrl) async {
+    setState(() {
+      _testingConnection = true;
+      _connectionStatusText = null;
+    });
+    await ctrl.updateServerConfig(
+      edgeUrl: _edgeUrlCtrl.text,
+      googleClientId: _googleClientIdCtrl.text,
+    );
+    final res = await ctrl.testEdgeConnection();
+    if (!mounted) return;
+    setState(() {
+      _testingConnection = false;
+      _connectionOk = res.ok;
+      _connectionStatusText = res.ok
+          ? 'Conectado ao Edge Worker (HTTP ${res.statusCode}) • Serviço ativo'
+          : 'Falha ao conectar (${res.statusCode == 0 ? 'Sem resposta de rede' : 'HTTP ${res.statusCode}'}): verifique a URL do Worker';
+    });
   }
 
   @override
@@ -59,8 +139,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildHeader(context, p),
-                  const SizedBox(height: 16),
-                  _buildStatePreviewSelector(ctrl, p),
                   const SizedBox(height: 16),
                   if (ctrl.loginViewState == OAuthSecurityState.padrao)
                     _buildStandardOAuthView(context, ctrl, p)
@@ -127,50 +205,17 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildStatePreviewSelector(AppController ctrl, ArcanaPalette p) {
-    final activeIdx = switch (ctrl.loginViewState) {
-      OAuthSecurityState.padrao => 0,
-      OAuthSecurityState.sucessoAutenticado => 2,
-      _ => 1,
-    };
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 6),
-          child: Text(
-            'INSPEÇÃO RÁPIDA DE ESTADOS DO PORTAL',
-            style: TextStyle(
-              color: p.textSecondary,
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.0,
-            ),
-          ),
-        ),
-        HeraldicSegmentBar(
-          segments: const ['OAuth Padrão', 'Erro / Bloqueio', 'Sucesso'],
-          selectedIndex: activeIdx,
-          onSelected: (index) {
-            if (index == 0) {
-              ctrl.previewLoginState(OAuthSecurityState.padrao);
-            } else if (index == 1) {
-              ctrl.previewLoginState(OAuthSecurityState.erroMenorIdade);
-            } else {
-              ctrl.previewLoginState(OAuthSecurityState.sucessoAutenticado);
-            }
-          },
-        ),
-      ],
-    );
-  }
-
   Widget _buildStandardOAuthView(
     BuildContext context,
     AppController ctrl,
     ArcanaPalette p,
   ) {
+    final roleChoices = const <(UserRole, String)>[
+      (UserRole.jogador, 'Jogador'),
+      (UserRole.assistenteMestre, 'Auxiliar'),
+      (UserRole.mestre, 'Mestre'),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -211,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 14),
         const HeraldicSectionDivider(
           svgIcon: ArcanaSvgIcons.key,
-          title: 'ACESSO RÁPIDO GOOGLE OAUTH',
+          title: 'ACESSO GOOGLE OAUTH 2.0',
         ),
         const SizedBox(height: 6),
         HeraldicCard(
@@ -242,11 +287,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          ctrl.selectedGoogleAccountName,
+                          'Conta Google Android (OAuth 2.0)',
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         Text(
-                          ctrl.selectedGoogleAccountEmail,
+                          'O seletor nativo do Google abrirá ao continuar',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -260,6 +305,73 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               const SizedBox(height: 12),
+              Divider(color: p.subtleBorder, height: 1),
+              const SizedBox(height: 10),
+              InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: ctrl.isSyncing ? null : () => _pickBirthDate(ctrl),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      SvgIconWidget(
+                        ArcanaSvgIcons.calendar,
+                        size: 18,
+                        color: p.goldPrimary,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Data de Nascimento (LGPD >= 16 anos)',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            Text(
+                              _formatDate(ctrl.selectedBirthDate),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: p.goldPrimary,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const HeraldicChipPill(label: 'Alterar'),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Divider(color: p.subtleBorder, height: 1),
+              const SizedBox(height: 10),
+              Text(
+                'PAPEL INICIAL NA TAVERNA',
+                style: TextStyle(
+                  color: p.textSecondary,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.9,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: roleChoices.map((entry) {
+                  final selected = ctrl.initialRequestedRole == entry.$1;
+                  return ChoiceChip(
+                    label: Text(entry.$2),
+                    selected: selected,
+                    onSelected: ctrl.isSyncing
+                        ? null
+                        : (_) => ctrl.setInitialRequestedRole(entry.$1),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 10),
               Divider(color: p.subtleBorder, height: 1),
               const SizedBox(height: 10),
               Row(
@@ -286,31 +398,127 @@ class _LoginScreenState extends State<LoginScreen> {
                   Switch(
                     value: ctrl.trustDevice,
                     activeTrackColor: p.emerald,
-                    onChanged: ctrl.setTrustDevice,
+                    onChanged: ctrl.isSyncing ? null : ctrl.setTrustDevice,
                   ),
                 ],
               ),
             ],
           ),
         ),
+        const SizedBox(height: 12),
+        HeraldicCard(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () => setState(() {
+                  _showServerConfig = !_showServerConfig;
+                }),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      SvgIconWidget(
+                        ArcanaSvgIcons.settings,
+                        size: 16,
+                        color: p.goldPrimary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Servidor Cloudflare Edge & Client ID OAuth',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: p.textPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ),
+                      HeraldicChipPill(
+                        label: _showServerConfig ? 'Ocultar' : 'Configurar',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (_showServerConfig) ...[
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _edgeUrlCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'URL do Cloudflare Worker (Edge API)',
+                    hintText: 'https://arcana-edge.<subdominio>.workers.dev',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _googleClientIdCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Google Web/Server Client ID (OAuth 2.0)',
+                    hintText: 'xxxxxxxx.apps.googleusercontent.com',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SecondaryHeraldicButton(
+                  label: _testingConnection
+                      ? 'Testando conexão Edge...'
+                      : 'Salvar & Testar Cloudflare Worker',
+                  svgIcon: ArcanaSvgIcons.wifi,
+                  expand: true,
+                  onPressed: _testingConnection
+                      ? null
+                      : () => _saveAndTestConnection(ctrl),
+                ),
+                if (_connectionStatusText != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _connectionStatusText!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: _connectionOk == true ? p.emerald : p.crimson,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
+              ],
+            ],
+          ),
+        ),
         const SizedBox(height: 16),
-        PrimaryGoldPillButton(
-          label: 'Continuar com o Google',
-          svgIcon: ArcanaSvgIcons.sparkles,
-          onPressed: () async {
-            await ctrl.signInWithGoogleOAuth();
-          },
-        ),
-        const SizedBox(height: 10),
-        SecondaryHeraldicButton(
-          label: 'Usar Outra Conta Google',
-          svgIcon: ArcanaSvgIcons.user,
-          expand: true,
-          onPressed: () {
-            ctrl.switchSimulatedGoogleAccount();
-            _displayNameCtrl.text = ctrl.selectedGoogleAccountName;
-          },
-        ),
+        if (ctrl.isSyncing)
+          HeraldicCard(
+            goldAccent: true,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    color: p.goldPrimary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Autenticando no Google e Cloudflare D1...',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: p.goldPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ],
+            ),
+          )
+        else
+          PrimaryGoldPillButton(
+            label: 'Continuar com o Google',
+            svgIcon: ArcanaSvgIcons.sparkles,
+            onPressed: () async {
+              await ctrl.signInWithGoogleOAuth();
+            },
+          ),
       ],
     );
   }
@@ -355,36 +563,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                alignment: WrapAlignment.center,
-                children: [
-                  ActionChip(
-                    label: const Text('Simular < 16 anos'),
-                    onPressed: () =>
-                        ctrl.previewLoginState(OAuthSecurityState.erroMenorIdade),
-                  ),
-                  ActionChip(
-                    label: const Text('Hardware Ban'),
-                    onPressed: () =>
-                        ctrl.previewLoginState(OAuthSecurityState.erroHardwareBan),
-                  ),
-                  ActionChip(
-                    label: const Text('Lockout Total'),
-                    onPressed: () =>
-                        ctrl.previewLoginState(OAuthSecurityState.erroLockoutTotal),
-                  ),
-                ],
-              ),
               if (ctrl.loginViewState == OAuthSecurityState.erroLockoutTotal) ...[
                 const SizedBox(height: 14),
+                TextField(
+                  controller: _recoveryEmailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: 'E-mail Google da Conta Bloqueada',
+                    hintText: 'seuemail@gmail.com',
+                  ),
+                ),
+                const SizedBox(height: 10),
                 TextField(
                   controller: _recoveryCodeCtrl,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
-                    labelText: 'Código de Desbloqueio (6 dígitos via Resend)',
+                    labelText: 'Código de Desbloqueio (6 dígitos)',
                     hintText: 'Ex: 482910',
                   ),
                 ),
@@ -395,7 +589,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   borderColor: p.emerald,
                   textColor: p.emerald,
                   expand: true,
-                  onPressed: () => ctrl.previewLoginState(OAuthSecurityState.padrao),
+                  onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final ok = await ctrl.verifyLockoutRecovery(
+                      email: _recoveryEmailCtrl.text,
+                      recoveryCode: _recoveryCodeCtrl.text,
+                    );
+                    if (!ok && mounted) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            ctrl.authErrorMessage ??
+                                'Não foi possível validar o código de desbloqueio.',
+                          ),
+                        ),
+                      );
+                    }
+                  },
                 ),
               ],
             ],
@@ -406,7 +616,7 @@ class _LoginScreenState extends State<LoginScreen> {
           label: 'Voltar ao Login Google OAuth',
           svgIcon: ArcanaSvgIcons.arrowLeft,
           expand: true,
-          onPressed: () => ctrl.previewLoginState(OAuthSecurityState.padrao),
+          onPressed: ctrl.resetLoginState,
         ),
       ],
     );
@@ -474,14 +684,18 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         const SizedBox(height: 14),
         PrimaryGoldPillButton(
-          label: 'Entrar no Hub da Taverna',
+          label: ctrl.isSyncing
+              ? 'Salvando perfil no Cloudflare D1...'
+              : 'Entrar no Hub da Taverna',
           svgIcon: ArcanaSvgIcons.arrowRight,
-          onPressed: () {
-            ctrl.completeLoginTransitionToHub(
-              newUsername: _usernameCtrl.text,
-              newDisplayName: _displayNameCtrl.text,
-            );
-          },
+          onPressed: ctrl.isSyncing
+              ? null
+              : () async {
+                  await ctrl.completeLoginTransitionToHub(
+                    newUsername: _usernameCtrl.text,
+                    newDisplayName: _displayNameCtrl.text,
+                  );
+                },
         ),
       ],
     );

@@ -81,7 +81,7 @@ describe('Camada 2 — Testes de Integração de Casos de Uso & Segurança Zero-
   });
 
   it('deve ocultar categorias vazias do compendio automaticamente', async () => {
-    const repo = new InMemoryArcanaRepository();
+    const repo = new InMemoryArcanaRepository({ withTestFixtures: true });
     const res = await queryCompendiumUseCase(
       { action: 'compendium.query', system_id: 'sys_lamina_carmesim' },
       repo,
@@ -92,7 +92,7 @@ describe('Camada 2 — Testes de Integração de Casos de Uso & Segurança Zero-
   });
 
   it('deve aplicar RBAC estrito, gerar autotags em denuncias e efetuar Hardware Ban pelo Admin', async () => {
-    const repo = new InMemoryArcanaRepository();
+    const repo = new InMemoryArcanaRepository({ withTestFixtures: true });
     const jogador = {
       userId: 'usr_valen_bard',
       email: 'valen@arcanavtt.app',

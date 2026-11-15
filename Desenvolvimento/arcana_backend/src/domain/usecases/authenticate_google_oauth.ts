@@ -9,7 +9,7 @@ import { calculateAgeUtc, generateId, sha256Hex, signJwt } from '../../utils/cry
 type OAuthInput = z.infer<typeof authOAuthGoogleSchema>;
 
 /**
- * Autenticação 100% Google OAuth 2.0 com barreira etária LGPD (>= 16 anos),
+ * Autenticação 100% Google OAuth 2.0 com validação de `id_token`, barreira etária LGPD (>= 16 anos),
  * proteção Hardware Ban e sessão de Dispositivo Confiável (15–30 dias).
  */
 export async function authenticateGoogleOAuth(
@@ -18,6 +18,58 @@ export async function authenticateGoogleOAuth(
   env?: Env,
   clientIp = '0.0.0.0',
 ) {
+  let verifiedSub = input.google_sub;
+  let verifiedEmail = input.email.toLowerCase();
+  let verifiedDisplayName = input.display_name;
+
+  if (
+    env?.GOOGLE_CLIENT_ID &&
+    env.GOOGLE_CLIENT_ID.trim().length > 0 &&
+    env?.ENVIRONMENT === 'production' &&
+    !input.id_token
+  ) {
+    throw new AppError(
+      401,
+      'MISSING_GOOGLE_TOKEN',
+      'Token id_token do Google OAuth obrigatorio.',
+    );
+  }
+
+  if (input.id_token) {
+    const tokenRes = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(input.id_token)}`,
+    );
+    if (!tokenRes.ok) {
+      throw new AppError(
+        401,
+        'INVALID_GOOGLE_TOKEN',
+        'Token Google OAuth 2.0 invalido ou expirado.',
+      );
+    }
+    const tokenInfo = (await tokenRes.json()) as {
+      sub?: string;
+      email?: string;
+      aud?: string;
+      name?: string;
+    };
+    if (
+      env?.GOOGLE_CLIENT_ID &&
+      env.GOOGLE_CLIENT_ID.trim().length > 0 &&
+      tokenInfo.aud !== env.GOOGLE_CLIENT_ID.trim()
+    ) {
+      throw new AppError(
+        401,
+        'INVALID_GOOGLE_TOKEN',
+        'Client ID (aud) do token Google OAuth nao corresponde ao aplicativo.',
+      );
+    }
+    if (tokenInfo.sub) verifiedSub = tokenInfo.sub;
+    if (tokenInfo.email) verifiedEmail = tokenInfo.email.toLowerCase();
+    if (tokenInfo.name && tokenInfo.name.trim().length >= 2) {
+      verifiedDisplayName = tokenInfo.name.trim();
+    }
+  }
+
   const minAge = Number.parseInt(env?.MIN_AGE_YEARS ?? '16', 10) || 16;
   const age = calculateAgeUtc(input.birth_date);
   if (age < 0) {
@@ -42,7 +94,7 @@ export async function authenticateGoogleOAuth(
   }
 
   const nowIso = new Date().toISOString();
-  let user = await repo.findUserByGoogleSubOrEmail(input.google_sub, input.email);
+  let user = await repo.findUserByGoogleSubOrEmail(verifiedSub, verifiedEmail);
   let profile = user ? await repo.findProfileByUserId(user.id) : null;
 
   if (user && user.account_status === 'locked') {
@@ -62,21 +114,35 @@ export async function authenticateGoogleOAuth(
 
   if (!user) {
     const userId = generateId('usr');
-    const sanitizedBase = input.email
+    const sanitizedBase = verifiedEmail
       .split('@')[0]
       ?.toLowerCase()
       .replace(/[^a-z0-9_]/g, '_')
       .slice(0, 14) || 'heroi';
     const username = `${sanitizedBase}_${userId.slice(-4)}`;
-    const initialRole: UserRole =
-      input.requested_role && env?.ENVIRONMENT !== 'production'
-        ? input.requested_role
-        : 'jogador';
+
+    const realUsersCount = await repo.countRealUsers();
+    let initialRole: UserRole;
+    if (realUsersCount === 0 && !(env?.ENVIRONMENT === 'test' && input.requested_role)) {
+      initialRole = 'superadmin';
+    } else if (
+      input.requested_role === 'jogador' ||
+      input.requested_role === 'assistente_mestre' ||
+      input.requested_role === 'mestre'
+    ) {
+      initialRole = input.requested_role;
+    } else if (input.requested_role && env?.ENVIRONMENT !== 'production') {
+      initialRole = input.requested_role;
+    } else if (input.requested_role) {
+      initialRole = 'jogador';
+    } else {
+      initialRole = 'mestre';
+    }
 
     user = {
       id: userId,
-      google_sub: input.google_sub,
-      email: input.email.toLowerCase(),
+      google_sub: verifiedSub,
+      email: verifiedEmail,
       birth_date: input.birth_date,
       role: initialRole,
       account_status: 'active',
@@ -88,7 +154,7 @@ export async function authenticateGoogleOAuth(
     profile = {
       user_id: userId,
       username,
-      display_name: input.display_name,
+      display_name: verifiedDisplayName,
       bio: 'Aventureiro recem-chegado a Taverna ArcanaVTT.',
       avatar_icon: 'crown',
       preferred_role: initialRole,

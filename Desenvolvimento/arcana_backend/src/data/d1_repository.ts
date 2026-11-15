@@ -2,6 +2,7 @@ import type { D1Database } from '@cloudflare/workers-types';
 import type {
   CampaignMemberRecord,
   CampaignRecord,
+  CharacterRecord,
   ChatMessageRecord,
   CompendiumItemRecord,
   DeviceSecurityRecord,
@@ -17,7 +18,7 @@ import type {
   UserProfileRecord,
   UserRecord,
 } from './interfaces';
-import type { AccountStatus } from '../types/env';
+import type { AccountStatus, UserRole } from '../types/env';
 
 /**
  * Repositório de produção sobre Cloudflare D1 utilizando 100% Prepared Statements parametrizados.
@@ -40,6 +41,20 @@ export class CloudflareD1Repository implements IArcanaRepository {
       .prepare('SELECT * FROM users WHERE id = ?1 LIMIT 1')
       .bind(userId)
       .first<UserRecord>();
+  }
+
+  async countRealUsers(): Promise<number> {
+    const res = await this.db
+      .prepare("SELECT COUNT(*) AS total FROM users WHERE id != 'usr_system_official'")
+      .first<{ total: number }>();
+    return res?.total ?? 0;
+  }
+
+  async updateUserRole(userId: string, role: UserRole): Promise<void> {
+    await this.db
+      .prepare('UPDATE users SET role = ?1, updated_at = ?2 WHERE id = ?3')
+      .bind(role, new Date().toISOString(), userId)
+      .run();
   }
 
   async createUserWithProfile(
@@ -356,6 +371,41 @@ export class CloudflareD1Repository implements IArcanaRepository {
     return res.results;
   }
 
+  async createGuild(guild: GuildRecord): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO guilds (id, leader_id, name, tag, description, member_count, active_tables_count, boost_points, boost_goal, shared_world_json, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)`,
+      )
+      .bind(
+        guild.id,
+        guild.leader_id,
+        guild.name,
+        guild.tag,
+        guild.description,
+        guild.member_count,
+        guild.active_tables_count,
+        guild.boost_points,
+        guild.boost_goal,
+        guild.shared_world_json,
+        guild.created_at,
+      )
+      .run();
+  }
+
+  async boostGuild(guildId: string, points: number): Promise<GuildRecord | null> {
+    await this.db
+      .prepare(
+        'UPDATE guilds SET boost_points = MIN(boost_goal, boost_points + ?1) WHERE id = ?2',
+      )
+      .bind(points, guildId)
+      .run();
+    return this.db
+      .prepare('SELECT * FROM guilds WHERE id = ?1 LIMIT 1')
+      .bind(guildId)
+      .first<GuildRecord>();
+  }
+
   async listForumTopics(): Promise<ForumTopicRecord[]> {
     const res = await this.db
       .prepare('SELECT * FROM forum_topics ORDER BY pinned DESC, created_at DESC')
@@ -444,12 +494,53 @@ export class CloudflareD1Repository implements IArcanaRepository {
     return res.results;
   }
 
+  async addFriendship(record: FriendshipRecord): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO friendships (user_id, friend_id, status, presence_status, presence_activity, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+         ON CONFLICT(user_id, friend_id) DO UPDATE SET
+           status = excluded.status,
+           presence_status = excluded.presence_status,
+           presence_activity = excluded.presence_activity,
+           updated_at = excluded.updated_at`,
+      )
+      .bind(
+        record.user_id,
+        record.friend_id,
+        record.status,
+        record.presence_status,
+        record.presence_activity,
+        record.updated_at,
+      )
+      .run();
+  }
+
   async listNotifications(userId: string): Promise<NotificationRecord[]> {
     const res = await this.db
       .prepare('SELECT * FROM notifications WHERE user_id = ?1 ORDER BY created_at DESC')
       .bind(userId)
       .all<NotificationRecord>();
     return res.results;
+  }
+
+  async createNotification(notification: NotificationRecord): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO notifications (id, user_id, category, title, body, action_payload_json, is_read, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)`,
+      )
+      .bind(
+        notification.id,
+        notification.user_id,
+        notification.category,
+        notification.title,
+        notification.body,
+        notification.action_payload_json,
+        notification.is_read,
+        notification.created_at,
+      )
+      .run();
   }
 
   async markNotificationsRead(userId: string, notificationId?: string): Promise<void> {
@@ -463,6 +554,46 @@ export class CloudflareD1Repository implements IArcanaRepository {
     await this.db
       .prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ?1')
       .bind(userId)
+      .run();
+  }
+
+  async listCharactersByUser(userId: string): Promise<CharacterRecord[]> {
+    const res = await this.db
+      .prepare('SELECT * FROM characters WHERE user_id = ?1 ORDER BY updated_at DESC')
+      .bind(userId)
+      .all<CharacterRecord>();
+    return res.results;
+  }
+
+  async upsertCharacter(character: CharacterRecord): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO characters (id, user_id, campaign_id, name, title, system_id, level, attributes_json, slots_json, statuses_json, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+         ON CONFLICT(id) DO UPDATE SET
+           campaign_id = excluded.campaign_id,
+           name = excluded.name,
+           title = excluded.title,
+           system_id = excluded.system_id,
+           level = excluded.level,
+           attributes_json = excluded.attributes_json,
+           slots_json = excluded.slots_json,
+           statuses_json = excluded.statuses_json,
+           updated_at = excluded.updated_at`,
+      )
+      .bind(
+        character.id,
+        character.user_id,
+        character.campaign_id,
+        character.name,
+        character.title,
+        character.system_id,
+        character.level,
+        character.attributes_json,
+        character.slots_json,
+        character.statuses_json,
+        character.updated_at,
+      )
       .run();
   }
 
@@ -540,7 +671,9 @@ export class CloudflareD1Repository implements IArcanaRepository {
     pending_reports_count: number;
     banned_devices_count: number;
   }> {
-    const users = await this.db.prepare('SELECT COUNT(*) AS total FROM users').first<{ total: number }>();
+    const users = await this.db
+      .prepare("SELECT COUNT(*) AS total FROM users WHERE id != 'usr_system_official'")
+      .first<{ total: number }>();
     const campaigns = await this.db.prepare('SELECT COUNT(*) AS total FROM campaigns').first<{ total: number }>();
     const reports = await this.db
       .prepare("SELECT COUNT(*) AS total FROM universal_reports WHERE status = 'pending'")

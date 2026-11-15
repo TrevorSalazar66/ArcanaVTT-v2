@@ -5,6 +5,8 @@ import type {
   chatSendMessageSchema,
   communitiesOverviewSchema,
   forumCreateTopicSchema,
+  guildsBoostSchema,
+  guildsCreateSchema,
 } from '../../schemas/sync_schemas';
 import type { AuthenticatedUser } from '../../types/env';
 import { generateId } from '../../utils/crypto_jwt';
@@ -147,5 +149,52 @@ export async function sendChatMessageUseCase(
 
   await repo.createChatMessage(message);
   return { ok: true, message, dice_roll: diceRoll };
+}
+
+export async function createGuildUseCase(
+  authUser: AuthenticatedUser,
+  input: z.infer<typeof guildsCreateSchema>,
+  repo: IArcanaRepository,
+) {
+  const cleanTag = input.tag.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8);
+  if (cleanTag.length < 2) {
+    throw new AppError(400, 'INVALID_GUILD_TAG', 'A tag da guilda precisa ter pelo menos 2 caracteres.');
+  }
+
+  const existing = await repo.listGuilds();
+  if (existing.some((g) => g.tag.toUpperCase() === cleanTag)) {
+    throw new AppError(409, 'GUILD_TAG_TAKEN', `A tag [${cleanTag}] ja esta em uso.`);
+  }
+
+  const guild = {
+    id: generateId('gld'),
+    leader_id: authUser.userId,
+    name: input.name.trim(),
+    tag: cleanTag,
+    description: input.description.trim(),
+    member_count: 1,
+    active_tables_count: 0,
+    boost_points: 0,
+    boost_goal: 1000,
+    shared_world_json: JSON.stringify({
+      world: input.shared_world_name.trim(),
+      season: input.current_season.trim(),
+    }),
+    created_at: new Date().toISOString(),
+  };
+
+  await repo.createGuild(guild);
+  return { ok: true, guild };
+}
+
+export async function boostGuildUseCase(
+  input: z.infer<typeof guildsBoostSchema>,
+  repo: IArcanaRepository,
+) {
+  const updated = await repo.boostGuild(input.guild_id, input.points);
+  if (!updated) {
+    throw new AppError(404, 'GUILD_NOT_FOUND', 'Guilda nao localizada.');
+  }
+  return { ok: true, guild: updated };
 }
 

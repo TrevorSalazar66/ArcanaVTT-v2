@@ -24,11 +24,44 @@ class GuildPanelModal extends StatelessWidget {
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) {
+        if (controller.guilds.isEmpty) {
+          return ArcanaModalScaffold(
+            svgIcon: ArcanaSvgIcons.shield,
+            title: 'GUILDA NÃO ENCONTRADA',
+            subtitle: 'Nenhuma guilda registrada na sua conta no momento',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                HeraldicCard(
+                  child: Text(
+                    'Funde uma nova guilda na aba Comunidades para habilitar o mundo compartilhado e campanhas vinculadas.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                PrimaryGoldPillButton(
+                  label: 'Fundar Nova Guilda',
+                  svgIcon: ArcanaSvgIcons.plus,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    showArcanaModal(
+                      context,
+                      builder: (_) => CreateGuildModal(controller: controller),
+                    );
+                  },
+                ),
+              ],
+            ),
+          );
+        }
+
         final Guild guild = controller.guilds.firstWhere(
           (g) => g.id == guildId,
           orElse: () => controller.guilds.first,
         );
-        final ratio = (guild.boostPoints / guild.boostGoal).clamp(0.0, 1.0);
+        final ratio =
+            (guild.boostGoal <= 0 ? 0.0 : guild.boostPoints / guild.boostGoal)
+                .clamp(0.0, 1.0);
 
         return ArcanaModalScaffold(
           svgIcon: ArcanaSvgIcons.shield,
@@ -178,8 +211,8 @@ class _CreateForumTopicModalState extends State<CreateForumTopicModal> {
           PrimaryGoldPillButton(
             label: 'Publicar Tópico',
             svgIcon: ArcanaSvgIcons.check,
-            onPressed: () {
-              widget.controller.createForumTopic(
+            onPressed: () async {
+              await widget.controller.createForumTopic(
                 category: _category,
                 title: _titleCtrl.text.trim().isEmpty
                     ? 'Discussão sobre mesas AlphaD6'
@@ -188,8 +221,139 @@ class _CreateForumTopicModalState extends State<CreateForumTopicModal> {
                     ? 'Tópico aberto na comunidade ArcanaVTT.'
                     : _bodyCtrl.text.trim(),
               );
-              Navigator.of(context).pop();
+              if (context.mounted) Navigator.of(context).pop();
             },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Modal para Fundar uma Nova Guilda sincronizada no Cloudflare D1.
+class CreateGuildModal extends StatefulWidget {
+  final AppController controller;
+
+  const CreateGuildModal({super.key, required this.controller});
+
+  @override
+  State<CreateGuildModal> createState() => _CreateGuildModalState();
+}
+
+class _CreateGuildModalState extends State<CreateGuildModal> {
+  final TextEditingController _nameCtrl = TextEditingController();
+  final TextEditingController _tagCtrl = TextEditingController();
+  final TextEditingController _descCtrl = TextEditingController();
+  final TextEditingController _worldCtrl =
+      TextEditingController(text: 'Continente de Valen');
+
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _tagCtrl.dispose();
+    _descCtrl.dispose();
+    _worldCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final name = _nameCtrl.text.trim();
+    final tag = _tagCtrl.text.trim().toUpperCase();
+    if (name.length < 3) {
+      setState(() => _error = 'Nome da guilda precisa ter ao menos 3 caracteres.');
+      return;
+    }
+    if (tag.length < 2 || tag.length > 5) {
+      setState(() => _error = 'A tag da guilda deve ter de 2 a 5 caracteres.');
+      return;
+    }
+
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+
+    final ok = await widget.controller.createGuild(
+      name: name,
+      tag: tag,
+      description: _descCtrl.text.trim().isEmpty
+          ? 'Guilda fundada na Taverna para mesas compartilhadas.'
+          : _descCtrl.text.trim(),
+      sharedWorldName: _worldCtrl.text.trim().isEmpty
+          ? 'Continente de Valen'
+          : _worldCtrl.text.trim(),
+    );
+
+    if (!mounted) return;
+    if (ok) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() {
+        _saving = false;
+        _error = widget.controller.lastSyncError ??
+            'Falha ao fundar guilda no servidor.';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.arcana;
+    return ArcanaModalScaffold(
+      svgIcon: ArcanaSvgIcons.shield,
+      title: 'FUNDAR NOVA GUILDA',
+      subtitle: 'Inaugure um Shared World e convide mestres e heróis',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: _nameCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Nome da Guilda',
+              hintText: 'Ex: Ordem da Chama Dourada',
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _tagCtrl,
+            textCapitalization: TextCapitalization.characters,
+            maxLength: 5,
+            decoration: const InputDecoration(
+              labelText: 'Tag da Guilda (2 a 5 letras)',
+              hintText: 'Ex: ORDE',
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _worldCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Nome do Mundo Compartilhado',
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _descCtrl,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              labelText: 'Descrição / Juramento da Guilda',
+              hintText: 'Foco em one-shots ou crônicas semanais...',
+            ),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _error!,
+              style: TextStyle(color: p.crimson, fontSize: 12),
+            ),
+          ],
+          const SizedBox(height: 16),
+          PrimaryGoldPillButton(
+            label: _saving ? 'Fundando Guilda...' : 'Fundar Guilda no D1',
+            svgIcon: ArcanaSvgIcons.check,
+            onPressed: _saving ? null : _submit,
           ),
         ],
       ),

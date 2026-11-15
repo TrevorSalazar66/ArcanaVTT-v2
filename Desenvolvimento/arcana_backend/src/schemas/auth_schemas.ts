@@ -10,6 +10,7 @@ const roleSchema = z.enum([
 
 export const authOAuthGoogleSchema = z.object({
   action: z.literal('oauth_google'),
+  id_token: z.string().min(10).optional(),
   google_sub: z.string().min(4).max(128),
   email: z.string().email().max(180),
   display_name: z.string().min(2).max(80),

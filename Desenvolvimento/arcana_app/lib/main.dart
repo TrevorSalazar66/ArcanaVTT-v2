@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'controllers/app_controller.dart';
 import 'core/theme/arcana_theme.dart';
+import 'domain/usecases/authenticate_oauth_usecase.dart';
 import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/main_hub_screen.dart';
 
@@ -21,6 +22,9 @@ class ArcanaVttApp extends StatelessWidget {
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) {
+        final showHub = controller.isAuthenticated &&
+            controller.loginViewState !=
+                OAuthSecurityState.sucessoAutenticado;
         return MaterialApp(
           title: 'ArcanaVTT',
           debugShowCheckedModeBanner: false,
@@ -28,7 +32,7 @@ class ArcanaVttApp extends StatelessWidget {
             controller.themeMode,
             controller.fontScale,
           ),
-          home: controller.isAuthenticated
+          home: showHub
               ? MainHubScreen(controller: controller)
               : LoginScreen(controller: controller),
         );

@@ -65,54 +65,64 @@ class _NotificationsModalState extends State<NotificationsModal> {
                 ],
               ),
               const SizedBox(height: 10),
-              ...items.map(
-                (n) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: HeraldicCard(
-                    goldAccent: !n.isRead,
-                    onTap: () => widget.controller.markNotificationRead(n.id),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                n.title,
-                                style: Theme.of(context).textTheme.titleMedium,
+              if (items.isEmpty)
+                HeraldicCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Nenhuma notificação pendente.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                )
+              else
+                ...items.map(
+                  (n) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: HeraldicCard(
+                      goldAccent: !n.isRead,
+                      onTap: () => widget.controller.markNotificationRead(n.id),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  n.title,
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
                               ),
-                            ),
-                            Text(
-                              n.timeAgo,
-                              style: Theme.of(context).textTheme.bodySmall,
+                              Text(
+                                n.timeAgo,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(n.body, style: Theme.of(context).textTheme.bodySmall),
+                          if (n.campaignCode != null) ...[
+                            const SizedBox(height: 8),
+                            SecondaryHeraldicButton(
+                              label: 'Entrar pelo Código ${n.campaignCode}',
+                              svgIcon: ArcanaSvgIcons.qrCode,
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                showArcanaModal(
+                                  context,
+                                  builder: (_) => QuickJoinModal(
+                                    controller: widget.controller,
+                                    prefilledCode: n.campaignCode,
+                                  ),
+                                );
+                              },
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(n.body, style: Theme.of(context).textTheme.bodySmall),
-                        if (n.campaignCode != null) ...[
-                          const SizedBox(height: 8),
-                          SecondaryHeraldicButton(
-                            label: 'Entrar pelo Código ${n.campaignCode}',
-                            svgIcon: ArcanaSvgIcons.qrCode,
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                              showArcanaModal(
-                                context,
-                                builder: (_) => QuickJoinModal(
-                                  controller: widget.controller,
-                                  prefilledCode: n.campaignCode,
-                                ),
-                              );
-                            },
-                          ),
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         );
@@ -200,13 +210,25 @@ class _SocialProfileModalState extends State<SocialProfileModal> {
           PrimaryGoldPillButton(
             label: 'Salvar Alterações',
             svgIcon: ArcanaSvgIcons.check,
-            onPressed: () {
-              widget.controller.updateProfile(
+            onPressed: () async {
+              final ok = await widget.controller.updateProfile(
                 username: _userCtrl.text,
                 displayName: _nameCtrl.text,
                 bio: _bioCtrl.text,
               );
-              Navigator.of(context).pop();
+              if (!context.mounted) return;
+              if (ok) {
+                Navigator.of(context).pop();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      widget.controller.lastSyncError ??
+                          'Não foi possível salvar alterações no servidor.',
+                    ),
+                  ),
+                );
+              }
             },
           ),
         ],
@@ -238,6 +260,8 @@ class FriendsManagementModal extends StatefulWidget {
 
 class _FriendsManagementModalState extends State<FriendsManagementModal> {
   final TextEditingController _addCtrl = TextEditingController();
+  bool _adding = false;
+  String? _friendError;
 
   @override
   void dispose() {
@@ -271,67 +295,96 @@ class _FriendsManagementModalState extends State<FriendsManagementModal> {
                   ),
                   const SizedBox(width: 8),
                   SecondaryHeraldicButton(
-                    label: 'Convidar',
+                    label: _adding ? '...' : 'Convidar',
                     svgIcon: ArcanaSvgIcons.plus,
                     borderColor: p.goldBorder,
-                    onPressed: () {
-                      widget.controller.addFriendByUsername(_addCtrl.text);
-                      _addCtrl.clear();
-                    },
+                    onPressed: _adding
+                        ? null
+                        : () async {
+                            setState(() {
+                              _adding = true;
+                              _friendError = null;
+                            });
+                            final err = await widget.controller
+                                .addFriendByUsername(_addCtrl.text);
+                            if (!mounted) return;
+                            setState(() {
+                              _adding = false;
+                              _friendError = err;
+                              if (err == null) _addCtrl.clear();
+                            });
+                          },
                   ),
                 ],
               ),
+              if (_friendError != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _friendError!,
+                  style: TextStyle(color: p.crimson, fontSize: 12),
+                ),
+              ],
               const SizedBox(height: 12),
-              ...widget.controller.friends.map(
-                (f) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: HeraldicCard(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: p.surfaceElevated,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: p.goldBorder),
+              if (widget.controller.friends.isEmpty)
+                HeraldicCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Nenhum aliado adicionado ainda. Busque por @username real.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                )
+              else
+                ...widget.controller.friends.map(
+                  (f) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: HeraldicCard(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: p.surfaceElevated,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: p.goldBorder),
+                            ),
+                            alignment: Alignment.center,
+                            child: SvgIconWidget(ArcanaSvgIcons.user, size: 18),
                           ),
-                          alignment: Alignment.center,
-                          child: SvgIconWidget(ArcanaSvgIcons.user, size: 18),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    f.displayName,
-                                    style: Theme.of(context).textTheme.titleMedium,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  HeraldicChipPill(
-                                    label: f.presenceStatus,
-                                    color: f.presenceStatus == 'Em Mesa'
-                                        ? p.goldPrimary
-                                        : p.emerald,
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                '@${f.username} • ${f.activity}',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      f.displayName,
+                                      style: Theme.of(context).textTheme.titleMedium,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    HeraldicChipPill(
+                                      label: f.presenceStatus,
+                                      color: f.presenceStatus == 'Em Mesa'
+                                          ? p.goldPrimary
+                                          : p.emerald,
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  '@${f.username} • ${f.activity}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         );
@@ -414,22 +467,90 @@ class TutorialsCentralModal extends StatelessWidget {
 }
 
 /// 5. Configurações Gerais (3 Temas, Escala Tipográfica 80-150%, Mixer 4 Canais, Cache P2P & Lockout Total).
-class GeneralSettingsModal extends StatelessWidget {
+/// 5. Configurações Gerais (Temas, Escala, Áudio Mixer, Servidor Cloudflare, Cargo & Segurança).
+class GeneralSettingsModal extends StatefulWidget {
   final AppController controller;
 
   const GeneralSettingsModal({super.key, required this.controller});
 
   @override
+  State<GeneralSettingsModal> createState() => _GeneralSettingsModalState();
+}
+
+class _GeneralSettingsModalState extends State<GeneralSettingsModal> {
+  late final TextEditingController _edgeUrlCtrl;
+  bool _syncing = false;
+  bool? _connOk;
+  String? _statusText;
+
+  @override
+  void initState() {
+    super.initState();
+    _edgeUrlCtrl = TextEditingController(
+      text: widget.controller.edgeClient.baseUrl,
+    );
+  }
+
+  @override
+  void dispose() {
+    _edgeUrlCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _testConnection() async {
+    setState(() {
+      _syncing = true;
+      _statusText = null;
+    });
+    await widget.controller.updateServerConfig(edgeUrl: _edgeUrlCtrl.text);
+    final res = await widget.controller.testEdgeConnection();
+    if (!mounted) return;
+    setState(() {
+      _syncing = false;
+      _connOk = res.ok;
+      _statusText = res.ok
+          ? 'Conexão Edge ativa (HTTP ${res.statusCode}).'
+          : 'Worker inacessível (${res.statusCode == 0 ? 'sem resposta de rede' : 'HTTP ${res.statusCode}'}).';
+    });
+  }
+
+  Future<void> _syncNow() async {
+    setState(() {
+      _syncing = true;
+      _statusText = null;
+    });
+    await widget.controller.updateServerConfig(edgeUrl: _edgeUrlCtrl.text);
+    await widget.controller.hydrateAllFromBackend();
+    if (!mounted) return;
+    final err = widget.controller.lastSyncError;
+    setState(() {
+      _syncing = false;
+      _connOk = err == null;
+      _statusText = err ?? 'Dados sincronizados com sucesso no Cloudflare D1!';
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final p = context.arcana;
+    final ctrl = widget.controller;
     return ListenableBuilder(
-      listenable: controller,
+      listenable: ctrl,
       builder: (context, _) {
-        final mixer = controller.audioMixer;
+        final mixer = ctrl.audioMixer;
+        final u = ctrl.currentUser;
+        final isPrivileged =
+            u.role == UserRole.admin || u.role == UserRole.superadmin;
+        final selfRoles = const [
+          UserRole.jogador,
+          UserRole.assistenteMestre,
+          UserRole.mestre,
+        ];
+
         return ArcanaModalScaffold(
           svgIcon: ArcanaSvgIcons.settings,
           title: 'CONFIGURAÇÕES GERAIS',
-          subtitle: 'Temas Heráldicos, Escala, Áudio e Segurança',
+          subtitle: 'Temas Heráldicos, Escala, Áudio, Cloudflare e Segurança',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -438,9 +559,9 @@ class GeneralSettingsModal extends StatelessWidget {
                 title: 'TEMAS OFICIAIS',
               ),
               RadioGroup<ArcanaThemeMode>(
-                groupValue: controller.themeMode,
+                groupValue: ctrl.themeMode,
                 onChanged: (val) {
-                  if (val != null) controller.setThemeMode(val);
+                  if (val != null) ctrl.setThemeMode(val);
                 },
                 child: Column(
                   children: ArcanaThemeMode.values
@@ -464,7 +585,7 @@ class GeneralSettingsModal extends StatelessWidget {
                 children: [
                   const Text('Multiplicador de Leitura'),
                   Text(
-                    '${(controller.fontScale * 100).round()}%',
+                    '${(ctrl.fontScale * 100).round()}%',
                     style: TextStyle(
                       color: p.goldPrimary,
                       fontWeight: FontWeight.w800,
@@ -473,12 +594,12 @@ class GeneralSettingsModal extends StatelessWidget {
                 ],
               ),
               Slider(
-                value: controller.fontScale,
+                value: ctrl.fontScale,
                 min: 0.8,
                 max: 1.5,
                 divisions: 7,
                 activeColor: p.goldPrimary,
-                onChanged: controller.setFontScale,
+                onChanged: ctrl.setFontScale,
               ),
               const HeraldicSectionDivider(
                 svgIcon: ArcanaSvgIcons.volume2,
@@ -488,47 +609,109 @@ class GeneralSettingsModal extends StatelessWidget {
                 'Master',
                 mixer.masterVolume,
                 p.goldPrimary,
-                (v) => controller.updateAudioMixer(mixer.copyWith(masterVolume: v)),
+                (v) => ctrl.updateAudioMixer(mixer.copyWith(masterVolume: v)),
               ),
               _volumeSlider(
                 'Ambiência',
                 mixer.ambienceVolume,
                 p.infoBlue,
-                (v) => controller.updateAudioMixer(mixer.copyWith(ambienceVolume: v)),
+                (v) => ctrl.updateAudioMixer(mixer.copyWith(ambienceVolume: v)),
               ),
               _volumeSlider(
                 'Efeitos (SFX)',
                 mixer.sfxVolume,
                 p.emerald,
-                (v) => controller.updateAudioMixer(mixer.copyWith(sfxVolume: v)),
+                (v) => ctrl.updateAudioMixer(mixer.copyWith(sfxVolume: v)),
               ),
               _volumeSlider(
                 'Voz / Mesa',
                 mixer.voiceVolume,
                 p.goldHighlight,
-                (v) => controller.updateAudioMixer(mixer.copyWith(voiceVolume: v)),
+                (v) => ctrl.updateAudioMixer(mixer.copyWith(voiceVolume: v)),
               ),
               const HeraldicSectionDivider(
+                svgIcon: ArcanaSvgIcons.wifi,
+                title: 'SERVIDOR CLOUDFLARE EDGE & D1',
+              ),
+              TextField(
+                controller: _edgeUrlCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'URL do Cloudflare Worker',
+                  hintText: 'https://arcana-edge.<subdominio>.workers.dev',
+                ),
+              ),
+              const SizedBox(height: 10),
+              SecondaryHeraldicButton(
+                label: 'Salvar & Testar Conexão',
+                svgIcon: ArcanaSvgIcons.wifi,
+                expand: true,
+                onPressed: _syncing ? null : _testConnection,
+              ),
+              const SizedBox(height: 8),
+              PrimaryGoldPillButton(
+                label: _syncing
+                    ? 'Sincronizando D1...'
+                    : 'Sincronizar Agora com Cloudflare D1',
+                svgIcon: ArcanaSvgIcons.sparkles,
+                onPressed: _syncing ? null : _syncNow,
+              ),
+              if (_statusText != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _statusText!,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: _connOk == true ? p.emerald : p.crimson,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
+              const HeraldicSectionDivider(
                 svgIcon: ArcanaSvgIcons.shield,
-                title: 'TROCA DE PAPEL (QA / RBAC)',
+                title: 'PAPEL NA TAVERNA (SYNC D1)',
               ),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: UserRole.values.map((role) {
-                  return ChoiceChip(
-                    label: Text(role.badgeLabel),
-                    selected: controller.currentUser.role == role,
-                    onSelected: (_) => controller.switchActiveRoleForPreview(role),
-                  );
-                }).toList(),
-              ),
+              if (isPrivileged)
+                HeraldicCard(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      RoleBadgeWidget(role: u.role),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Papel administrativo (${u.role.badgeLabel}) protegido pelo banco Cloudflare D1.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: selfRoles.map((role) {
+                    return ChoiceChip(
+                      label: Text(role.badgeLabel),
+                      selected: u.role == role,
+                      onSelected: (_) async {
+                        await ctrl.updateProfile(
+                          username: u.username,
+                          displayName: u.displayName,
+                          bio: u.bio,
+                          preferredRole: role,
+                        );
+                      },
+                    );
+                  }).toList(),
+                ),
               const SizedBox(height: 14),
               SecondaryHeraldicButton(
-                label: 'Limpar Cache P2P Local (${controller.p2pCacheMb} MB)',
+                label: 'Limpar Cache P2P Local (${ctrl.p2pCacheMb} MB)',
                 svgIcon: ArcanaSvgIcons.trash,
                 expand: true,
-                onPressed: controller.clearP2pCache,
+                onPressed: ctrl.clearP2pCache,
               ),
               const SizedBox(height: 10),
               SecondaryHeraldicButton(
@@ -539,7 +722,7 @@ class GeneralSettingsModal extends StatelessWidget {
                 expand: true,
                 onPressed: () {
                   Navigator.of(context).pop();
-                  controller.triggerTotalLockout();
+                  ctrl.triggerTotalLockout();
                 },
               ),
             ],
@@ -604,71 +787,81 @@ class AdminGovernanceModal extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              ...controller.reports.map(
-                (rep) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: HeraldicCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(rep.reasonCategory,
-                                style: Theme.of(context).textTheme.titleMedium),
-                            HeraldicChipPill(
-                              label: rep.status.toUpperCase(),
-                              color: rep.status == 'pending' ? p.crimson : p.emerald,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(rep.description,
-                            style: Theme.of(context).textTheme.bodySmall),
-                        const SizedBox(height: 6),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: rep.autoTags
-                              .map((t) => HeraldicChipPill(label: t, color: p.infoBlue))
-                              .toList(),
-                        ),
-                        if (rep.status == 'pending') ...[
-                          const SizedBox(height: 10),
+              if (controller.reports.isEmpty)
+                HeraldicCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Nenhuma denúncia registrada.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                )
+              else
+                ...controller.reports.map(
+                  (rep) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: HeraldicCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(
-                                child: SecondaryHeraldicButton(
-                                  label: 'Resolver',
-                                  borderColor: p.emerald,
-                                  textColor: p.emerald,
-                                  onPressed: () => controller.moderateReport(
-                                    reportId: rep.id,
-                                    decision: 'resolved',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: SecondaryHeraldicButton(
-                                  label: 'Hardware Ban',
-                                  borderColor: p.crimson,
-                                  textColor: p.crimson,
-                                  onPressed: () => controller.moderateReport(
-                                    reportId: rep.id,
-                                    decision: 'resolved',
-                                    applyHardwareBan: true,
-                                  ),
-                                ),
+                              Text(rep.reasonCategory,
+                                  style: Theme.of(context).textTheme.titleMedium),
+                              HeraldicChipPill(
+                                label: rep.status.toUpperCase(),
+                                color: rep.status == 'pending' ? p.crimson : p.emerald,
                               ),
                             ],
                           ),
+                          const SizedBox(height: 4),
+                          Text(rep.description,
+                              style: Theme.of(context).textTheme.bodySmall),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: rep.autoTags
+                                .map((t) => HeraldicChipPill(label: t, color: p.infoBlue))
+                                .toList(),
+                          ),
+                          if (rep.status == 'pending') ...[
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: SecondaryHeraldicButton(
+                                    label: 'Resolver',
+                                    borderColor: p.emerald,
+                                    textColor: p.emerald,
+                                    onPressed: () => controller.moderateReport(
+                                      reportId: rep.id,
+                                      decision: 'resolved',
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: SecondaryHeraldicButton(
+                                    label: 'Hardware Ban',
+                                    borderColor: p.crimson,
+                                    textColor: p.crimson,
+                                    onPressed: () => controller.moderateReport(
+                                      reportId: rep.id,
+                                      decision: 'resolved',
+                                      applyHardwareBan: true,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         );
