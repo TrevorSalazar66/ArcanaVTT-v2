@@ -14,8 +14,18 @@ export const profileSetupSchema = z.object({
     .string()
     .regex(/^[a-z0-9_]{3,24}$/, 'Username deve ter 3-24 caracteres minusculos/numeros/_'),
   display_name: z.string().min(2).max(60),
-  bio: z.string().max(280).default(''),
-  preferred_role: z.string().min(2).max(40).optional(),
+  birth_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve ser YYYY-MM-DD')
+    .optional(),
+  bio: z.string().max(500).default(''),
+  contacts: z
+    .object({
+      discord: z.string().max(60).optional(),
+      whatsapp: z.string().max(30).optional(),
+      instagram: z.string().max(60).optional(),
+    })
+    .optional(),
   theme_preference: z
     .enum(['escuro_heraldico', 'oled', 'alto_contraste_solar'])
     .optional(),
@@ -26,6 +36,11 @@ export const campaignsListSchema = z.object({
   action: z.literal('campaigns.list'),
   filter: z.enum(['jogando', 'auxiliar', 'mestre', 'explorar', 'todas']).default('todas'),
   search: z.string().max(100).optional(),
+});
+
+export const campaignsLookupCodeSchema = z.object({
+  action: z.literal('campaigns.lookup_code'),
+  code: z.string().min(4).max(8),
 });
 
 export const campaignsQuickJoinSchema = z.object({
@@ -47,8 +62,20 @@ export const campaignsCreateSchema = z.object({
 export const campaignsApplySchema = z.object({
   action: z.literal('campaigns.apply'),
   campaign_id: z.string().min(3).max(64),
-  character_name: z.string().min(2).max(60),
-  pitch: z.string().min(5).max(300),
+  pitch: z.string().min(5).max(200),
+});
+
+export const campaignsListMembersSchema = z.object({
+  action: z.literal('campaigns.list_members'),
+  campaign_id: z.string().min(3).max(64),
+});
+
+export const campaignsManageMemberSchema = z.object({
+  action: z.literal('campaigns.manage_member'),
+  campaign_id: z.string().min(3).max(64),
+  target_user_id: z.string().min(3).max(64),
+  status: z.enum(['active', 'rejected']).optional(),
+  table_role: z.enum(['jogador', 'assistente_mestre']).optional(),
 });
 
 export const systemsListSchema = z.object({
@@ -126,7 +153,7 @@ export const socialAddFriendSchema = z.object({
 export const charactersUpsertSchema = z.object({
   action: z.literal('characters.upsert'),
   id: z.string().max(64).optional(),
-  campaign_id: z.string().max(64).nullable().optional(),
+  campaign_id: z.string().min(3).max(64),
   name: z.string().min(2).max(60),
   title: z.string().min(2).max(60),
   system_id: z.string().min(3).max(64).default('sys_alphad6_v24'),
@@ -161,6 +188,12 @@ export const adminOverviewSchema = z.object({
   action: z.literal('admin.overview'),
 });
 
+export const adminUpdateRoleSchema = z.object({
+  action: z.literal('admin.update_role'),
+  target_user_id: z.string().min(3).max(64),
+  role: z.enum(['jogador', 'mestre', 'admin']),
+});
+
 export const adminModerateSchema = z.object({
   action: z.literal('admin.moderate'),
   report_id: z.string().min(3).max(64),
@@ -189,9 +222,12 @@ export const syncSignalSchema = z.object({
 export const syncPayloadSchema = z.discriminatedUnion('action', [
   profileSetupSchema,
   campaignsListSchema,
+  campaignsLookupCodeSchema,
   campaignsQuickJoinSchema,
   campaignsCreateSchema,
   campaignsApplySchema,
+  campaignsListMembersSchema,
+  campaignsManageMemberSchema,
   systemsListSchema,
   systemsCreateSchema,
   compendiumQuerySchema,
@@ -207,6 +243,7 @@ export const syncPayloadSchema = z.discriminatedUnion('action', [
   notificationsMarkReadSchema,
   reportSubmitSchema,
   adminOverviewSchema,
+  adminUpdateRoleSchema,
   adminModerateSchema,
   syncPresenceSchema,
   syncSignalSchema,

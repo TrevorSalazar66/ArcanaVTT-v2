@@ -3,6 +3,7 @@ import '../../../controllers/app_controller.dart';
 import '../../../core/constants/svg_icons.dart';
 import '../../../core/security/rbac_guard.dart';
 import '../../../core/theme/arcana_colors.dart';
+import '../../../domain/entities/arcana_entities.dart';
 import '../../modals/campaign_modals.dart';
 import '../../modals/hero_sheet_highlight_modal.dart';
 import '../../modals/modal_shell.dart';
@@ -24,6 +25,9 @@ class HomeTabScreen extends StatelessWidget {
     final p = context.arcana;
     final user = controller.currentUser;
     final hero = controller.hero;
+    final activeCampaigns = controller.campaigns
+        .where((c) => c.userRelation != CampaignSegment.explorar)
+        .toList();
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
@@ -136,7 +140,7 @@ class HomeTabScreen extends StatelessWidget {
             child: const Text('Ver todas'),
           ),
         ),
-        if (controller.campaigns.isEmpty)
+        if (activeCampaigns.isEmpty)
           HeraldicCard(
             padding: const EdgeInsets.all(18),
             child: Column(
@@ -167,7 +171,7 @@ class HomeTabScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Sua jornada começa ao entrar ou criar uma mesa.',
+                  'Sua jornada começa ao ingressar em uma mesa ou aguardar aprovação do Mestre.',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
@@ -209,10 +213,10 @@ class HomeTabScreen extends StatelessWidget {
             height: 174,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: controller.campaigns.length,
+              itemCount: activeCampaigns.length,
               separatorBuilder: (_, _) => const SizedBox(width: 12),
               itemBuilder: (ctx, idx) {
-                final cmp = controller.campaigns[idx];
+                final cmp = activeCampaigns[idx];
                 return SizedBox(
                   width: 268,
                   child: HeraldicCard(
@@ -299,10 +303,6 @@ class HomeTabScreen extends StatelessWidget {
         if (hero == null)
           HeraldicCard(
             goldAccent: true,
-            onTap: () => showArcanaModal(
-              context,
-              builder: (_) => HeroSheetHighlightModal(controller: controller),
-            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -334,7 +334,7 @@ class HomeTabScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Crie seu primeiro aventureiro AlphaD6 (3d6 e 12 slots) sincronizado na nuvem.',
+                            'As fichas AlphaD6 são criadas exclusivamente dentro de uma campanha ativa após aprovação do Mestre.',
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -343,14 +343,12 @@ class HomeTabScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                PrimaryGoldPillButton(
-                  label: 'Criar Ficha de Herói',
-                  svgIcon: ArcanaSvgIcons.swords,
-                  onPressed: () => showArcanaModal(
-                    context,
-                    builder: (_) =>
-                        HeroSheetHighlightModal(controller: controller),
-                  ),
+                SecondaryHeraldicButton(
+                  label: 'Explorar Campanhas',
+                  svgIcon: ArcanaSvgIcons.scroll,
+                  borderColor: p.goldBorder,
+                  expand: true,
+                  onPressed: () => controller.setTabIndex(1),
                 ),
               ],
             ),

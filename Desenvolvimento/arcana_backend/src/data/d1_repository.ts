@@ -1,5 +1,7 @@
 import type { D1Database } from '@cloudflare/workers-types';
 import type {
+  AdminUserSummaryRecord,
+  CampaignMemberDetailRecord,
   CampaignMemberRecord,
   CampaignRecord,
   CharacterRecord,
@@ -57,6 +59,13 @@ export class CloudflareD1Repository implements IArcanaRepository {
       .run();
   }
 
+  async updateUserBirthDate(userId: string, birthDate: string): Promise<void> {
+    await this.db
+      .prepare('UPDATE users SET birth_date = ?1, updated_at = ?2 WHERE id = ?3')
+      .bind(birthDate, new Date().toISOString(), userId)
+      .run();
+  }
+
   async createUserWithProfile(
     user: UserRecord,
     profile: UserProfileRecord,
@@ -80,8 +89,8 @@ export class CloudflareD1Repository implements IArcanaRepository {
         ),
       this.db
         .prepare(
-          `INSERT INTO user_profiles (user_id, username, display_name, bio, avatar_icon, preferred_role, reputation_points, theme_preference, font_scale, onboarding_completed, updated_at)
-           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)`,
+          `INSERT INTO user_profiles (user_id, username, display_name, bio, avatar_icon, preferred_role, contacts_json, reputation_points, theme_preference, font_scale, onboarding_completed, updated_at)
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)`,
         )
         .bind(
           profile.user_id,
@@ -90,6 +99,7 @@ export class CloudflareD1Repository implements IArcanaRepository {
           profile.bio,
           profile.avatar_icon,
           profile.preferred_role,
+          profile.contacts_json ?? '{}',
           profile.reputation_points,
           profile.theme_preference,
           profile.font_scale,
@@ -112,6 +122,21 @@ export class CloudflareD1Repository implements IArcanaRepository {
       .run();
   }
 
+  async listUsersWithProfiles(): Promise<AdminUserSummaryRecord[]> {
+    const res = await this.db
+      .prepare(
+        `SELECT u.id, u.email, u.birth_date, u.role, u.account_status, u.created_at,
+                COALESCE(up.username, '') AS username,
+                COALESCE(up.display_name, u.email) AS display_name
+         FROM users u
+         LEFT JOIN user_profiles up ON up.user_id = u.id
+         WHERE u.id != 'usr_system_official'
+         ORDER BY u.created_at DESC`,
+      )
+      .all<AdminUserSummaryRecord>();
+    return res.results;
+  }
+
   async findProfileByUserId(userId: string): Promise<UserProfileRecord | null> {
     return this.db
       .prepare('SELECT * FROM user_profiles WHERE user_id = ?1 LIMIT 1')
@@ -131,14 +156,15 @@ export class CloudflareD1Repository implements IArcanaRepository {
       .prepare(
         `UPDATE user_profiles
          SET username = ?1, display_name = ?2, bio = ?3, preferred_role = ?4,
-             theme_preference = ?5, font_scale = ?6, onboarding_completed = ?7, updated_at = ?8
-         WHERE user_id = ?9`,
+             contacts_json = ?5, theme_preference = ?6, font_scale = ?7, onboarding_completed = ?8, updated_at = ?9
+         WHERE user_id = ?10`,
       )
       .bind(
         profile.username,
         profile.display_name,
         profile.bio,
         profile.preferred_role,
+        profile.contacts_json ?? '{}',
         profile.theme_preference,
         profile.font_scale,
         profile.onboarding_completed,
@@ -239,6 +265,34 @@ export class CloudflareD1Repository implements IArcanaRepository {
       .bind(userId)
       .all<CampaignMemberRecord>();
     return res.results;
+  }
+
+  async listCampaignMembersByCampaign(
+    campaignId: string,
+  ): Promise<CampaignMemberDetailRecord[]> {
+    const res = await this.db
+      .prepare(
+        `SELECT cm.*, COALESCE(up.username, '') AS username, COALESCE(up.display_name, '') AS display_name
+         FROM campaign_members cm
+         LEFT JOIN user_profiles up ON up.user_id = cm.user_id
+         WHERE cm.campaign_id = ?1
+         ORDER BY cm.joined_at ASC`,
+      )
+      .bind(campaignId)
+      .all<CampaignMemberDetailRecord>();
+    return res.results;
+  }
+
+  async findCampaignMember(
+    campaignId: string,
+    userId: string,
+  ): Promise<CampaignMemberRecord | null> {
+    return this.db
+      .prepare(
+        'SELECT * FROM campaign_members WHERE campaign_id = ?1 AND user_id = ?2 LIMIT 1',
+      )
+      .bind(campaignId, userId)
+      .first<CampaignMemberRecord>();
   }
 
   async findCampaignByCode(code: string): Promise<CampaignRecord | null> {

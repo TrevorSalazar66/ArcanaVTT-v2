@@ -5,6 +5,7 @@ import type { IArcanaRepository } from './data/interfaces';
 import {
   getAdminOverviewUseCase,
   moderateReportUseCase,
+  updateUserRoleAdminUseCase,
 } from './domain/usecases/admin_governance';
 import { authenticateGoogleOAuth } from './domain/usecases/authenticate_google_oauth';
 import {
@@ -14,7 +15,10 @@ import {
 import {
   applyToCampaignUseCase,
   createCampaignUseCase,
+  listCampaignMembersUseCase,
   listCampaignsUseCase,
+  lookupCampaignByCodeUseCase,
+  manageCampaignMemberUseCase,
   quickJoinCampaignUseCase,
 } from './domain/usecases/manage_campaigns';
 import {
@@ -152,15 +156,21 @@ export function createApp(customRepo?: IArcanaRepository) {
 
     switch (parsed.action) {
       case 'profile.setup':
-        return c.json(await setupUserProfile(authUser.userId, parsed, repo));
+        return c.json(await setupUserProfile(authUser.userId, parsed, repo, c.env));
       case 'campaigns.list':
         return c.json(await listCampaignsUseCase(authUser.userId, parsed, repo));
+      case 'campaigns.lookup_code':
+        return c.json(await lookupCampaignByCodeUseCase(authUser.userId, parsed.code, repo));
       case 'campaigns.quick_join':
         return c.json(await quickJoinCampaignUseCase(authUser.userId, parsed.code, repo));
       case 'campaigns.create':
         return c.json(await createCampaignUseCase(authUser, parsed, repo), 201);
       case 'campaigns.apply':
         return c.json(await applyToCampaignUseCase(authUser.userId, parsed, repo));
+      case 'campaigns.list_members':
+        return c.json(await listCampaignMembersUseCase(authUser, parsed.campaign_id, repo));
+      case 'campaigns.manage_member':
+        return c.json(await manageCampaignMemberUseCase(authUser, parsed, repo));
       case 'systems.list':
         return c.json(await listSystemsUseCase(parsed, repo));
       case 'systems.create':
@@ -200,6 +210,8 @@ export function createApp(customRepo?: IArcanaRepository) {
         );
       case 'admin.overview':
         return c.json(await getAdminOverviewUseCase(authUser, repo));
+      case 'admin.update_role':
+        return c.json(await updateUserRoleAdminUseCase(authUser, parsed, repo));
       case 'admin.moderate':
         return c.json(await moderateReportUseCase(authUser, parsed, repo));
       case 'sync.presence':

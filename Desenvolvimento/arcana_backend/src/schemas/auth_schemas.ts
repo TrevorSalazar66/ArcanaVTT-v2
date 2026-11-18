@@ -14,7 +14,10 @@ export const authOAuthGoogleSchema = z.object({
   google_sub: z.string().min(4).max(128),
   email: z.string().email().max(180),
   display_name: z.string().min(2).max(80),
-  birth_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve ser YYYY-MM-DD'),
+  birth_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve ser YYYY-MM-DD')
+    .optional(),
   device_fingerprint: z.string().min(6).max(128),
   android_id_hash: z.string().min(6).max(128).optional(),
   trust_device: z.boolean().default(true),

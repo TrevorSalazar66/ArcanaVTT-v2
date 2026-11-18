@@ -1,7 +1,11 @@
 import type { z } from 'zod';
 import type { IArcanaRepository } from '../../data/interfaces';
 import { assertRole } from '../../middlewares/auth_middleware';
-import type { adminModerateSchema } from '../../schemas/sync_schemas';
+import { AppError } from '../../middlewares/error_handler';
+import type {
+  adminModerateSchema,
+  adminUpdateRoleSchema,
+} from '../../schemas/sync_schemas';
 import type { AuthenticatedUser } from '../../types/env';
 
 /**
@@ -12,14 +16,55 @@ export async function getAdminOverviewUseCase(
   repo: IArcanaRepository,
 ) {
   assertRole(authUser.role, ['admin', 'superadmin']);
-  const [reports, metrics] = await Promise.all([
+  const [reports, metrics, users] = await Promise.all([
     repo.listReports(),
     repo.listMetricsSummary(),
+    repo.listUsersWithProfiles(),
   ]);
   return {
     ok: true,
     metrics,
     reports,
+    users,
+  };
+}
+
+export async function updateUserRoleAdminUseCase(
+  authUser: AuthenticatedUser,
+  input: z.infer<typeof adminUpdateRoleSchema>,
+  repo: IArcanaRepository,
+) {
+  assertRole(authUser.role, ['admin', 'superadmin']);
+
+  if (input.target_user_id === 'usr_system_official') {
+    throw new AppError(403, 'PROTECTED_SYSTEM_USER', 'Conta do sistema nao pode ser alterada.');
+  }
+
+  const targetUser = await repo.findUserById(input.target_user_id);
+  if (!targetUser) {
+    throw new AppError(404, 'USER_NOT_FOUND', 'Usuario nao localizado.');
+  }
+  if (targetUser.role === 'superadmin') {
+    throw new AppError(403, 'PROTECTED_SUPERADMIN', 'O cargo de Superadmin nao pode ser rebaixado.');
+  }
+
+  // Regra estrita (01-visao-geral-e-rbac.md & 11): apenas Superadmin promove ou rebaixa Admins.
+  if (
+    (input.role === 'admin' || targetUser.role === 'admin') &&
+    authUser.role !== 'superadmin'
+  ) {
+    throw new AppError(
+      403,
+      'SUPERADMIN_ONLY',
+      'Somente o Superadmin pode conceder ou revogar o cargo de Administrador.',
+    );
+  }
+
+  await repo.updateUserRole(targetUser.id, input.role);
+  return {
+    ok: true,
+    user_id: targetUser.id,
+    role: input.role,
   };
 }
 
@@ -59,4 +104,3 @@ export async function moderateReportUseCase(
     status: finalStatus,
   };
 }
-

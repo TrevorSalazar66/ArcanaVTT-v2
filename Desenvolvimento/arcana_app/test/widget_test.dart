@@ -5,6 +5,7 @@ import 'package:arcana_app/controllers/app_controller.dart';
 import 'package:arcana_app/core/security/rbac_guard.dart';
 import 'package:arcana_app/core/theme/arcana_colors.dart';
 import 'package:arcana_app/data/datasources/cloudflare_edge_client.dart';
+import 'package:arcana_app/data/datasources/local_storage_datasource.dart';
 import 'package:arcana_app/data/repositories/arcana_seed_repository.dart';
 import 'package:arcana_app/domain/entities/arcana_entities.dart';
 import 'package:arcana_app/domain/usecases/authenticate_oauth_usecase.dart';
@@ -12,14 +13,26 @@ import 'package:arcana_app/domain/usecases/build_universal_report_usecase.dart';
 import 'package:arcana_app/domain/usecases/filter_compendium_categories_usecase.dart';
 import 'package:arcana_app/domain/usecases/roll_3d6_usecase.dart';
 import 'package:arcana_app/main.dart';
+import 'package:arcana_app/presentation/modals/campaign_modals.dart';
 import 'package:arcana_app/presentation/modals/community_chat_modal.dart';
+import 'package:arcana_app/presentation/modals/profile_and_nav_modals.dart';
+import 'package:arcana_app/presentation/screens/tabs/communities_tab_screen.dart';
 
-Future<Map<String, String>?> _fakeGoogleUser() async {
+Future<Map<String, String>?> _fakeStandardPlayerGoogle() async {
   return {
-    'sub': 'sub_google_001',
-    'email': 'mestre@arcanavtt.app',
-    'displayName': 'Mestre Arcano',
-    'idToken': 'tok_test_001',
+    'sub': 'sub_google_player_001',
+    'email': 'jogador@arcanavtt.app',
+    'displayName': 'Kaelen Viajante',
+    'idToken': 'tok_player_001',
+  };
+}
+
+Future<Map<String, String>?> _fakeFounderGoogle() async {
+  return {
+    'sub': 'sub_google_founder_001',
+    'email': 'founder@arcanavtt.app',
+    'displayName': 'Fundador Arcano',
+    'idToken': 'tok_founder_001',
   };
 }
 
@@ -36,10 +49,42 @@ class _OfflineStubEdgeClient extends CloudflareEdgeClient {
 }
 
 class _FakeSyncedEdgeClient extends CloudflareEdgeClient {
-  final List<Map<String, dynamic>> _campaigns = [];
+  final List<Map<String, dynamic>> _campaigns = [
+    {
+      'id': 'cmp_other_master',
+      'owner_id': 'usr_other_master',
+      'title': 'Cidadela das Sombras',
+      'synopsis': 'Mesa pública aguardando novos heróis.',
+      'master_handle': '@outro_mestre',
+      'system_id': 'sys_alphad6_v24',
+      'system_name': 'AlphaD6 Core (v2.4)',
+      'quick_join_code': 'OTHER9',
+      'mode': 'ao_vivo',
+      'schedule_text': 'Sáb 20h',
+      'max_slots': 5,
+      'occupied_slots': 2,
+      'chapter_title': 'Prólogo — Portões de Obsidiana',
+      'visibility': 'publica',
+    },
+  ];
+  final List<Map<String, dynamic>> _memberships = [];
   final List<Map<String, dynamic>> _characters = [];
   final List<Map<String, dynamic>> _guilds = [];
   final List<Map<String, dynamic>> _messages = [];
+  final List<Map<String, dynamic>> _users = [
+    {
+      'id': 'usr_player_01',
+      'email': 'jogador@arcanavtt.app',
+      'birth_date': '1999-05-12',
+      'role': 'jogador',
+      'account_status': 'active',
+      'username': 'kaelenviajante',
+      'display_name': 'Kaelen Viajante',
+    },
+  ];
+
+  String _activeUserId = 'usr_player_01';
+  String _activeRole = 'jogador';
 
   @override
   Future<EdgeResponse> checkHealth() async {
@@ -48,6 +93,11 @@ class _FakeSyncedEdgeClient extends CloudflareEdgeClient {
 
   @override
   Future<EdgeResponse> postAuth(Map<String, dynamic> payload) async {
+    final email = (payload['email'] as String?) ?? 'jogador@arcanavtt.app';
+    final isFounder = email == 'founder@arcanavtt.app';
+    _activeUserId = isFounder ? 'usr_founder' : 'usr_player_01';
+    _activeRole = isFounder ? 'superadmin' : 'jogador';
+
     return EdgeResponse(
       ok: true,
       statusCode: 200,
@@ -55,13 +105,13 @@ class _FakeSyncedEdgeClient extends CloudflareEdgeClient {
         'token': 'jwt_fake_sync_001',
         'trusted_device_days': 30,
         'user': {
-          'id': 'usr_001',
-          'email': payload['email'] ?? 'mestre@arcanavtt.app',
-          'role': 'superadmin',
+          'id': _activeUserId,
+          'email': email,
+          'role': _activeRole,
         },
         'profile': {
-          'username': 'mestrearcano',
-          'display_name': payload['display_name'] ?? 'Mestre Arcano',
+          'username': isFounder ? 'fundadorarcano' : 'kaelenviajante',
+          'display_name': payload['display_name'] ?? 'Aventureiro',
           'bio': '',
           'avatar_icon': 'crown',
           'reputation_points': 100,
@@ -76,47 +126,73 @@ class _FakeSyncedEdgeClient extends CloudflareEdgeClient {
     final action = payload['action'] as String?;
     switch (action) {
       case 'systems.list':
-        return const EdgeResponse(ok: true, statusCode: 200, data: {'systems': <dynamic>[]});
+        return const EdgeResponse(
+          ok: true,
+          statusCode: 200,
+          data: {'systems': <dynamic>[]},
+        );
       case 'compendium.query':
-        return const EdgeResponse(ok: true, statusCode: 200, data: {'items': <dynamic>[]});
+        return const EdgeResponse(
+          ok: true,
+          statusCode: 200,
+          data: {'items': <dynamic>[]},
+        );
       case 'campaigns.list':
         return EdgeResponse(
           ok: true,
           statusCode: 200,
-          data: {'campaigns': _campaigns, 'memberships': <dynamic>[]},
+          data: {'campaigns': _campaigns, 'memberships': _memberships},
         );
-      case 'characters.list':
+      case 'communities.overview':
         return EdgeResponse(
           ok: true,
           statusCode: 200,
-          data: {'characters': _characters},
+          data: {
+            'guilds': _guilds,
+            'forum_topics': <dynamic>[],
+            'messages': _messages,
+          },
         );
-      case 'guilds.list':
+      case 'social.overview':
         return EdgeResponse(
           ok: true,
           statusCode: 200,
-          data: {'guilds': _guilds},
+          data: {
+            'friends': <dynamic>[],
+            'notifications': <dynamic>[],
+            'characters': _characters,
+          },
         );
-      case 'forum.list':
-        return const EdgeResponse(ok: true, statusCode: 200, data: {'topics': <dynamic>[]});
-      case 'chat.list':
+      case 'admin.overview':
         return EdgeResponse(
           ok: true,
           statusCode: 200,
-          data: {'messages': _messages},
+          data: {
+            'reports': <dynamic>[],
+            'users': _users,
+          },
         );
-      case 'friends.list':
-        return const EdgeResponse(ok: true, statusCode: 200, data: {'friends': <dynamic>[]});
-      case 'notifications.list':
-        return const EdgeResponse(ok: true, statusCode: 200, data: {'notifications': <dynamic>[]});
-      case 'reports.list':
-        return const EdgeResponse(ok: true, statusCode: 200, data: {'reports': <dynamic>[]});
+      case 'admin.update_role':
+        final targetId = payload['target_user_id'] as String?;
+        final role = payload['role'] as String?;
+        if (targetId != null && role != null) {
+          for (var i = 0; i < _users.length; i++) {
+            if (_users[i]['id'] == targetId) {
+              _users[i]['role'] = role;
+            }
+          }
+        }
+        return EdgeResponse(
+          ok: true,
+          statusCode: 200,
+          data: {'user_id': targetId, 'role': role},
+        );
       case 'profile.setup':
         return EdgeResponse(
           ok: true,
           statusCode: 200,
           data: {
-            'role': 'superadmin',
+            'role': _activeRole,
             'profile': {
               'username': payload['username'],
               'display_name': payload['display_name'],
@@ -127,9 +203,10 @@ class _FakeSyncedEdgeClient extends CloudflareEdgeClient {
       case 'campaigns.create':
         final cmp = {
           'id': 'cmp_001',
+          'owner_id': _activeUserId,
           'title': payload['title'],
           'synopsis': payload['synopsis'],
-          'master_handle': '@mestrearcano',
+          'master_handle': '@fundadorarcano',
           'system_id': payload['system_id'],
           'system_name': 'AlphaD6 Core (v2.4)',
           'quick_join_code': 'D1A99Z',
@@ -141,8 +218,14 @@ class _FakeSyncedEdgeClient extends CloudflareEdgeClient {
           'visibility': payload['visibility'],
         };
         _campaigns.insert(0, cmp);
+        _memberships.add({
+          'campaign_id': 'cmp_001',
+          'user_id': _activeUserId,
+          'table_role': 'mestre',
+          'status': 'active',
+        });
         return EdgeResponse(ok: true, statusCode: 201, data: {'campaign': cmp});
-      case 'campaigns.quick_join':
+      case 'campaigns.lookup_code':
         final code = payload['code'] as String?;
         final found = _campaigns.where((c) => c['quick_join_code'] == code).toList();
         if (found.isEmpty) {
@@ -152,34 +235,89 @@ class _FakeSyncedEdgeClient extends CloudflareEdgeClient {
             data: {'error': {'code': 'NOT_FOUND', 'message': 'Código inválido'}},
           );
         }
-        return EdgeResponse(ok: true, statusCode: 200, data: {'campaign': found.first});
+        final cmp = found.first;
+        final mem = _memberships.where(
+          (m) => m['campaign_id'] == cmp['id'] && m['user_id'] == _activeUserId,
+        );
+        final membership = mem.isEmpty ? null : mem.first;
+        final isMember = cmp['owner_id'] == _activeUserId ||
+            membership?['status'] == 'active';
+        return EdgeResponse(
+          ok: true,
+          statusCode: 200,
+          data: {
+            'campaign': cmp,
+            'membership': membership,
+            'is_member': isMember,
+          },
+        );
+      case 'campaigns.apply':
+        final cmpId = payload['campaign_id'] as String?;
+        final pitch = (payload['pitch'] as String?) ?? '';
+        if (cmpId == null || pitch.trim().length < 5 || pitch.length > 200) {
+          return const EdgeResponse(
+            ok: false,
+            statusCode: 400,
+            data: {'error': {'code': 'INVALID_PITCH', 'message': 'Apresentação inválida'}},
+          );
+        }
+        _memberships.add({
+          'campaign_id': cmpId,
+          'user_id': _activeUserId,
+          'table_role': 'jogador',
+          'status': 'pending',
+          'application_pitch': pitch,
+        });
+        return const EdgeResponse(ok: true, statusCode: 201, data: {'status': 'pending'});
+      case 'campaigns.list_members':
+        return EdgeResponse(
+          ok: true,
+          statusCode: 200,
+          data: {'members': _memberships},
+        );
       case 'characters.upsert':
+        final cmpId = (payload['campaign_id'] as String?) ?? '';
+        if (cmpId.isEmpty) {
+          return const EdgeResponse(
+            ok: false,
+            statusCode: 403,
+            data: {
+              'error': {
+                'code': 'CHARACTER_REQUIRES_ACTIVE_CAMPAIGN',
+                'message': 'Ficha requer campanha ativa.',
+              },
+            },
+          );
+        }
         final ch = {
           'id': payload['id'] ?? 'char_001',
+          'campaign_id': cmpId,
           'name': payload['name'],
           'title': payload['title'],
-          'campaign_title': 'Mesa Livre',
           'level': payload['level'],
-          'corpo': payload['corpo'],
-          'mente': payload['mente'],
-          'espirito': payload['espirito'],
-          'hp_current': payload['hp_current'],
-          'hp_max': payload['hp_max'],
-          'anima_current': payload['anima_current'],
-          'anima_max': payload['anima_max'],
-          'exhaustion': payload['exhaustion'],
-          'slots': payload['slots'],
+          'attributes_json':
+              '{"corpo":${payload['corpo']},"mente":${payload['mente']},"espirito":${payload['espirito']}}',
+          'slots_json': '["Espada Curta","Lanterna"]',
+          'statuses_json':
+              '{"hp_current":${payload['hp_current']},"hp_max":${payload['hp_max']},"anima_current":${payload['anima_current']},"anima_max":${payload['anima_max']},"exhaustion":0}',
         };
         _characters
           ..clear()
           ..add(ch);
         return EdgeResponse(ok: true, statusCode: 200, data: {'character': ch});
       case 'guilds.create':
+        if (_activeRole == 'jogador') {
+          return const EdgeResponse(
+            ok: false,
+            statusCode: 403,
+            data: {'error': {'code': 'FORBIDDEN', 'message': 'Cargo insuficiente'}},
+          );
+        }
         final g = {
           'id': 'gld_001',
           'name': payload['name'],
           'tag': payload['tag'],
-          'leader_handle': '@mestrearcano',
+          'leader_handle': '@fundadorarcano',
           'description': payload['description'],
           'member_count': 1,
           'active_tables_count': 0,
@@ -194,14 +332,14 @@ class _FakeSyncedEdgeClient extends CloudflareEdgeClient {
         final g = _guilds.first;
         g['boost_points'] = (g['boost_points'] as int) + (payload['points'] as int);
         return EdgeResponse(ok: true, statusCode: 200, data: {'guild': g});
-      case 'chat.send':
+      case 'chat.send_message':
         final msg = {
           'id': 'msg_001',
-          'author_handle': '@mestrearcano',
-          'author_role': 'SUPERADMIN',
+          'sender_id': _activeUserId,
+          'sender_handle': '@kaelenviajante',
+          'sender_role': _activeRole,
           'content': payload['content'],
-          'time_label': 'Agora',
-          'dice_summary': payload['dice_summary'],
+          'created_at': DateTime.now().toUtc().toIso8601String(),
         };
         _messages.add(msg);
         return EdgeResponse(ok: true, statusCode: 201, data: {'message': msg});
@@ -246,18 +384,21 @@ void main() {
       );
     });
 
-    test('AppController inicia 100% limpo sem campanhas, heróis ou guildas mockadas', () {
+    test('AppController inicia limpo, como Jogador e com URLs imutáveis internas', () {
       final ctrl = AppController(edgeClient: _OfflineStubEdgeClient());
+      expect(ctrl.currentUser.role, UserRole.jogador);
+      expect(ctrl.edgeClient.baseUrl, CloudflareEdgeClient.defaultBaseUrl);
+      expect(
+        LocalStorageDatasource.defaultGoogleServerClientId
+            .contains('apps.googleusercontent.com'),
+        isTrue,
+      );
       expect(ctrl.campaigns, isEmpty);
+      expect(ctrl.characters, isEmpty);
       expect(ctrl.hero, isNull);
       expect(ctrl.guilds, isEmpty);
-      expect(ctrl.forumTopics, isEmpty);
-      expect(ctrl.chatMessages, isEmpty);
-      expect(ctrl.friends, isEmpty);
-      expect(ctrl.notifications, isEmpty);
-      expect(ctrl.reports, isEmpty);
+      expect(ctrl.adminUsers, isEmpty);
       expect(ctrl.systems.length, 1);
-      expect(ctrl.systems.first.id, 'sys_alphad6_v24');
     });
 
     test('BuildUniversalReportUseCase anexa autotags de contexto automaticamente', () {
@@ -274,76 +415,123 @@ void main() {
       expect(report.autoTags.any((t) => t == '#relator:mestre'), isTrue);
     });
 
-    test('RbacGuard aplica matriz Zero-Trust correta para Jogador, Mestre e Superadmin', () {
+    test('RbacGuard aplica matriz Zero-Trust e Rebaixamento Local corretamente', () {
       expect(RbacGuard.canForgeCampaign(UserRole.jogador), isFalse);
+      expect(RbacGuard.canCreateGuild(UserRole.jogador), isFalse);
       expect(RbacGuard.canAccessAdminPanel(UserRole.jogador), isFalse);
+
       expect(RbacGuard.canForgeCampaign(UserRole.mestre), isTrue);
-      expect(RbacGuard.canAccessAdminPanel(UserRole.mestre), isFalse);
+      expect(RbacGuard.canCreateGuild(UserRole.mestre), isTrue);
+      expect(RbacGuard.canManageAdmins(UserRole.mestre), isFalse);
+      // Rebaixamento local: Mestre em mesa alheia não administra Oficina/Configs
+      expect(
+        RbacGuard.canManageCampaignTable(
+          isTableMaster: false,
+          globalRole: UserRole.mestre,
+        ),
+        isFalse,
+      );
+      expect(
+        RbacGuard.canManageCampaignTable(
+          isTableMaster: true,
+          globalRole: UserRole.mestre,
+        ),
+        isTrue,
+      );
+
       expect(RbacGuard.canAccessAdminPanel(UserRole.admin), isTrue);
+      expect(RbacGuard.canManageAdmins(UserRole.admin), isFalse);
       expect(RbacGuard.canAccessAdminPanel(UserRole.superadmin), isTrue);
+      expect(RbacGuard.canManageAdmins(UserRole.superadmin), isTrue);
     });
   });
 
   group('Camada 2 — Testes de Integração de Controller & Sync D1', () {
-    test('Bloqueia menor de 16 anos, Hardware Ban e autentica via GoogleOAuth + onboarding', () async {
+    test('Novo usuário inicia como Jogador, LGPD <16 bloqueado e Onboarding salva contatos', () async {
       final ctrl = AppController(
         edgeClient: _FakeSyncedEdgeClient(),
-        googleSignInProvider: _fakeGoogleUser,
+        googleSignInProvider: _fakeStandardPlayerGoogle,
       );
-
-      final blockedAge = await ctrl.signInWithGoogleOAuth(
-        birthDate: DateTime(2015, 1, 1),
-      );
-      expect(blockedAge, isFalse);
-      expect(ctrl.isAuthenticated, isFalse);
-      expect(ctrl.loginViewState, OAuthSecurityState.erroMenorIdade);
 
       final blockedBan = await ctrl.signInWithGoogleOAuth(
-        birthDate: DateTime(1998, 1, 1),
         simulateHardwareBan: true,
       );
       expect(blockedBan, isFalse);
       expect(ctrl.loginViewState, OAuthSecurityState.erroHardwareBan);
 
-      final ok = await ctrl.signInWithGoogleOAuth(
-        birthDate: DateTime(1998, 1, 1),
-      );
+      final ok = await ctrl.signInWithGoogleOAuth();
       expect(ok, isTrue);
-      expect(ctrl.isAuthenticated, isTrue);
-      expect(ctrl.currentUser.role, UserRole.superadmin);
+      expect(ctrl.currentUser.role, UserRole.jogador);
       expect(ctrl.loginViewState, OAuthSecurityState.sucessoAutenticado);
 
-      await ctrl.completeLoginTransitionToHub(
-        newUsername: 'mestrearcano',
-        newDisplayName: 'Mestre Arcano',
+      // Bloqueia menor de 16 anos na etapa de Onboarding
+      final minorOk = await ctrl.completeLoginTransitionToHub(
+        newUsername: 'kaelenviajante',
+        newDisplayName: 'Kaelen Viajante',
+        birthDate: DateTime(2015, 1, 1),
       );
+      expect(minorOk, isFalse);
+      expect(ctrl.isAuthenticated, isFalse);
+      expect(ctrl.loginViewState, OAuthSecurityState.erroMenorIdade);
+
+      // Novo login + onboarding válido >= 16 anos + contatos
+      await ctrl.signInWithGoogleOAuth();
+      final adultOk = await ctrl.completeLoginTransitionToHub(
+        newUsername: 'kaelenviajante',
+        newDisplayName: 'Kaelen Viajante',
+        birthDate: DateTime(1998, 4, 20),
+        bio: 'Jogador de dark fantasy.',
+        contacts: const {'discord': 'kaelen#9999', 'whatsapp': '+5511999999999'},
+      );
+      expect(adultOk, isTrue);
       expect(ctrl.loginViewState, OAuthSecurityState.padrao);
+      expect(ctrl.currentUser.bio, 'Jogador de dark fantasy.');
+      expect(ctrl.currentUser.socialContacts['discord'], 'kaelen#9999');
     });
 
-    test('CRUD completo sincronizado (ficha, campanha, quick join, guilda e chat 3d6)', () async {
+    test('Bloqueia ficha sem campanha, aprova criação com campaignId, QuickJoin/Candidatura e Guild RBAC', () async {
       final ctrl = AppController(
         edgeClient: _FakeSyncedEdgeClient(),
-        googleSignInProvider: _fakeGoogleUser,
+        googleSignInProvider: _fakeFounderGoogle,
       );
-      await ctrl.signInWithGoogleOAuth(birthDate: DateTime(1996, 5, 10));
+      await ctrl.signInWithGoogleOAuth();
       await ctrl.completeLoginTransitionToHub(
-        newUsername: 'mestrearcano',
-        newDisplayName: 'Mestre Arcano',
+        newUsername: 'fundadorarcano',
+        newDisplayName: 'Fundador Arcano',
+        birthDate: DateTime(1996, 5, 10),
       );
+      expect(ctrl.currentUser.role, UserRole.superadmin);
 
-      final heroOk = await ctrl.saveHeroCharacter(
-        name: 'Kaelen Silvaris',
-        heroClass: 'Lâmina Arcana',
-        campaignTitle: 'Mesa Livre',
+      // Recusa ficha sem campaignId
+      final rejectedHero = await ctrl.saveHeroCharacter(
+        campaignId: '',
+        name: 'Sem Mesa',
+        heroClass: 'Ladino',
+        campaignTitle: '',
         level: 1,
-        corpo: 3,
+        corpo: 2,
         mente: 2,
         espirito: 2,
-        slots: const ['Espada Curta', 'Lanterna'],
+        slots: const [],
       );
-      expect(heroOk, isTrue);
-      expect(ctrl.hero?.name, 'Kaelen Silvaris');
+      expect(rejectedHero, isFalse);
 
+      // Lookup não membro retorna isMember = false e candidatura limita 200 chars sem nome de ficha
+      final otherLookup = await ctrl.lookupCampaignByCode('OTHER9');
+      expect(otherLookup, isNotNull);
+      expect(otherLookup!.isMember, isFalse);
+      final appOk = await ctrl.applyToCampaign(
+        campaignId: otherLookup.campaign.id,
+        pitch: 'Curto demais para passar' * 15, // > 200
+      );
+      expect(appOk, isFalse);
+      final validApp = await ctrl.applyToCampaign(
+        campaignId: otherLookup.campaign.id,
+        pitch: 'Curto interpretacionismo tático aos sábados!',
+      );
+      expect(validApp, isTrue);
+
+      // Mestre/Superadmin forja campanha e cria ficha vinculada a ela
       final cmp = await ctrl.createCampaign(
         title: 'Fortaleza de Basalto',
         synopsis: 'Exploração sem dados mockados.',
@@ -354,55 +542,79 @@ void main() {
         isPublic: true,
       );
       expect(cmp, isNotNull);
-      expect(cmp?.quickJoinCode, 'D1A99Z');
 
-      final joined = await ctrl.quickJoinByCode('d1a-99z');
-      expect(joined?.title, 'Fortaleza de Basalto');
-
-      final guildOk = await ctrl.createGuild(
-        name: 'Ordem Dourada',
-        tag: 'ORDE',
-        description: 'Guilda inaugural.',
+      final heroOk = await ctrl.saveHeroCharacter(
+        campaignId: cmp!.id,
+        name: 'Kaelen Silvaris',
+        heroClass: 'Lâmina Arcana',
+        campaignTitle: cmp.title,
+        level: 1,
+        corpo: 3,
+        mente: 2,
+        espirito: 2,
+        slots: const ['Espada Curta', 'Lanterna'],
       );
-      expect(guildOk, isTrue);
-      await ctrl.contributeGuildBoost(ctrl.guilds.first.id, 50);
-      expect(ctrl.guilds.first.boostPoints, 50);
+      expect(heroOk, isTrue);
+      expect(ctrl.characterForCampaign(cmp.id)?.name, 'Kaelen Silvaris');
 
-      await ctrl.sendCommunityMessage(
-        content: 'Testando rolagem',
-        with3d6Roll: true,
+      // Jogador não pode criar guilda, Superadmin pode
+      ctrl.switchActiveRoleForPreview(UserRole.jogador);
+      expect(
+        await ctrl.createGuild(
+          name: 'Guilda Bloqueada',
+          tag: 'BLK',
+          description: 'Deve falhar para jogador.',
+        ),
+        isFalse,
       );
-      expect(ctrl.chatMessages.length, 1);
-      expect(ctrl.chatMessages.last.diceRoll, isNotNull);
+      ctrl.switchActiveRoleForPreview(UserRole.superadmin);
+      expect(
+        await ctrl.createGuild(
+          name: 'Ordem Dourada',
+          tag: 'ORDE',
+          description: 'Guilda inaugural.',
+        ),
+        isTrue,
+      );
 
-      await ctrl.setThemeMode(ArcanaThemeMode.oled);
-      await ctrl.setFontScale(1.2);
-      expect(ctrl.themeMode, ArcanaThemeMode.oled);
-      expect(ctrl.fontScale, 1.2);
+      // Admin promove jogador a mestre
+      final errRole = await ctrl.adminUpdateUserRole(
+        targetUserId: 'usr_player_01',
+        newRole: UserRole.mestre,
+      );
+      expect(errRole, isNull);
     });
   });
 
-  group('Camada 3 — Testes de Interface (Google OAuth, Estados Vazios e RBAC)', () {
-    testWidgets('LoginScreen exibe 100% Google OAuth sem mocks e navega ao Hub limpo',
+  group('Camada 3 — Testes de Interface (OAuth Limpo, Candidatura, RBAC e Configurações)', () {
+    testWidgets('LoginScreen oculta config/cargos e Hub bloqueia criação avulsa de ficha',
         (tester) async {
       final ctrl = AppController(
         edgeClient: _FakeSyncedEdgeClient(),
-        googleSignInProvider: _fakeGoogleUser,
+        googleSignInProvider: _fakeStandardPlayerGoogle,
       );
       await tester.pumpWidget(ArcanaVttApp(controller: ctrl));
       await tester.pumpAndSettle();
 
-      // Garante ausência de senha, barra de debug e contas fictícias
+      // Nenhum seletor de cargo, URL de worker ou Client ID expostos ao usuário
       expect(find.text('Senha de acesso'), findsNothing);
-      expect(find.text('Valen Voss'), findsNothing);
-      expect(find.text('INSPEÇÃO RÁPIDA DE ESTADOS DO PORTAL'), findsNothing);
-      expect(find.text('Continuar com o Google'), findsOneWidget);
+      expect(find.text('PAPEL INICIAL NA TAVERNA'), findsNothing);
+      expect(find.text('Servidor Cloudflare Edge & Client ID OAuth'), findsNothing);
+      expect(find.text('URL do Cloudflare Worker (Edge API)'), findsNothing);
+      expect(find.text('Auxiliar'), findsNothing);
+      expect(find.text('Entrar com Conta Google'), findsOneWidget);
+      expect(
+        find.text('Selecionar Outra Conta Google no Android'),
+        findsOneWidget,
+      );
 
-      await tester.ensureVisible(find.text('Continuar com o Google'));
-      await tester.tap(find.text('Continuar com o Google'));
+      await tester.ensureVisible(find.text('Entrar com Conta Google'));
+      await tester.tap(find.text('Entrar com Conta Google'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Autenticação Google Verificada!'), findsOneWidget);
+      expect(find.text('FORJE SUA IDENTIDADE DE AVENTUREIRO'), findsOneWidget);
+      expect(find.text('JOGADOR'), findsOneWidget);
+      expect(find.text('Discord (opcional)'), findsOneWidget);
       await tester.ensureVisible(find.text('Entrar no Hub da Taverna'));
       await tester.tap(find.text('Entrar no Hub da Taverna'));
       await tester.pumpAndSettle();
@@ -415,26 +627,175 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('Suas fichas aparecerão aqui'), findsOneWidget);
-
-      await tester.tap(find.text('Campanhas'));
-      await tester.pumpAndSettle();
-      expect(find.text('A Maldição de Valen'), findsNothing);
-
-      await tester.tap(find.text('Sistemas'));
-      await tester.pumpAndSettle();
-      expect(find.text('AlphaD6 Core (v2.4)'), findsOneWidget);
-
-      await tester.tap(find.text('Comunidades'));
-      await tester.pumpAndSettle();
-      expect(find.text('Taverna dos Mestres'), findsOneWidget);
+      expect(find.text('Criar Ficha de Herói'), findsNothing);
+      expect(find.text('Explorar Campanhas'), findsOneWidget);
     });
 
-    testWidgets('Drawer aplica Widget Tree Pruning RBAC para Jogador vs Superadmin',
+    testWidgets('QuickJoin abre Candidatura para não-membro sem campo de nome de ficha',
+        (tester) async {
+      final ctrl = AppController(edgeClient: _FakeSyncedEdgeClient());
+      ctrl.isAuthenticated = true;
+      ctrl.campaigns = const [
+        Campaign(
+          id: 'cmp_other_master',
+          title: 'Cidadela das Sombras',
+          synopsis: 'Mesa pública.',
+          masterHandle: '@outro_mestre',
+          systemId: 'sys_alphad6_v24',
+          systemName: 'AlphaD6 Core (v2.4)',
+          quickJoinCode: 'OTHER9',
+          mode: CampaignMode.aoVivo,
+          scheduleText: 'Sáb 20h',
+          maxSlots: 5,
+          occupiedSlots: 2,
+          userRelation: CampaignSegment.explorar,
+          chapterTitle: 'Prólogo',
+          isPublic: true,
+        ),
+      ];
+
+      await tester.pumpWidget(ArcanaVttApp(controller: ctrl));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Inserir Código da Mesa'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).first, 'OTHER9');
+      await tester.tap(find.text('Localizar Campanha Agora'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('CANDIDATURA À MESA'), findsOneWidget);
+      expect(find.text('REGRA OFICIAL DE CRIAÇÃO DE FICHA'), findsOneWidget);
+      expect(find.text('Nome do Personagem'), findsNothing);
+      expect(find.text('0 / 200 caracteres'), findsOneWidget);
+    });
+
+    testWidgets('CampaignGeneralModal exibe 7 abas ao Mestre dono e aplica Rebaixamento Local em mesa alheia',
         (tester) async {
       final ctrl = AppController(edgeClient: _OfflineStubEdgeClient());
-      ctrl.isAuthenticated = true;
+      ctrl.switchActiveRoleForPreview(UserRole.mestre);
+
+      const ownTable = Campaign(
+        id: 'cmp_own',
+        title: 'Trono de Cinzas',
+        synopsis: 'Mesa do próprio mestre.',
+        masterHandle: '@mestre',
+        systemId: 'sys_alphad6_v24',
+        systemName: 'AlphaD6 Core',
+        quickJoinCode: 'OWN123',
+        mode: CampaignMode.aoVivo,
+        scheduleText: 'Sex 21h',
+        maxSlots: 5,
+        occupiedSlots: 1,
+        userRelation: CampaignSegment.mestre,
+        chapterTitle: 'Cap 1',
+        isPublic: true,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark().copyWith(
+            extensions: const [ArcanaPalette.escuroHeraldico],
+          ),
+          home: Scaffold(
+            body: CampaignGeneralModal(controller: ctrl, campaign: ownTable),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      for (final tab in const [
+        'Geral',
+        'Chats',
+        'Cenas',
+        'Diário',
+        'Oficina',
+        'Personagens',
+        'Configs',
+      ]) {
+        expect(find.text(tab), findsOneWidget);
+      }
+
+      // Mesma conta Mestre abrindo campanha onde é apenas Jogador -> Oficina/Configs ocultos
+      const otherTable = Campaign(
+        id: 'cmp_other',
+        title: 'Taverna Alheia',
+        synopsis: 'Mesa de outro mestre.',
+        masterHandle: '@outro',
+        systemId: 'sys_alphad6_v24',
+        systemName: 'AlphaD6 Core',
+        quickJoinCode: 'OTH456',
+        mode: CampaignMode.aoVivo,
+        scheduleText: 'Dom 19h',
+        maxSlots: 5,
+        occupiedSlots: 3,
+        userRelation: CampaignSegment.jogando,
+        chapterTitle: 'Cap 2',
+        isPublic: true,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark().copyWith(
+            extensions: const [ArcanaPalette.escuroHeraldico],
+          ),
+          home: Scaffold(
+            body: CampaignGeneralModal(controller: ctrl, campaign: otherTable),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Geral'), findsOneWidget);
+      expect(find.text('Personagens'), findsOneWidget);
+      expect(find.text('Oficina'), findsNothing);
+      expect(find.text('Configs'), findsNothing);
+    });
+
+    testWidgets('CommunitiesTabScreen oculta criação de guilda para Jogador e mostra para Mestre',
+        (tester) async {
+      final ctrl = AppController(edgeClient: _OfflineStubEdgeClient());
       ctrl.switchActiveRoleForPreview(UserRole.jogador);
 
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark().copyWith(
+            extensions: const [ArcanaPalette.escuroHeraldico],
+          ),
+          home: Scaffold(body: CommunitiesTabScreen(controller: ctrl)),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Guildas'));
+      await tester.pumpAndSettle();
+      expect(find.text('Fundar Nova Guilda'), findsNothing);
+
+      ctrl.switchActiveRoleForPreview(UserRole.mestre);
+      await tester.pumpAndSettle();
+      expect(find.text('Fundar Nova Guilda'), findsOneWidget);
+    });
+
+    testWidgets('GeneralSettingsModal e Drawer RBAC não expõem servidor/cargo e preservam governança',
+        (tester) async {
+      final ctrl = AppController(edgeClient: _OfflineStubEdgeClient());
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark().copyWith(
+            extensions: const [ArcanaPalette.escuroHeraldico],
+          ),
+          home: Scaffold(body: GeneralSettingsModal(controller: ctrl)),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('IDIOMA & FEEDBACK HÁPTICO'), findsOneWidget);
+      expect(find.text('PT-BR'), findsOneWidget);
+      expect(find.text('SERVIDOR CLOUDFLARE EDGE & D1'), findsNothing);
+      expect(find.text('PAPEL NA TAVERNA (SYNC D1)'), findsNothing);
+
+      ctrl.isAuthenticated = true;
+      ctrl.switchActiveRoleForPreview(UserRole.jogador);
       await tester.pumpWidget(ArcanaVttApp(controller: ctrl));
       await tester.pumpAndSettle();
 

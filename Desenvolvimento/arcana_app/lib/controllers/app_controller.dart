@@ -39,9 +39,20 @@ class AppController extends ChangeNotifier {
         _buildReport = buildReport ?? BuildUniversalReportUseCase(),
         _oauthUseCase = oauthUseCase ?? AuthenticateOAuthUseCase();
 
-  // Estado Visual & Acessibilidade
+  // Estado Visual, Idioma, Rede & Privacidade (04-configuracoes-privacidade-e-amigos.md)
   ArcanaThemeMode themeMode = ArcanaThemeMode.escuroHeraldico;
   double fontScale = 1.0;
+  String appLanguage = 'PT-BR'; // PT-BR, EN-US, ES-ES
+  String hapticLevel = 'Médio'; // Desativado, Suave, Médio, Intenso
+  bool reduceMotion = false;
+  bool muteInBackground = true;
+  bool externalMediaOnlyOfficial = false;
+  bool p2pEnabled = true;
+  bool p2pWifiOnly = true;
+  String p2pCacheQuota = '1 GB';
+  String dmPrivacy = 'Qualquer usuário';
+  String showcasePrivacy = 'Público na Taverna';
+  bool onlinePresenceVisible = true;
   AudioMixerSettings audioMixer = const AudioMixerSettings(
     masterVolume: 0.85,
     ambienceVolume: 0.65,
@@ -50,7 +61,7 @@ class AppController extends ChangeNotifier {
   );
   int p2pCacheMb = 0;
 
-  // Estado de Autenticação OAuth 2.0 & Configuração Edge
+  // Estado de Autenticação OAuth 2.0 (Configurações de servidor ocultas e imutáveis)
   bool isAuthenticated = false;
   bool isSyncing = false;
   bool trustDevice = true;
@@ -59,8 +70,6 @@ class AppController extends ChangeNotifier {
   String? authErrorMessage;
   String? lastSyncError;
   DateTime selectedBirthDate = DateTime(2000, 1, 1);
-  UserRole initialRequestedRole = UserRole.mestre;
-  String googleServerClientId = LocalStorageDatasource.defaultGoogleServerClientId;
 
   UserAccount currentUser = const UserAccount(
     id: '',
@@ -69,7 +78,7 @@ class AppController extends ChangeNotifier {
     displayName: 'Aventureiro',
     bio: '',
     avatarIcon: 'crown',
-    role: UserRole.mestre,
+    role: UserRole.jogador,
     reputationPoints: 100,
     onboardingCompleted: false,
     trustedDeviceEnabled: true,
@@ -81,7 +90,15 @@ class AppController extends ChangeNotifier {
 
   // Dados Vivos (hidratados do Cloudflare D1; sem mocks fictícios)
   List<Campaign> campaigns = [];
-  HeroCharacter? hero;
+  List<HeroCharacter> characters = [];
+  HeroCharacter? get hero => characters.isNotEmpty ? characters.first : null;
+  HeroCharacter? characterForCampaign(String campaignId) {
+    for (final c in characters) {
+      if (c.campaignId == campaignId) return c;
+    }
+    return null;
+  }
+
   List<RpgSystem> systems = ArcanaSeedData.officialSystems();
   List<CompendiumItem> compendiumItems = ArcanaSeedData.officialCompendium();
   List<Guild> guilds = [];
@@ -92,6 +109,7 @@ class AppController extends ChangeNotifier {
   List<TutorialModule> tutorials = ArcanaSeedData.initialTutorials();
   List<NewsItem> news = ArcanaSeedData.initialNews();
   List<UniversalReport> reports = [];
+  List<AdminUserSummary> adminUsers = [];
   List<String> hardwareBannedFingerprints = [];
   DiceRoll3d6? lastHeroRoll;
 
@@ -104,10 +122,7 @@ class AppController extends ChangeNotifier {
     final session = await localStorage.loadSessionState();
     isAuthenticated = (session['active'] as bool?) ?? false;
     trustDevice = (session['trusted'] as bool?) ?? true;
-    edgeClient.baseUrl = (session['edgeUrl'] as String?) ?? edgeClient.baseUrl;
     edgeClient.bearerToken = session['bearerToken'] as String?;
-    googleServerClientId =
-        (session['googleClientId'] as String?) ?? googleServerClientId;
 
     currentUser = UserAccount(
       id: (session['userId'] as String?) ?? '',
@@ -116,7 +131,7 @@ class AppController extends ChangeNotifier {
       displayName: (session['displayName'] as String?) ?? 'Aventureiro',
       bio: (session['bio'] as String?) ?? '',
       avatarIcon: 'crown',
-      role: UserRole.fromWire((session['role'] as String?) ?? 'mestre'),
+      role: UserRole.fromWire((session['role'] as String?) ?? 'jogador'),
       reputationPoints: 100,
       onboardingCompleted: true,
       trustedDeviceEnabled: trustDevice,
@@ -129,26 +144,61 @@ class AppController extends ChangeNotifier {
     }
   }
 
-  // ---- Configuração Cloudflare Edge & Google Client ID ----
+  // ---- Preferências Visuais, Rede P2P & Privacidade ----
 
-  Future<void> updateServerConfig({
-    required String edgeUrl,
-    String? googleClientId,
-  }) async {
-    final cleanUrl = edgeUrl.trim().replaceAll(RegExp(r'/+$'), '');
-    if (cleanUrl.isNotEmpty) {
-      edgeClient.baseUrl = cleanUrl;
-      await localStorage.saveEdgeUrl(cleanUrl);
-    }
-    if (googleClientId != null) {
-      googleServerClientId = googleClientId.trim();
-      await localStorage.saveGoogleClientId(googleServerClientId);
-    }
+  void setAppLanguage(String lang) {
+    appLanguage = lang;
     notifyListeners();
   }
 
-  Future<EdgeResponse> testEdgeConnection() async {
-    return edgeClient.checkHealth();
+  void setHapticLevel(String level) {
+    hapticLevel = level;
+    notifyListeners();
+  }
+
+  void setReduceMotion(bool value) {
+    reduceMotion = value;
+    notifyListeners();
+  }
+
+  void setMuteInBackground(bool value) {
+    muteInBackground = value;
+    notifyListeners();
+  }
+
+  void setExternalMediaOnlyOfficial(bool value) {
+    externalMediaOnlyOfficial = value;
+    notifyListeners();
+  }
+
+  void setP2pEnabled(bool value) {
+    p2pEnabled = value;
+    notifyListeners();
+  }
+
+  void setP2pWifiOnly(bool value) {
+    p2pWifiOnly = value;
+    notifyListeners();
+  }
+
+  void setP2pCacheQuota(String quota) {
+    p2pCacheQuota = quota;
+    notifyListeners();
+  }
+
+  void setDmPrivacy(String privacy) {
+    dmPrivacy = privacy;
+    notifyListeners();
+  }
+
+  void setShowcasePrivacy(String privacy) {
+    showcasePrivacy = privacy;
+    notifyListeners();
+  }
+
+  void setOnlinePresenceVisible(bool visible) {
+    onlinePresenceVisible = visible;
+    notifyListeners();
   }
 
   // ---- Autenticação 100% Google OAuth 2.0 ----
@@ -156,15 +206,6 @@ class AppController extends ChangeNotifier {
   void setSelectedBirthDate(DateTime date) {
     selectedBirthDate = date;
     notifyListeners();
-  }
-
-  void setInitialRequestedRole(UserRole role) {
-    if (role == UserRole.jogador ||
-        role == UserRole.assistenteMestre ||
-        role == UserRole.mestre) {
-      initialRequestedRole = role;
-      notifyListeners();
-    }
   }
 
   void setTrustDevice(bool value) {
@@ -177,6 +218,7 @@ class AppController extends ChangeNotifier {
     loginViewState = OAuthSecurityState.padrao;
     authErrorTitle = null;
     authErrorMessage = null;
+    lastSyncError = null;
     notifyListeners();
   }
 
@@ -194,42 +236,57 @@ class AppController extends ChangeNotifier {
         authErrorTitle = 'Conta em Lockout Total Preventivo';
       default:
         loginViewState = OAuthSecurityState.erroHardwareBan;
-        authErrorTitle = 'Falha na Autenticação ($code)';
+        authErrorTitle = 'Falha na Autenticação';
     }
   }
 
   Future<bool> signInWithGoogleOAuth({
     DateTime? birthDate,
-    UserRole? requestedRole,
+    bool forceAccountPicker = false,
     bool simulateHardwareBan = false,
     bool simulateLockout = false,
   }) async {
-    final effectiveBirth = birthDate ?? selectedBirthDate;
-    final effectiveRole = requestedRole ?? initialRequestedRole;
-
-    final check = _oauthUseCase.evaluateAttempt(
-      birthDate: effectiveBirth,
-      isHardwareBanned: simulateHardwareBan,
-      isAccountLocked: simulateLockout,
-    );
-
-    if (!check.success) {
-      authErrorTitle = check.errorTitle;
-      authErrorMessage = check.errorMessage;
-      if (check.errorCode == 'AGE_RESTRICTED') {
-        loginViewState = OAuthSecurityState.erroMenorIdade;
-      } else if (check.errorCode == 'HARDWARE_BANNED') {
-        loginViewState = OAuthSecurityState.erroHardwareBan;
-      } else {
-        loginViewState = OAuthSecurityState.erroLockoutTotal;
+    if (birthDate != null) {
+      selectedBirthDate = birthDate;
+      final check = _oauthUseCase.evaluateAttempt(
+        birthDate: birthDate,
+        isHardwareBanned: simulateHardwareBan,
+        isAccountLocked: simulateLockout,
+      );
+      if (!check.success) {
+        authErrorTitle = check.errorTitle;
+        authErrorMessage = check.errorMessage;
+        if (check.errorCode == 'AGE_RESTRICTED') {
+          loginViewState = OAuthSecurityState.erroMenorIdade;
+        } else if (check.errorCode == 'HARDWARE_BANNED') {
+          loginViewState = OAuthSecurityState.erroHardwareBan;
+        } else {
+          loginViewState = OAuthSecurityState.erroLockoutTotal;
+        }
+        notifyListeners();
+        return false;
       }
-      notifyListeners();
-      return false;
+    } else if (simulateHardwareBan || simulateLockout) {
+      final check = _oauthUseCase.evaluateAttempt(
+        birthDate: DateTime(1995, 1, 1),
+        isHardwareBanned: simulateHardwareBan,
+        isAccountLocked: simulateLockout,
+      );
+      if (!check.success) {
+        authErrorTitle = check.errorTitle;
+        authErrorMessage = check.errorMessage;
+        loginViewState = check.errorCode == 'HARDWARE_BANNED'
+            ? OAuthSecurityState.erroHardwareBan
+            : OAuthSecurityState.erroLockoutTotal;
+        notifyListeners();
+        return false;
+      }
     }
 
     isSyncing = true;
     authErrorTitle = null;
     authErrorMessage = null;
+    lastSyncError = null;
     notifyListeners();
 
     String? googleSub;
@@ -252,10 +309,13 @@ class AppController extends ChangeNotifier {
       } else {
         final googleSignIn = GoogleSignIn(
           scopes: const ['email', 'profile'],
-          serverClientId: googleServerClientId.isNotEmpty
-              ? googleServerClientId
-              : null,
+          serverClientId: LocalStorageDatasource.defaultGoogleServerClientId,
         );
+        if (forceAccountPicker) {
+          try {
+            await googleSignIn.signOut();
+          } catch (_) {}
+        }
         final account = await googleSignIn.signIn();
         if (account == null) {
           isSyncing = false;
@@ -276,7 +336,7 @@ class AppController extends ChangeNotifier {
       loginViewState = OAuthSecurityState.erroHardwareBan;
       authErrorTitle = 'Falha no Google Sign-In Android';
       authErrorMessage =
-          'Não foi possível obter a conta Google neste aparelho ($e). Verifique se o Client ID OAuth com SHA-1 deste APK foi cadastrado no Google Cloud Console.';
+          'Não foi possível autenticar com a Conta Google deste aparelho. Tente novamente ou selecione outra conta Google.';
       notifyListeners();
       return false;
     }
@@ -286,11 +346,11 @@ class AppController extends ChangeNotifier {
       'google_sub': googleSub ?? 'sub_google',
       'email': email ?? '',
       'display_name': displayName ?? 'Aventureiro',
-      'birth_date':
-          '${effectiveBirth.year.toString().padLeft(4, '0')}-${effectiveBirth.month.toString().padLeft(2, '0')}-${effectiveBirth.day.toString().padLeft(2, '0')}',
+      if (birthDate != null)
+        'birth_date':
+            '${birthDate.year.toString().padLeft(4, '0')}-${birthDate.month.toString().padLeft(2, '0')}-${birthDate.day.toString().padLeft(2, '0')}',
       'device_fingerprint': 'android-keystore-arcana-v1',
       'trust_device': trustDevice,
-      'requested_role': effectiveRole.wireKey,
       if (idToken != null && idToken.isNotEmpty) 'id_token': idToken,
     };
 
@@ -302,14 +362,14 @@ class AppController extends ChangeNotifier {
       isSyncing = false;
       if (res.statusCode == 0) {
         loginViewState = OAuthSecurityState.erroHardwareBan;
-        authErrorTitle = 'Servidor Cloudflare Inacessível';
+        authErrorTitle = 'Servidor Indisponível';
         authErrorMessage =
-            'Não foi possível conectar ao backend em ${edgeClient.baseUrl}. Publique o Worker com Wrangler e confirme a URL nas configurações de conexão.';
+            'Não foi possível conectar aos servidores da Taverna. Verifique sua conexão com a internet e tente novamente.';
       } else {
         final err = res.data['error'] as Map<String, dynamic>?;
         final code = (err?['code'] as String?) ?? 'AUTH_ERROR';
         final msg = (err?['message'] as String?) ??
-            'Erro ao autenticar sessão no servidor Cloudflare.';
+            'Erro ao autenticar sessão no servidor.';
         _applyBackendErrorState(code, msg);
       }
       notifyListeners();
@@ -322,6 +382,15 @@ class AppController extends ChangeNotifier {
       final profileJson = (res.data['profile'] as Map<String, dynamic>?) ?? {};
       edgeClient.bearerToken = token;
 
+      var contacts = <String, String>{};
+      try {
+        final rawContacts = profileJson['contacts_json'] as String?;
+        if (rawContacts != null && rawContacts.isNotEmpty) {
+          final decoded = jsonDecode(rawContacts) as Map<String, dynamic>;
+          contacts = decoded.map((k, v) => MapEntry(k, v.toString()));
+        }
+      } catch (_) {}
+
       final onboardingDone = (profileJson['onboarding_completed'] as int? ?? 0) == 1;
       currentUser = UserAccount(
         id: (userJson['id'] as String?) ?? '',
@@ -332,11 +401,12 @@ class AppController extends ChangeNotifier {
             (displayName ?? 'Aventureiro'),
         bio: (profileJson['bio'] as String?) ?? '',
         avatarIcon: (profileJson['avatar_icon'] as String?) ?? 'crown',
-        role: UserRole.fromWire((userJson['role'] as String?) ?? effectiveRole.wireKey),
+        role: UserRole.fromWire((userJson['role'] as String?) ?? 'jogador'),
         reputationPoints: (profileJson['reputation_points'] as int?) ?? 100,
         onboardingCompleted: onboardingDone,
         trustedDeviceEnabled: trustDevice,
         trustedDaysRemaining: (res.data['trusted_device_days'] as int?) ?? 30,
+        socialContacts: contacts,
       );
       loginViewState = onboardingDone
           ? OAuthSecurityState.padrao
@@ -354,7 +424,9 @@ class AppController extends ChangeNotifier {
         role: currentUser.role.wireKey,
         bearerToken: token,
       );
-      await hydrateAllFromBackend();
+      if (onboardingDone) {
+        await hydrateAllFromBackend();
+      }
     } else {
       // Caminho restrito apenas a testes automatizados offline com provider injetado
       final userEmail = email ?? 'aventureiro@gmail.com';
@@ -366,9 +438,9 @@ class AppController extends ChangeNotifier {
         displayName: displayName ?? 'Aventureiro',
         bio: '',
         avatarIcon: 'crown',
-        role: effectiveRole,
+        role: UserRole.jogador,
         reputationPoints: 100,
-        onboardingCompleted: true,
+        onboardingCompleted: false,
         trustedDeviceEnabled: trustDevice,
         trustedDaysRemaining: trustDevice ? 30 : 1,
       );
@@ -402,18 +474,64 @@ class AppController extends ChangeNotifier {
     return false;
   }
 
-  Future<void> completeLoginTransitionToHub({
+  Future<bool> completeLoginTransitionToHub({
     required String newUsername,
     required String newDisplayName,
+    DateTime? birthDate,
+    String? bio,
+    Map<String, String>? contacts,
   }) async {
-    await updateProfile(
+    final effectiveBirth = birthDate ?? selectedBirthDate;
+    selectedBirthDate = effectiveBirth;
+    final ageCheck = _oauthUseCase.evaluateAttempt(
+      birthDate: effectiveBirth,
+      isHardwareBanned: false,
+      isAccountLocked: false,
+    );
+    if (!ageCheck.success) {
+      isAuthenticated = false;
+      edgeClient.bearerToken = null;
+      await localStorage.clearSession();
+      loginViewState = OAuthSecurityState.erroMenorIdade;
+      authErrorTitle = ageCheck.errorTitle;
+      authErrorMessage = ageCheck.errorMessage;
+      notifyListeners();
+      return false;
+    }
+
+    isSyncing = true;
+    lastSyncError = null;
+    notifyListeners();
+
+    final ok = await updateProfile(
       username: newUsername,
       displayName: newDisplayName,
-      bio: currentUser.bio,
+      bio: bio ?? currentUser.bio,
+      birthDate: effectiveBirth,
+      contacts: contacts ?? currentUser.socialContacts,
     );
+    if (!ok) {
+      isSyncing = false;
+      if (lastSyncError != null &&
+          (lastSyncError!.toLowerCase().contains('16 anos') ||
+              lastSyncError!.toLowerCase().contains('lgpd'))) {
+        isAuthenticated = false;
+        loginViewState = OAuthSecurityState.erroMenorIdade;
+        authErrorTitle = 'Restrição Etária LGPD (< 16 anos)';
+        authErrorMessage = lastSyncError;
+      }
+      notifyListeners();
+      return false;
+    }
+
     isAuthenticated = true;
     loginViewState = OAuthSecurityState.padrao;
+    if (edgeClient.bearerToken?.isNotEmpty ?? false) {
+      await hydrateAllFromBackend();
+    }
+    isSyncing = false;
     notifyListeners();
+    return true;
   }
 
   Future<void> logout({bool revokeGlobal = false}) async {
@@ -429,13 +547,14 @@ class AppController extends ChangeNotifier {
     isAuthenticated = false;
     loginViewState = OAuthSecurityState.padrao;
     campaigns = [];
-    hero = null;
+    characters = [];
     guilds = [];
     forumTopics = [];
     chatMessages = [];
     friends = [];
     notifications = [];
     reports = [];
+    adminUsers = [];
     currentTabIndex = 0;
     await localStorage.clearSession();
     notifyListeners();
@@ -550,9 +669,10 @@ class AppController extends ChangeNotifier {
             .toList();
 
         final rawChars = (socialRes.data['characters'] as List<dynamic>?) ?? [];
-        if (rawChars.isNotEmpty && rawChars.first is Map<String, dynamic>) {
-          hero = _mapCharacter(rawChars.first as Map<String, dynamic>);
-        }
+        characters = rawChars
+            .whereType<Map<String, dynamic>>()
+            .map(_mapCharacter)
+            .toList();
       }
 
       if (RbacGuard.canAccessAdminPanel(currentUser.role)) {
@@ -562,6 +682,11 @@ class AppController extends ChangeNotifier {
           reports = rawReports
               .whereType<Map<String, dynamic>>()
               .map(_mapReport)
+              .toList();
+          final rawUsers = (adminRes.data['users'] as List<dynamic>?) ?? [];
+          adminUsers = rawUsers
+              .whereType<Map<String, dynamic>>()
+              .map(_mapAdminUser)
               .toList();
         }
       }
@@ -581,6 +706,7 @@ class AppController extends ChangeNotifier {
   }
 
   /// Alternância de papel apenas em memória para testes de Widget Tree Pruning.
+  @visibleForTesting
   void switchActiveRoleForPreview(UserRole role) {
     currentUser = currentUser.copyWith(role: role);
     notifyListeners();
@@ -607,16 +733,41 @@ class AppController extends ChangeNotifier {
     required String username,
     required String displayName,
     required String bio,
-    UserRole? preferredRole,
+    DateTime? birthDate,
+    Map<String, String>? contacts,
   }) async {
-    final cleanUsername =
+    var cleanUsername =
         username.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9_]'), '_');
+    if (cleanUsername.length > 24) {
+      cleanUsername = cleanUsername.substring(0, 24);
+    }
     final nextUsername =
         cleanUsername.length >= 3 ? cleanUsername : currentUser.username;
     final nextDisplay = displayName.trim().isNotEmpty
         ? displayName.trim()
         : currentUser.displayName;
-    final nextBio = bio.trim();
+    final nextBio = bio.trim().length > 500
+        ? bio.trim().substring(0, 500)
+        : bio.trim();
+
+    if (birthDate != null) {
+      selectedBirthDate = birthDate;
+    }
+
+    Map<String, String>? sanitizedContacts;
+    if (contacts != null) {
+      sanitizedContacts = {};
+      for (final key in ['discord', 'whatsapp', 'instagram']) {
+        final v = contacts[key]?.trim() ?? '';
+        if (v.isNotEmpty) {
+          sanitizedContacts[key] = v;
+        }
+      }
+    }
+
+    final formattedBirth = birthDate != null
+        ? '${birthDate.year.toString().padLeft(4, '0')}-${birthDate.month.toString().padLeft(2, '0')}-${birthDate.day.toString().padLeft(2, '0')}'
+        : null;
 
     if (edgeClient.bearerToken?.isNotEmpty ?? false) {
       final res = await edgeClient.postSync({
@@ -624,7 +775,8 @@ class AppController extends ChangeNotifier {
         'username': nextUsername,
         'display_name': nextDisplay,
         'bio': nextBio,
-        if (preferredRole != null) 'preferred_role': preferredRole.wireKey,
+        'birth_date': ?formattedBirth,
+        'contacts': ?sanitizedContacts,
         'theme_preference': themeMode.wireKey,
         'font_scale': fontScale,
       });
@@ -641,7 +793,8 @@ class AppController extends ChangeNotifier {
         bio: nextBio,
         role: updatedRoleStr != null
             ? UserRole.fromWire(updatedRoleStr)
-            : preferredRole ?? currentUser.role,
+            : currentUser.role,
+        socialContacts: sanitizedContacts ?? currentUser.socialContacts,
         onboardingCompleted: true,
       );
     } else {
@@ -649,7 +802,7 @@ class AppController extends ChangeNotifier {
         username: nextUsername,
         displayName: nextDisplay,
         bio: nextBio,
-        role: preferredRole ?? currentUser.role,
+        socialContacts: sanitizedContacts ?? currentUser.socialContacts,
         onboardingCompleted: true,
       );
     }
@@ -676,6 +829,8 @@ class AppController extends ChangeNotifier {
       'username': currentUser.username,
       'display_name': currentUser.displayName,
       'bio': currentUser.bio,
+      if (currentUser.socialContacts.isNotEmpty)
+        'contacts': currentUser.socialContacts,
       'theme_preference': themeMode.wireKey,
       'font_scale': fontScale,
     });
@@ -693,14 +848,14 @@ class AppController extends ChangeNotifier {
 
   // ---- Campanhas ----
 
-  Future<Campaign?> quickJoinByCode(String rawCode) async {
+  Future<CampaignLookupResult?> lookupCampaignByCode(String rawCode) async {
     final normalized =
         rawCode.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').toUpperCase();
     if (normalized.length < 4) return null;
 
     if (edgeClient.bearerToken?.isNotEmpty ?? false) {
       final res = await edgeClient.postSync({
-        'action': 'campaigns.quick_join',
+        'action': 'campaigns.lookup_code',
         'code': normalized,
       });
       if (!res.ok) {
@@ -710,43 +865,103 @@ class AppController extends ChangeNotifier {
         return null;
       }
       final raw = res.data['campaign'] as Map<String, dynamic>?;
-      if (raw != null) {
-        final joined = _mapCampaign(raw, {'table_role': 'jogador', 'status': 'active'});
+      if (raw == null) return null;
+      final membership = res.data['membership'] as Map<String, dynamic>?;
+      final isMember = (res.data['is_member'] as bool?) ?? false;
+      final status = (membership?['status'] as String?) ?? 'none';
+      final mapped = _mapCampaign(raw, membership);
+      if (isMember) {
         campaigns = [
-          joined,
-          ...campaigns.where((c) => c.id != joined.id),
+          mapped,
+          ...campaigns.where((c) => c.id != mapped.id),
         ];
         notifyListeners();
-        return joined;
       }
-      return null;
+      return CampaignLookupResult(
+        campaign: mapped,
+        isMember: isMember,
+        membershipStatus: status,
+      );
     }
 
-    for (var i = 0; i < campaigns.length; i++) {
-      final c = campaigns[i];
+    for (final c in campaigns) {
       if (c.quickJoinCode.toUpperCase() == normalized) {
-        final updated = Campaign(
-          id: c.id,
-          title: c.title,
-          synopsis: c.synopsis,
-          masterHandle: c.masterHandle,
-          systemId: c.systemId,
-          systemName: c.systemName,
-          quickJoinCode: c.quickJoinCode,
-          mode: c.mode,
-          scheduleText: c.scheduleText,
-          maxSlots: c.maxSlots,
-          occupiedSlots: c.occupiedSlots < c.maxSlots
-              ? c.occupiedSlots + 1
-              : c.occupiedSlots,
-          userRelation: CampaignSegment.jogando,
-          chapterTitle: c.chapterTitle,
-          isPublic: c.isPublic,
+        final member = c.userRelation != CampaignSegment.explorar;
+        return CampaignLookupResult(
+          campaign: c,
+          isMember: member,
+          membershipStatus: member ? 'active' : 'none',
         );
-        campaigns = [...campaigns]..[i] = updated;
-        notifyListeners();
-        return updated;
       }
+    }
+    return null;
+  }
+
+  Future<Campaign?> quickJoinByCode(String rawCode) async {
+    final lookup = await lookupCampaignByCode(rawCode);
+    if (lookup == null || !lookup.isMember) return null;
+    return lookup.campaign;
+  }
+
+  Future<List<CampaignMemberSummary>> fetchCampaignMembers(String campaignId) async {
+    if (edgeClient.bearerToken?.isNotEmpty ?? false) {
+      final res = await edgeClient.postSync({
+        'action': 'campaigns.list_members',
+        'campaign_id': campaignId,
+      });
+      if (!res.ok) return [];
+      final raw = (res.data['members'] as List<dynamic>?) ?? [];
+      return raw.whereType<Map<String, dynamic>>().map(_mapCampaignMember).toList();
+    }
+    return const [];
+  }
+
+  Future<List<CampaignMemberSummary>?> manageCampaignMember({
+    required String campaignId,
+    required String targetUserId,
+    String? status,
+    String? tableRole,
+  }) async {
+    if (edgeClient.bearerToken?.isNotEmpty ?? false) {
+      final res = await edgeClient.postSync({
+        'action': 'campaigns.manage_member',
+        'campaign_id': campaignId,
+        'target_user_id': targetUserId,
+        'status': ?status,
+        'table_role': ?tableRole,
+      });
+      if (!res.ok) {
+        final err = res.data['error'] as Map<String, dynamic>?;
+        lastSyncError = (err?['message'] as String?) ?? 'Não foi possível atualizar membro.';
+        notifyListeners();
+        return null;
+      }
+      final raw = (res.data['members'] as List<dynamic>?) ?? [];
+      if (status == 'active') {
+        campaigns = campaigns.map((c) {
+          if (c.id != campaignId) return c;
+          return Campaign(
+            id: c.id,
+            title: c.title,
+            synopsis: c.synopsis,
+            masterHandle: c.masterHandle,
+            systemId: c.systemId,
+            systemName: c.systemName,
+            quickJoinCode: c.quickJoinCode,
+            mode: c.mode,
+            scheduleText: c.scheduleText,
+            maxSlots: c.maxSlots,
+            occupiedSlots: c.occupiedSlots < c.maxSlots
+                ? c.occupiedSlots + 1
+                : c.occupiedSlots,
+            userRelation: c.userRelation,
+            chapterTitle: c.chapterTitle,
+            isPublic: c.isPublic,
+          );
+        }).toList();
+        notifyListeners();
+      }
+      return raw.whereType<Map<String, dynamic>>().map(_mapCampaignMember).toList();
     }
     return null;
   }
@@ -819,15 +1034,15 @@ class AppController extends ChangeNotifier {
 
   Future<bool> applyToCampaign({
     required String campaignId,
-    required String characterName,
     required String pitch,
   }) async {
+    final cleanPitch = pitch.trim();
+    if (cleanPitch.length < 5 || cleanPitch.length > 200) return false;
     if (edgeClient.bearerToken?.isNotEmpty ?? false) {
       final res = await edgeClient.postSync({
         'action': 'campaigns.apply',
         'campaign_id': campaignId,
-        'character_name': characterName.trim(),
-        'pitch': pitch.trim(),
+        'pitch': cleanPitch,
       });
       return res.ok;
     }
@@ -837,6 +1052,7 @@ class AppController extends ChangeNotifier {
   // ---- Ficha de Herói ----
 
   Future<bool> saveHeroCharacter({
+    required String campaignId,
     required String name,
     required String heroClass,
     required String campaignTitle,
@@ -846,11 +1062,15 @@ class AppController extends ChangeNotifier {
     required int espirito,
     required List<String> slots,
   }) async {
-    final existingId = hero?.id;
+    final cleanCampaignId = campaignId.trim();
+    if (cleanCampaignId.isEmpty) return false;
+
+    final existingId = characterForCampaign(cleanCampaignId)?.id;
     if (edgeClient.bearerToken?.isNotEmpty ?? false) {
       final res = await edgeClient.postSync({
         'action': 'characters.upsert',
         'id': ?existingId,
+        'campaign_id': cleanCampaignId,
         'name': name.trim(),
         'title': heroClass.trim(),
         'system_id': systems.first.id,
@@ -865,20 +1085,33 @@ class AppController extends ChangeNotifier {
         'exhaustion': 0,
         'slots': slots,
       });
-      if (!res.ok) return false;
+      if (!res.ok) {
+        final err = res.data['error'] as Map<String, dynamic>?;
+        lastSyncError = (err?['message'] as String?) ?? 'Não foi possível salvar a ficha.';
+        notifyListeners();
+        return false;
+      }
       final rawChar = res.data['character'] as Map<String, dynamic>?;
       if (rawChar != null) {
-        hero = _mapCharacter(rawChar);
+        final mapped = _mapCharacter(rawChar);
+        characters = [
+          mapped,
+          ...characters.where(
+            (c) => c.campaignId != cleanCampaignId && c.id != mapped.id,
+          ),
+        ];
         notifyListeners();
         return true;
       }
     }
 
-    hero = HeroCharacter(
+    final saved = HeroCharacter(
       id: existingId ?? 'chr_${DateTime.now().millisecondsSinceEpoch}',
+      campaignId: cleanCampaignId,
       name: name.trim(),
       heroClass: heroClass.trim(),
-      campaignTitle: campaignTitle.trim().isEmpty ? 'Sem Campanha' : campaignTitle.trim(),
+      campaignTitle:
+          campaignTitle.trim().isEmpty ? 'Campanha Vinculada' : campaignTitle.trim(),
       level: level,
       hpCurrent: 14 + corpo * 2,
       hpMax: 14 + corpo * 2,
@@ -890,6 +1123,12 @@ class AppController extends ChangeNotifier {
       espirito: espirito,
       slots: slots,
     );
+    characters = [
+      saved,
+      ...characters.where(
+        (c) => c.campaignId != cleanCampaignId && c.id != saved.id,
+      ),
+    ];
     notifyListeners();
     return true;
   }
@@ -969,6 +1208,8 @@ class AppController extends ChangeNotifier {
     String sharedWorldName = 'Continente de Valen',
     String currentSeason = 'Temporada I',
   }) async {
+    if (!RbacGuard.canCreateGuild(currentUser.role)) return false;
+
     if (edgeClient.bearerToken?.isNotEmpty ?? false) {
       final res = await edgeClient.postSync({
         'action': 'guilds.create',
@@ -1293,6 +1534,44 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<String?> adminUpdateUserRole({
+    required String targetUserId,
+    required UserRole newRole,
+  }) async {
+    if (!RbacGuard.canAccessAdminPanel(currentUser.role)) {
+      return 'Acesso administrativo exigido.';
+    }
+    if (newRole == UserRole.admin && !RbacGuard.canManageAdmins(currentUser.role)) {
+      return 'Somente o Superadmin pode conceder ou revogar o cargo Admin.';
+    }
+    if (newRole != UserRole.jogador &&
+        newRole != UserRole.mestre &&
+        newRole != UserRole.admin) {
+      return 'Cargo inválido para atribuição global.';
+    }
+
+    if (edgeClient.bearerToken?.isNotEmpty ?? false) {
+      final res = await edgeClient.postSync({
+        'action': 'admin.update_role',
+        'target_user_id': targetUserId,
+        'role': newRole.wireKey,
+      });
+      if (!res.ok) {
+        final err = res.data['error'] as Map<String, dynamic>?;
+        final msg = (err?['message'] as String?) ?? 'Não foi possível alterar o cargo.';
+        lastSyncError = msg;
+        notifyListeners();
+        return msg;
+      }
+    }
+
+    adminUsers = adminUsers
+        .map((u) => u.id == targetUserId ? u.copyWith(role: newRole) : u)
+        .toList();
+    notifyListeners();
+    return null;
+  }
+
   // ---- Mappers D1 JSON -> Entidades de Domínio ----
 
   String _campaignModeToWire(CampaignMode mode) {
@@ -1531,11 +1810,21 @@ class AppController extends ChangeNotifier {
       exhaustion = (rawSt['exhaustion'] as int?) ?? 0;
     } catch (_) {}
 
+    final cmpId = (c['campaign_id'] as String?) ?? '';
+    var resolvedTitle = 'Campanha Vinculada';
+    for (final cmp in campaigns) {
+      if (cmp.id == cmpId) {
+        resolvedTitle = cmp.title;
+        break;
+      }
+    }
+
     return HeroCharacter(
       id: (c['id'] as String?) ?? '',
+      campaignId: cmpId,
       name: (c['name'] as String?) ?? 'Herói',
       heroClass: (c['title'] as String?) ?? 'Aventureiro',
-      campaignTitle: 'Taverna ArcanaVTT',
+      campaignTitle: resolvedTitle,
       level: (c['level'] as int?) ?? 1,
       hpCurrent: hpCur,
       hpMax: hpMax,
@@ -1546,6 +1835,35 @@ class AppController extends ChangeNotifier {
       mente: mente,
       espirito: espirito,
       slots: slots,
+    );
+  }
+
+  CampaignMemberSummary _mapCampaignMember(Map<String, dynamic> m) {
+    final uname = (m['username'] as String?) ??
+        (m['user_id'] as String?) ??
+        'aventureiro';
+    return CampaignMemberSummary(
+      campaignId: (m['campaign_id'] as String?) ?? '',
+      userId: (m['user_id'] as String?) ?? '',
+      username: uname,
+      displayName: (m['display_name'] as String?) ?? uname,
+      tableRole: (m['table_role'] as String?) ?? 'jogador',
+      status: (m['status'] as String?) ?? 'active',
+      applicationPitch: (m['application_pitch'] as String?) ?? '',
+    );
+  }
+
+  AdminUserSummary _mapAdminUser(Map<String, dynamic> u) {
+    final uname = (u['username'] as String?) ?? '';
+    return AdminUserSummary(
+      id: (u['id'] as String?) ?? '',
+      email: (u['email'] as String?) ?? '',
+      birthDate: (u['birth_date'] as String?) ?? '2000-01-01',
+      role: UserRole.fromWire((u['role'] as String?) ?? 'jogador'),
+      accountStatus: (u['account_status'] as String?) ?? 'active',
+      username: uname,
+      displayName: (u['display_name'] as String?) ??
+          (uname.isNotEmpty ? uname : 'Aventureiro'),
     );
   }
 

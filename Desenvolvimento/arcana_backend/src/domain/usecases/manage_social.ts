@@ -102,11 +102,29 @@ export async function upsertCharacterUseCase(
   input: z.infer<typeof charactersUpsertSchema>,
   repo: IArcanaRepository,
 ) {
+  const campaign = await repo.findCampaignById(input.campaign_id);
+  if (!campaign) {
+    throw new AppError(
+      404,
+      'CAMPAIGN_NOT_FOUND',
+      'Campanha obrigatoria para criar ou editar uma ficha de personagem.',
+    );
+  }
+  const membership = await repo.findCampaignMember(campaign.id, userId);
+  const isOwner = campaign.owner_id === userId;
+  if (!isOwner && (!membership || membership.status !== 'active')) {
+    throw new AppError(
+      403,
+      'CHARACTER_REQUIRES_ACTIVE_CAMPAIGN',
+      'Personagens nao podem ser criados fora de uma mesa. Aguarde a aprovacao do Mestre.',
+    );
+  }
+
   const nowIso = new Date().toISOString();
   const character = {
     id: input.id && input.id.trim().length > 0 ? input.id.trim() : generateId('chr'),
     user_id: userId,
-    campaign_id: input.campaign_id ?? null,
+    campaign_id: campaign.id,
     name: input.name.trim(),
     title: input.title.trim(),
     system_id: input.system_id,

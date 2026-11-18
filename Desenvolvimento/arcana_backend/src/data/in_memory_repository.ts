@@ -1,4 +1,6 @@
 import type {
+  AdminUserSummaryRecord,
+  CampaignMemberDetailRecord,
   CampaignMemberRecord,
   CampaignRecord,
   CharacterRecord,
@@ -356,6 +358,17 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
     }
   }
 
+  async updateUserBirthDate(userId: string, birthDate: string): Promise<void> {
+    const user = this.users.get(userId);
+    if (user) {
+      this.users.set(userId, {
+        ...user,
+        birth_date: birthDate,
+        updated_at: new Date().toISOString(),
+      });
+    }
+  }
+
   async createUserWithProfile(
     user: UserRecord,
     profile: UserProfileRecord,
@@ -378,6 +391,25 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
         updated_at: new Date().toISOString(),
       });
     }
+  }
+
+  async listUsersWithProfiles(): Promise<AdminUserSummaryRecord[]> {
+    const out: AdminUserSummaryRecord[] = [];
+    for (const user of this.users.values()) {
+      if (user.id === 'usr_system_official') continue;
+      const profile = this.profiles.get(user.id);
+      out.push({
+        id: user.id,
+        email: user.email,
+        birth_date: user.birth_date,
+        role: user.role,
+        account_status: user.account_status,
+        created_at: user.created_at,
+        username: profile?.username ?? '',
+        display_name: profile?.display_name ?? user.email,
+      });
+    }
+    return out;
   }
 
   async findProfileByUserId(userId: string): Promise<UserProfileRecord | null> {
@@ -436,6 +468,32 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
     userId: string,
   ): Promise<CampaignMemberRecord[]> {
     return this.memberships.filter((m) => m.user_id === userId);
+  }
+
+  async listCampaignMembersByCampaign(
+    campaignId: string,
+  ): Promise<CampaignMemberDetailRecord[]> {
+    return this.memberships
+      .filter((m) => m.campaign_id === campaignId)
+      .map((m) => {
+        const profile = this.profiles.get(m.user_id);
+        return {
+          ...m,
+          username: profile?.username ?? '',
+          display_name: profile?.display_name ?? '',
+        };
+      });
+  }
+
+  async findCampaignMember(
+    campaignId: string,
+    userId: string,
+  ): Promise<CampaignMemberRecord | null> {
+    return (
+      this.memberships.find(
+        (m) => m.campaign_id === campaignId && m.user_id === userId,
+      ) ?? null
+    );
   }
 
   async findCampaignByCode(code: string): Promise<CampaignRecord | null> {

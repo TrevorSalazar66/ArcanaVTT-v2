@@ -24,8 +24,6 @@ class LocalStorageDatasource {
   static const _keyDisplayName = 'arcana_display_name';
   static const _keyBio = 'arcana_bio';
   static const _keyRole = 'arcana_role';
-  static const _keyEdgeUrl = 'arcana_edge_url';
-  static const _keyGoogleClientId = 'arcana_google_client_id';
 
   Future<void> saveTheme(ArcanaThemeMode mode) async {
     final prefs = await SharedPreferences.getInstance();
@@ -82,14 +80,6 @@ class LocalStorageDatasource {
 
   Future<Map<String, dynamic>> loadSessionState() async {
     final prefs = await SharedPreferences.getInstance();
-    final storedGoogleClientId = prefs.getString(_keyGoogleClientId)?.trim();
-    final storedEdgeUrl = prefs.getString(_keyEdgeUrl)?.trim();
-    const legacyPlaceholderUrl = 'https://arcana-vtt-backend.workers.dev';
-    final effectiveEdgeUrl = (storedEdgeUrl != null &&
-            storedEdgeUrl.isNotEmpty &&
-            storedEdgeUrl != legacyPlaceholderUrl)
-        ? storedEdgeUrl
-        : CloudflareEdgeClient.defaultBaseUrl;
     return {
       'active': prefs.getBool(_keySessionActive) ?? false,
       'trusted': prefs.getBool(_keyTrustedDevice) ?? true,
@@ -99,23 +89,10 @@ class LocalStorageDatasource {
       'username': prefs.getString(_keyUsername) ?? '',
       'displayName': prefs.getString(_keyDisplayName) ?? 'Aventureiro',
       'bio': prefs.getString(_keyBio) ?? '',
-      'role': prefs.getString(_keyRole) ?? 'mestre',
-      'edgeUrl': effectiveEdgeUrl,
-      'googleClientId':
-          (storedGoogleClientId != null && storedGoogleClientId.isNotEmpty)
-              ? storedGoogleClientId
-              : defaultGoogleServerClientId,
+      'role': prefs.getString(_keyRole) ?? 'jogador',
+      'edgeUrl': CloudflareEdgeClient.defaultBaseUrl,
+      'googleClientId': defaultGoogleServerClientId,
     };
-  }
-
-  Future<void> saveEdgeUrl(String url) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyEdgeUrl, url.trim());
-  }
-
-  Future<void> saveGoogleClientId(String clientId) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyGoogleClientId, clientId.trim());
   }
 
   Future<void> clearSession() async {

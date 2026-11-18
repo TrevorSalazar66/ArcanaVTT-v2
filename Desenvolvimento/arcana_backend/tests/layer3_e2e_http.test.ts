@@ -70,6 +70,47 @@ describe('Camada 3 — Testes E2E HTTP do Worker Cloudflare (/api/health, /api/a
     );
     expect(guildRes.status).toBe(201);
 
+    // Segundo usuario real em producao deve iniciar obrigatoriamente como jogador, mesmo se tentar pedir outro cargo
+    const secondRes = await cleanApp.request(
+      '/api/auth',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'oauth_google',
+          google_sub: 'sub_segundo_real',
+          email: 'jogador@gmail.com',
+          display_name: 'Jogador Comum',
+          device_fingerprint: 'fp_segundo_real',
+          requested_role: 'mestre',
+        }),
+      },
+      { ENVIRONMENT: 'production', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
+    );
+    expect(secondRes.status).toBe(200);
+    const secondBody = (await secondRes.json()) as { user: { role: string } };
+    expect(secondBody.user.role).toBe('jogador');
+
+    const cmpRes = await cleanApp.request(
+      '/api/sync',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${body.token}`,
+        },
+        body: JSON.stringify({
+          action: 'campaigns.create',
+          title: 'Mesa Fundadora Real',
+          synopsis: 'Campanha inicial criada pelo fundador Superadmin.',
+          max_slots: 5,
+        }),
+      },
+      { ENVIRONMENT: 'production', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
+    );
+    expect(cmpRes.status).toBe(201);
+    const cmpBody = (await cmpRes.json()) as { campaign: { id: string } };
+
     const charRes = await cleanApp.request(
       '/api/sync',
       {
@@ -80,6 +121,7 @@ describe('Camada 3 — Testes E2E HTTP do Worker Cloudflare (/api/health, /api/a
         },
         body: JSON.stringify({
           action: 'characters.upsert',
+          campaign_id: cmpBody.campaign.id,
           name: 'Kaelen Real',
           title: 'Sentinelas D6',
           level: 2,

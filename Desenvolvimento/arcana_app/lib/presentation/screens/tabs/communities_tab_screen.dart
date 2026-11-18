@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../controllers/app_controller.dart';
 import '../../../core/constants/svg_icons.dart';
+import '../../../core/security/rbac_guard.dart';
 import '../../../core/theme/arcana_colors.dart';
 import '../../modals/community_chat_modal.dart';
 import '../../modals/community_hub_modals.dart';
@@ -30,7 +31,9 @@ class _CommunitiesTabScreenState extends State<CommunitiesTabScreen> {
     final p = context.arcana;
     final ctrl = widget.controller;
 
-    return ListView(
+    return ListenableBuilder(
+      listenable: ctrl,
+      builder: (context, _) => ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
       children: [
         HeraldicSegmentBar(
@@ -65,15 +68,17 @@ class _CommunitiesTabScreenState extends State<CommunitiesTabScreen> {
             ),
           )
         else if (_segmentIdx == 1) ...[
-          PrimaryGoldPillButton(
-            label: 'Fundar Nova Guilda',
-            svgIcon: ArcanaSvgIcons.plus,
-            onPressed: () => showArcanaModal(
-              context,
-              builder: (_) => CreateGuildModal(controller: ctrl),
+          if (RbacGuard.canCreateGuild(ctrl.currentUser.role)) ...[
+            PrimaryGoldPillButton(
+              label: 'Fundar Nova Guilda',
+              svgIcon: ArcanaSvgIcons.plus,
+              onPressed: () => showArcanaModal(
+                context,
+                builder: (_) => CreateGuildModal(controller: ctrl),
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
+            const SizedBox(height: 12),
+          ],
           if (ctrl.guilds.isEmpty)
             HeraldicCard(
               padding: const EdgeInsets.all(18),
@@ -87,7 +92,9 @@ class _CommunitiesTabScreenState extends State<CommunitiesTabScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Funde a primeira guilda para gerenciar mesas em Shared World e acumular Guild Boost.',
+                    RbacGuard.canCreateGuild(ctrl.currentUser.role)
+                        ? 'Funde a primeira guilda para gerenciar mesas em Shared World e acumular Guild Boost.'
+                        : 'Aguarde um Mestre fundar uma guilda oficial para participar do Shared World.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
@@ -298,6 +305,7 @@ class _CommunitiesTabScreenState extends State<CommunitiesTabScreen> {
           ),
         ],
       ],
+    ),
     );
   }
 }

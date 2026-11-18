@@ -145,6 +145,9 @@ class _SocialProfileModalState extends State<SocialProfileModal> {
   late final TextEditingController _userCtrl;
   late final TextEditingController _nameCtrl;
   late final TextEditingController _bioCtrl;
+  late final TextEditingController _discordCtrl;
+  late final TextEditingController _whatsappCtrl;
+  late final TextEditingController _instagramCtrl;
 
   @override
   void initState() {
@@ -153,6 +156,12 @@ class _SocialProfileModalState extends State<SocialProfileModal> {
     _userCtrl = TextEditingController(text: u.username);
     _nameCtrl = TextEditingController(text: u.displayName);
     _bioCtrl = TextEditingController(text: u.bio);
+    _discordCtrl =
+        TextEditingController(text: u.socialContacts['discord'] ?? '');
+    _whatsappCtrl =
+        TextEditingController(text: u.socialContacts['whatsapp'] ?? '');
+    _instagramCtrl =
+        TextEditingController(text: u.socialContacts['instagram'] ?? '');
   }
 
   @override
@@ -160,6 +169,9 @@ class _SocialProfileModalState extends State<SocialProfileModal> {
     _userCtrl.dispose();
     _nameCtrl.dispose();
     _bioCtrl.dispose();
+    _discordCtrl.dispose();
+    _whatsappCtrl.dispose();
+    _instagramCtrl.dispose();
     super.dispose();
   }
 
@@ -190,21 +202,51 @@ class _SocialProfileModalState extends State<SocialProfileModal> {
           const SizedBox(height: 12),
           TextField(
             controller: _userCtrl,
+            maxLength: 24,
             decoration: const InputDecoration(
               labelText: 'Identificador Único',
               prefixText: '@',
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           TextField(
             controller: _nameCtrl,
+            maxLength: 60,
             decoration: const InputDecoration(labelText: 'Nome de Exibição'),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           TextField(
             controller: _bioCtrl,
-            maxLines: 2,
-            decoration: const InputDecoration(labelText: 'Biografia da Taverna'),
+            maxLines: 3,
+            maxLength: 500,
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              labelText: 'Biografia da Taverna',
+              helperText: '${_bioCtrl.text.length} / 500 caracteres',
+            ),
+          ),
+          const SizedBox(height: 10),
+          const HeraldicSectionDivider(
+            svgIcon: ArcanaSvgIcons.users,
+            title: 'CONTATOS SOCIAIS',
+          ),
+          TextField(
+            controller: _discordCtrl,
+            maxLength: 60,
+            decoration: const InputDecoration(labelText: 'Discord (opcional)'),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _whatsappCtrl,
+            maxLength: 30,
+            decoration: const InputDecoration(labelText: 'WhatsApp (opcional)'),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _instagramCtrl,
+            maxLength: 60,
+            decoration:
+                const InputDecoration(labelText: 'Instagram (opcional)'),
           ),
           const SizedBox(height: 16),
           PrimaryGoldPillButton(
@@ -215,6 +257,11 @@ class _SocialProfileModalState extends State<SocialProfileModal> {
                 username: _userCtrl.text,
                 displayName: _nameCtrl.text,
                 bio: _bioCtrl.text,
+                contacts: {
+                  'discord': _discordCtrl.text,
+                  'whatsapp': _whatsappCtrl.text,
+                  'instagram': _instagramCtrl.text,
+                },
               );
               if (!context.mounted) return;
               if (ok) {
@@ -466,94 +513,85 @@ class TutorialsCentralModal extends StatelessWidget {
   }
 }
 
-/// 5. Configurações Gerais (3 Temas, Escala Tipográfica 80-150%, Mixer 4 Canais, Cache P2P & Lockout Total).
-/// 5. Configurações Gerais (Temas, Escala, Áudio Mixer, Servidor Cloudflare, Cargo & Segurança).
-class GeneralSettingsModal extends StatefulWidget {
+/// 5. Configurações Gerais (Idioma, Vibração, Temas, Escala, Mixer, Rede P2P, Privacidade & Lockout Total).
+class GeneralSettingsModal extends StatelessWidget {
   final AppController controller;
 
   const GeneralSettingsModal({super.key, required this.controller});
 
   @override
-  State<GeneralSettingsModal> createState() => _GeneralSettingsModalState();
-}
-
-class _GeneralSettingsModalState extends State<GeneralSettingsModal> {
-  late final TextEditingController _edgeUrlCtrl;
-  bool _syncing = false;
-  bool? _connOk;
-  String? _statusText;
-
-  @override
-  void initState() {
-    super.initState();
-    _edgeUrlCtrl = TextEditingController(
-      text: widget.controller.edgeClient.baseUrl,
-    );
-  }
-
-  @override
-  void dispose() {
-    _edgeUrlCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _testConnection() async {
-    setState(() {
-      _syncing = true;
-      _statusText = null;
-    });
-    await widget.controller.updateServerConfig(edgeUrl: _edgeUrlCtrl.text);
-    final res = await widget.controller.testEdgeConnection();
-    if (!mounted) return;
-    setState(() {
-      _syncing = false;
-      _connOk = res.ok;
-      _statusText = res.ok
-          ? 'Conexão Edge ativa (HTTP ${res.statusCode}).'
-          : 'Worker inacessível (${res.statusCode == 0 ? 'sem resposta de rede' : 'HTTP ${res.statusCode}'}).';
-    });
-  }
-
-  Future<void> _syncNow() async {
-    setState(() {
-      _syncing = true;
-      _statusText = null;
-    });
-    await widget.controller.updateServerConfig(edgeUrl: _edgeUrlCtrl.text);
-    await widget.controller.hydrateAllFromBackend();
-    if (!mounted) return;
-    final err = widget.controller.lastSyncError;
-    setState(() {
-      _syncing = false;
-      _connOk = err == null;
-      _statusText = err ?? 'Dados sincronizados com sucesso no Cloudflare D1!';
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final p = context.arcana;
-    final ctrl = widget.controller;
+    final ctrl = controller;
     return ListenableBuilder(
       listenable: ctrl,
       builder: (context, _) {
         final mixer = ctrl.audioMixer;
-        final u = ctrl.currentUser;
-        final isPrivileged =
-            u.role == UserRole.admin || u.role == UserRole.superadmin;
-        final selfRoles = const [
-          UserRole.jogador,
-          UserRole.assistenteMestre,
-          UserRole.mestre,
+        const languages = ['PT-BR', 'EN-US', 'ES-ES'];
+        const haptics = ['Desativado', 'Suave', 'Médio', 'Intenso'];
+        const quotas = ['512 MB', '1 GB', '2 GB'];
+        const dmOptions = ['Qualquer usuário', 'Apenas amigos', 'Ninguém'];
+        const showcaseOptions = [
+          'Público na Taverna',
+          'Apenas amigos',
+          'Privado',
         ];
 
         return ArcanaModalScaffold(
           svgIcon: ArcanaSvgIcons.settings,
           title: 'CONFIGURAÇÕES GERAIS',
-          subtitle: 'Temas Heráldicos, Escala, Áudio, Cloudflare e Segurança',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+          subtitle: 'Preferências, Temas, Áudio, Rede P2P e Privacidade',
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+              const HeraldicSectionDivider(
+                svgIcon: ArcanaSvgIcons.sparkles,
+                title: 'IDIOMA & FEEDBACK HÁPTICO',
+              ),
+              Text(
+                'Idioma do Aplicativo',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: languages
+                    .map(
+                      (lang) => ChoiceChip(
+                        label: Text(lang),
+                        selected: ctrl.appLanguage == lang,
+                        onSelected: (_) => ctrl.setAppLanguage(lang),
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Intensidade da Vibração Háptica',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: haptics
+                    .map(
+                      (level) => ChoiceChip(
+                        label: Text(level),
+                        selected: ctrl.hapticLevel == level,
+                        onSelected: (_) => ctrl.setHapticLevel(level),
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 12),
               const HeraldicSectionDivider(
                 svgIcon: ArcanaSvgIcons.sparkles,
                 title: 'TEMAS OFICIAIS',
@@ -601,6 +639,14 @@ class _GeneralSettingsModalState extends State<GeneralSettingsModal> {
                 activeColor: p.goldPrimary,
                 onChanged: ctrl.setFontScale,
               ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Reduzir Animações & Partículas'),
+                subtitle: const Text('Economiza bateria em telas de 60/120 Hz'),
+                value: ctrl.reduceMotion,
+                activeTrackColor: p.emerald,
+                onChanged: ctrl.setReduceMotion,
+              ),
               const HeraldicSectionDivider(
                 svgIcon: ArcanaSvgIcons.volume2,
                 title: 'MIXER DE ÁUDIO (4 CANAIS)',
@@ -629,89 +675,105 @@ class _GeneralSettingsModalState extends State<GeneralSettingsModal> {
                 p.goldHighlight,
                 (v) => ctrl.updateAudioMixer(mixer.copyWith(voiceVolume: v)),
               ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Mutar Áudio em Segundo Plano'),
+                value: ctrl.muteInBackground,
+                activeTrackColor: p.emerald,
+                onChanged: ctrl.setMuteInBackground,
+              ),
               const HeraldicSectionDivider(
                 svgIcon: ArcanaSvgIcons.wifi,
-                title: 'SERVIDOR CLOUDFLARE EDGE & D1',
+                title: 'REDE P2P & CACHE LOCAL',
               ),
-              TextField(
-                controller: _edgeUrlCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'URL do Cloudflare Worker',
-                  hintText: 'https://arcana-edge.<subdominio>.workers.dev',
-                ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Sincronia P2P Mesh Ativa'),
+                subtitle: const Text('Baixa latência com Eleição de Líder na mesa'),
+                value: ctrl.p2pEnabled,
+                activeTrackColor: p.emerald,
+                onChanged: ctrl.setP2pEnabled,
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Carregar Mídia Externa Somente via Wi-Fi'),
+                value: ctrl.p2pWifiOnly,
+                activeTrackColor: p.emerald,
+                onChanged: ctrl.setP2pWifiOnly,
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Bloquear Mídia Externa (Somente Oficiais)'),
+                value: ctrl.externalMediaOnlyOfficial,
+                activeTrackColor: p.goldPrimary,
+                onChanged: ctrl.setExternalMediaOnlyOfficial,
+              ),
+              const SizedBox(height: 4),
+              const Text('Limite do Cache de Mapas & Áudio'),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: quotas
+                    .map(
+                      (q) => ChoiceChip(
+                        label: Text(q),
+                        selected: ctrl.p2pCacheQuota == q,
+                        onSelected: (_) => ctrl.setP2pCacheQuota(q),
+                      ),
+                    )
+                    .toList(),
               ),
               const SizedBox(height: 10),
-              SecondaryHeraldicButton(
-                label: 'Salvar & Testar Conexão',
-                svgIcon: ArcanaSvgIcons.wifi,
-                expand: true,
-                onPressed: _syncing ? null : _testConnection,
-              ),
-              const SizedBox(height: 8),
-              PrimaryGoldPillButton(
-                label: _syncing
-                    ? 'Sincronizando D1...'
-                    : 'Sincronizar Agora com Cloudflare D1',
-                svgIcon: ArcanaSvgIcons.sparkles,
-                onPressed: _syncing ? null : _syncNow,
-              ),
-              if (_statusText != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  _statusText!,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _connOk == true ? p.emerald : p.crimson,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 12),
-              const HeraldicSectionDivider(
-                svgIcon: ArcanaSvgIcons.shield,
-                title: 'PAPEL NA TAVERNA (SYNC D1)',
-              ),
-              if (isPrivileged)
-                HeraldicCard(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      RoleBadgeWidget(role: u.role),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Papel administrativo (${u.role.badgeLabel}) protegido pelo banco Cloudflare D1.',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: selfRoles.map((role) {
-                    return ChoiceChip(
-                      label: Text(role.badgeLabel),
-                      selected: u.role == role,
-                      onSelected: (_) async {
-                        await ctrl.updateProfile(
-                          username: u.username,
-                          displayName: u.displayName,
-                          bio: u.bio,
-                          preferredRole: role,
-                        );
-                      },
-                    );
-                  }).toList(),
-                ),
-              const SizedBox(height: 14),
               SecondaryHeraldicButton(
                 label: 'Limpar Cache P2P Local (${ctrl.p2pCacheMb} MB)',
                 svgIcon: ArcanaSvgIcons.trash,
                 expand: true,
                 onPressed: ctrl.clearP2pCache,
+              ),
+              const SizedBox(height: 12),
+              const HeraldicSectionDivider(
+                svgIcon: ArcanaSvgIcons.shield,
+                title: 'PRIVACIDADE & SEGURANÇA',
+              ),
+              const Text('Quem pode enviar Mensagem Direta (DM)'),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: dmOptions
+                    .map(
+                      (opt) => ChoiceChip(
+                        label: Text(opt),
+                        selected: ctrl.dmPrivacy == opt,
+                        onSelected: (_) => ctrl.setDmPrivacy(opt),
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 10),
+              const Text('Visibilidade da Vitrine de Heróis'),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: showcaseOptions
+                    .map(
+                      (opt) => ChoiceChip(
+                        label: Text(opt),
+                        selected: ctrl.showcasePrivacy == opt,
+                        onSelected: (_) => ctrl.setShowcasePrivacy(opt),
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 6),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Exibir Status de Presença Online'),
+                value: ctrl.onlinePresenceVisible,
+                activeTrackColor: p.emerald,
+                onChanged: ctrl.setOnlinePresenceVisible,
               ),
               const SizedBox(height: 10),
               SecondaryHeraldicButton(
@@ -727,6 +789,7 @@ class _GeneralSettingsModalState extends State<GeneralSettingsModal> {
               ),
             ],
           ),
+        ),
         );
       },
     );
@@ -766,10 +829,18 @@ class AdminGovernanceModal extends StatelessWidget {
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) {
+        final canManageAdmins =
+            RbacGuard.canManageAdmins(controller.currentUser.role);
+        final assignableRoles = <UserRole>[
+          UserRole.jogador,
+          UserRole.mestre,
+          if (canManageAdmins) UserRole.admin,
+        ];
+
         return ArcanaModalScaffold(
           svgIcon: ArcanaSvgIcons.terminal,
           title: 'GOVERNANÇA ADMIN',
-          subtitle: 'Zero-Trust • Moderação, D1 e Hardware Ban',
+          subtitle: 'Zero-Trust • Cargos RBAC, Denúncias e Hardware Ban',
           badgeLabel: controller.currentUser.role.badgeLabel,
           badgeColor: p.crimson,
           child: Column(
@@ -780,13 +851,121 @@ class AdminGovernanceModal extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
+                    Text('Usuários: ${controller.adminUsers.length}'),
                     Text('Denúncias: ${controller.reports.length}'),
-                    Text('Hardware Bans: ${controller.hardwareBannedFingerprints.length}'),
-                    Text('Mesas: ${controller.campaigns.length}'),
+                    Text('Bans: ${controller.hardwareBannedFingerprints.length}'),
                   ],
                 ),
               ),
               const SizedBox(height: 12),
+              const HeraldicSectionDivider(
+                svgIcon: ArcanaSvgIcons.users,
+                title: 'GESTÃO DE USUÁRIOS & CARGOS (RBAC)',
+              ),
+              HeraldicCard(
+                padding: const EdgeInsets.all(10),
+                child: Text(
+                  canManageAdmins
+                      ? 'Superadmin: pode promover/rebaixar Jogador, Mestre e Admin.'
+                      : 'Admin: pode promover/rebaixar apenas Jogador e Mestre (Superadmin protegido).',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (controller.adminUsers.isEmpty)
+                HeraldicCard(
+                  padding: const EdgeInsets.all(14),
+                  child: Text(
+                    'Nenhum usuário listado ainda.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                )
+              else
+                ...controller.adminUsers.map((usr) {
+                  final isProtectedSystem = usr.id == 'usr_system_official' ||
+                      usr.role == UserRole.superadmin ||
+                      (usr.role == UserRole.admin && !canManageAdmins);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: HeraldicCard(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      usr.displayName,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium,
+                                    ),
+                                    Text(
+                                      '@${usr.username} • ${usr.email}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              RoleBadgeWidget(role: usr.role),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          if (isProtectedSystem)
+                            Text(
+                              usr.role == UserRole.superadmin
+                                  ? 'Superadmin: cargo protegido na raiz da plataforma.'
+                                  : 'Protegido pela hierarquia Zero-Trust.',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: p.textSecondary,
+                              ),
+                            )
+                          else
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: assignableRoles.map((r) {
+                                final selected = usr.role == r;
+                                return ChoiceChip(
+                                  label: Text(r.badgeLabel),
+                                  selected: selected,
+                                  onSelected: selected
+                                      ? null
+                                      : (_) async {
+                                          final messenger =
+                                              ScaffoldMessenger.of(context);
+                                          final err = await controller
+                                              .adminUpdateUserRole(
+                                            targetUserId: usr.id,
+                                            newRole: r,
+                                          );
+                                          if (err != null) {
+                                            messenger.showSnackBar(
+                                              SnackBar(content: Text(err)),
+                                            );
+                                          }
+                                        },
+                                );
+                              }).toList(),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              const SizedBox(height: 12),
+              const HeraldicSectionDivider(
+                svgIcon: ArcanaSvgIcons.flag,
+                title: 'FILA DE DENÚNCIAS & HARDWARE BAN',
+              ),
               if (controller.reports.isEmpty)
                 HeraldicCard(
                   padding: const EdgeInsets.all(16),
@@ -862,6 +1041,28 @@ class AdminGovernanceModal extends StatelessWidget {
                     ),
                   ),
                 ),
+              const SizedBox(height: 12),
+              HeraldicCard(
+                borderColor: p.infoBlue,
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SvgIconWidget(
+                      ArcanaSvgIcons.shield,
+                      size: 18,
+                      color: p.infoBlue,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Modo Espectador Fantasma: reservado para auditoria silenciosa de denúncias graves em mesas com proteção de Device Fingerprint Android.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         );

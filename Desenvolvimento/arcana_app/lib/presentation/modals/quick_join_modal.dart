@@ -4,6 +4,7 @@ import '../../core/constants/svg_icons.dart';
 import '../../core/theme/arcana_colors.dart';
 import '../widgets/heraldic_buttons.dart';
 import '../widgets/heraldic_card.dart';
+import 'campaign_modals.dart';
 import 'modal_shell.dart';
 
 /// Modal de Entrada Rápida (Quick Join) por código de 6 dígitos ou leitura QR Code.
@@ -39,24 +40,36 @@ class _QuickJoinModalState extends State<QuickJoinModal> {
     super.dispose();
   }
 
-  Future<void> _join() async {
+  Future<void> _lookup() async {
     setState(() {
       _joining = true;
       _statusMsg = null;
     });
-    final found = await widget.controller.quickJoinByCode(_codeCtrl.text);
+    final res = await widget.controller.lookupCampaignByCode(_codeCtrl.text);
     if (!mounted) return;
-    setState(() {
-      _joining = false;
-      if (found != null) {
-        _isError = false;
-        _statusMsg =
-            'Conectado à mesa "${found.title}" (${found.quickJoinCode})!';
-      } else {
+    if (res == null) {
+      setState(() {
+        _joining = false;
         _isError = true;
-        _statusMsg = 'Código de campanha não encontrado no servidor.';
-      }
-    });
+        _statusMsg = widget.controller.lastSyncError ??
+            'Código de campanha não encontrado no servidor.';
+      });
+      return;
+    }
+
+    Navigator.of(context).pop();
+    showArcanaModal(
+      context,
+      builder: (_) => res.isMember
+          ? CampaignGeneralModal(
+              controller: widget.controller,
+              campaign: res.campaign,
+            )
+          : CampaignApplicationModal(
+              controller: widget.controller,
+              campaign: res.campaign,
+            ),
+    );
   }
 
   @override
@@ -65,7 +78,7 @@ class _QuickJoinModalState extends State<QuickJoinModal> {
     return ArcanaModalScaffold(
       svgIcon: ArcanaSvgIcons.qrCode,
       title: 'QUICK JOIN & QR CODE',
-      subtitle: 'Conecte-se em segundos a qualquer mesa aberta',
+      subtitle: 'Localize mesas pelo código de convite de 6 dígitos',
       badgeLabel: 'CLOUDFLARE D1',
       badgeColor: p.infoBlue,
       child: Column(
@@ -94,9 +107,9 @@ class _QuickJoinModalState extends State<QuickJoinModal> {
           ],
           const SizedBox(height: 16),
           PrimaryGoldPillButton(
-            label: _joining ? 'Consultando Servidor...' : 'Entrar na Campanha Agora',
+            label: _joining ? 'Consultando Servidor...' : 'Localizar Campanha Agora',
             svgIcon: ArcanaSvgIcons.arrowRight,
-            onPressed: _joining ? null : _join,
+            onPressed: _joining ? null : _lookup,
           ),
         ],
       ),

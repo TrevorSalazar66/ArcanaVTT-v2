@@ -24,6 +24,7 @@ export interface UserProfileRecord {
   bio: string;
   avatar_icon: string;
   preferred_role: string;
+  contacts_json?: string;
   reputation_points: number;
   theme_preference: ThemePreference;
   font_scale: number;
@@ -208,13 +209,31 @@ export interface CharacterRecord {
   updated_at: string;
 }
 
+export interface AdminUserSummaryRecord {
+  id: string;
+  email: string;
+  birth_date: string;
+  role: UserRole;
+  account_status: AccountStatus;
+  created_at: string;
+  username: string;
+  display_name: string;
+}
+
+export interface CampaignMemberDetailRecord extends CampaignMemberRecord {
+  username?: string;
+  display_name?: string;
+}
+
 export interface IArcanaRepository {
   findUserByGoogleSubOrEmail(googleSub: string, email: string): Promise<UserRecord | null>;
   findUserById(userId: string): Promise<UserRecord | null>;
   countRealUsers(): Promise<number>;
   createUserWithProfile(user: UserRecord, profile: UserProfileRecord): Promise<void>;
   updateUserRole(userId: string, role: UserRole): Promise<void>;
+  updateUserBirthDate(userId: string, birthDate: string): Promise<void>;
   updateUserStatusAndLockout(userId: string, status: AccountStatus, lockoutHash: string | null): Promise<void>;
+  listUsersWithProfiles(): Promise<AdminUserSummaryRecord[]>;
   findProfileByUserId(userId: string): Promise<UserProfileRecord | null>;
   findProfileByUsername(username: string): Promise<UserProfileRecord | null>;
   updateProfile(profile: UserProfileRecord): Promise<void>;
@@ -229,6 +248,8 @@ export interface IArcanaRepository {
 
   listCampaigns(): Promise<CampaignRecord[]>;
   listCampaignMembershipsByUser(userId: string): Promise<CampaignMemberRecord[]>;
+  listCampaignMembersByCampaign(campaignId: string): Promise<CampaignMemberDetailRecord[]>;
+  findCampaignMember(campaignId: string, userId: string): Promise<CampaignMemberRecord | null>;
   findCampaignByCode(code: string): Promise<CampaignRecord | null>;
   findCampaignById(id: string): Promise<CampaignRecord | null>;
   createCampaign(campaign: CampaignRecord, ownerMembership: CampaignMemberRecord): Promise<void>;

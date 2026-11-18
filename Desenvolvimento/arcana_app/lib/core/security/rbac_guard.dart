@@ -62,8 +62,27 @@ class RbacGuard {
         role == UserRole.superadmin;
   }
 
+  static bool canCreateGuild(UserRole role) {
+    // 08-comunidades-guildas-e-denuncia.md: criação inicial liberada para Mestre/Admin/Superadmin
+    return canForgeCampaign(role);
+  }
+
   static bool canAccessAdminPanel(UserRole role) {
     return role == UserRole.admin || role == UserRole.superadmin;
+  }
+
+  static bool canManageAdmins(UserRole role) {
+    // 01-visao-geral-e-rbac.md: exclusivo do Superadmin
+    return role == UserRole.superadmin;
+  }
+
+  /// Regra de Rebaixamento Local (01-visao-geral-e-rbac.md item 2.2):
+  /// Mesmo que possua cargo global Mestre, em mesas de terceiros atua como Jogador/Auxiliar.
+  static bool canManageCampaignTable({
+    required bool isTableMaster,
+    required UserRole globalRole,
+  }) {
+    return isTableMaster || canAccessAdminPanel(globalRole);
   }
 
   static bool canModerateReports(UserRole role) {

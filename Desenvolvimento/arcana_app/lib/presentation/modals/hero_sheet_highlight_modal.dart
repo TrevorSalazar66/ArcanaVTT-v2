@@ -6,13 +6,19 @@ import '../../domain/entities/arcana_entities.dart';
 import '../widgets/heraldic_buttons.dart';
 import '../widgets/heraldic_card.dart';
 import '../widgets/heraldic_section_divider.dart';
+import '../widgets/svg_icon_widget.dart';
 import 'modal_shell.dart';
 
-/// Modal de Ficha Rápida e Criação/Edição do Herói em Destaque (AlphaD6 Core: 3d6 e 12 Slots).
+/// Modal de Ficha Rápida e Criação/Edição do Herói vinculada a uma Campanha (AlphaD6 Core: 3d6 e 12 Slots).
 class HeroSheetHighlightModal extends StatefulWidget {
   final AppController controller;
+  final Campaign? boundCampaign;
 
-  const HeroSheetHighlightModal({super.key, required this.controller});
+  const HeroSheetHighlightModal({
+    super.key,
+    required this.controller,
+    this.boundCampaign,
+  });
 
   @override
   State<HeroSheetHighlightModal> createState() =>
@@ -22,7 +28,6 @@ class HeroSheetHighlightModal extends StatefulWidget {
 class _HeroSheetHighlightModalState extends State<HeroSheetHighlightModal> {
   late final TextEditingController _nameCtrl;
   late final TextEditingController _classCtrl;
-  late final TextEditingController _campaignCtrl;
   late final TextEditingController _slotsCtrl;
 
   int _level = 1;
@@ -33,18 +38,20 @@ class _HeroSheetHighlightModalState extends State<HeroSheetHighlightModal> {
   bool _saving = false;
   String? _formError;
 
+  HeroCharacter? _resolveTargetHero() {
+    final bound = widget.boundCampaign;
+    if (bound != null) {
+      return widget.controller.characterForCampaign(bound.id);
+    }
+    return widget.controller.hero;
+  }
+
   @override
   void initState() {
     super.initState();
-    final h = widget.controller.hero;
+    final h = _resolveTargetHero();
     _nameCtrl = TextEditingController(text: h?.name ?? '');
     _classCtrl = TextEditingController(text: h?.heroClass ?? '');
-    _campaignCtrl = TextEditingController(
-      text: h?.campaignTitle ??
-          (widget.controller.campaigns.isNotEmpty
-              ? widget.controller.campaigns.first.title
-              : 'Mesa Livre'),
-    );
     _slotsCtrl = TextEditingController(
       text: h != null ? h.slots.join(', ') : '',
     );
@@ -52,14 +59,13 @@ class _HeroSheetHighlightModalState extends State<HeroSheetHighlightModal> {
     _corpo = h?.corpo ?? 2;
     _mente = h?.mente ?? 2;
     _espirito = h?.espirito ?? 2;
-    _editing = h == null;
+    _editing = h == null && widget.boundCampaign != null;
   }
 
   @override
   void dispose() {
     _nameCtrl.dispose();
     _classCtrl.dispose();
-    _campaignCtrl.dispose();
     _slotsCtrl.dispose();
     super.dispose();
   }
@@ -68,7 +74,6 @@ class _HeroSheetHighlightModalState extends State<HeroSheetHighlightModal> {
     setState(() {
       _nameCtrl.text = h.name;
       _classCtrl.text = h.heroClass;
-      _campaignCtrl.text = h.campaignTitle;
       _slotsCtrl.text = h.slots.join(', ');
       _level = h.level;
       _corpo = h.corpo;
@@ -80,6 +85,19 @@ class _HeroSheetHighlightModalState extends State<HeroSheetHighlightModal> {
   }
 
   Future<void> _saveHero() async {
+    final currentHero = _resolveTargetHero();
+    final targetCampaignId =
+        widget.boundCampaign?.id ?? currentHero?.campaignId ?? '';
+    final targetCampaignTitle =
+        widget.boundCampaign?.title ?? currentHero?.campaignTitle ?? '';
+    if (targetCampaignId.trim().isEmpty) {
+      setState(() {
+        _formError =
+            'Fichas de herói precisam estar vinculadas a uma campanha ativa.';
+      });
+      return;
+    }
+
     final name = _nameCtrl.text.trim();
     if (name.length < 2) {
       setState(() {
@@ -90,9 +108,6 @@ class _HeroSheetHighlightModalState extends State<HeroSheetHighlightModal> {
     final heroClass = _classCtrl.text.trim().isEmpty
         ? 'Aventureiro'
         : _classCtrl.text.trim();
-    final campaignTitle = _campaignCtrl.text.trim().isEmpty
-        ? 'Mesa Livre'
-        : _campaignCtrl.text.trim();
     final slots = _slotsCtrl.text
         .split(',')
         .map((e) => e.trim())
@@ -106,9 +121,10 @@ class _HeroSheetHighlightModalState extends State<HeroSheetHighlightModal> {
     });
 
     final ok = await widget.controller.saveHeroCharacter(
+      campaignId: targetCampaignId,
       name: name,
       heroClass: heroClass,
-      campaignTitle: campaignTitle,
+      campaignTitle: targetCampaignTitle,
       level: _level,
       corpo: _corpo,
       mente: _mente,
@@ -134,20 +150,76 @@ class _HeroSheetHighlightModalState extends State<HeroSheetHighlightModal> {
     return ListenableBuilder(
       listenable: widget.controller,
       builder: (context, _) {
-        final h = widget.controller.hero;
+        final h = _resolveTargetHero();
         final lastRoll = widget.controller.lastHeroRoll;
-        final showForm = h == null || _editing;
 
-        if (showForm) {
+        if (h == null && widget.boundCampaign == null) {
           return ArcanaModalScaffold(
             svgIcon: ArcanaSvgIcons.swords,
-            title: h == null ? 'FORJAR FICHA DE HERÓI' : 'EDITAR FICHA',
-            subtitle: 'Sistema Oficial AlphaD6 Core (3d6 • 12 Slots)',
+            title: 'FICHAS DE HERÓI',
+            subtitle: 'Regra Oficial de Vínculo com Campanha',
+            badgeLabel: 'ALPHAD6',
+            badgeColor: p.infoBlue,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                HeraldicCard(
+                  borderColor: p.infoBlue,
+                  child: Text(
+                    'Suas fichas de herói só podem ser criadas dentro da aba "Personagens" de uma campanha em que você já seja membro ativo (ou aprovado pelo Mestre).',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                PrimaryGoldPillButton(
+                  label: 'Entendi • Explorar Campanhas',
+                  svgIcon: ArcanaSvgIcons.scroll,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    widget.controller.setTabIndex(1);
+                  },
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (_editing || h == null) {
+          final resolvedTitle =
+              widget.boundCampaign?.title ?? h?.campaignTitle ?? 'Campanha';
+          return ArcanaModalScaffold(
+            svgIcon: ArcanaSvgIcons.swords,
+            title: h == null ? 'FORJAR FICHA NA MESA' : 'EDITAR FICHA',
+            subtitle: '$resolvedTitle • Sistema AlphaD6 Core (3d6 • 12 Slots)',
             badgeLabel: 'ALPHAD6',
             badgeColor: p.goldPrimary,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                HeraldicCard(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Row(
+                    children: [
+                      SvgIconWidget(
+                        ArcanaSvgIcons.scroll,
+                        size: 16,
+                        color: p.goldPrimary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Mesa vinculada: $resolvedTitle',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: p.goldPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
                 TextField(
                   controller: _nameCtrl,
                   decoration: const InputDecoration(
@@ -161,14 +233,6 @@ class _HeroSheetHighlightModalState extends State<HeroSheetHighlightModal> {
                   decoration: const InputDecoration(
                     labelText: 'Classe / Arquétipo',
                     hintText: 'Ex: Lâmina Arcana',
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: _campaignCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Campanha Vinculada',
-                    hintText: 'Ex: Mesa Livre ou nome da campanha',
                   ),
                 ),
                 const SizedBox(height: 12),

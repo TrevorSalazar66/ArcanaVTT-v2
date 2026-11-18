@@ -73,17 +73,32 @@ export async function authenticateGoogleOAuth(
     }
   }
 
+  const existingUserPreview = await repo.findUserByGoogleSubOrEmail(
+    verifiedSub,
+    verifiedEmail,
+  );
+  const existingProfilePreview = existingUserPreview
+    ? await repo.findProfileByUserId(existingUserPreview.id)
+    : null;
+
   const minAge = Number.parseInt(env?.MIN_AGE_YEARS ?? '16', 10) || 16;
-  const age = calculateAgeUtc(input.birth_date);
-  if (age < 0) {
-    throw new AppError(400, 'INVALID_BIRTH_DATE', 'Data de nascimento invalida.');
-  }
-  if (age < minAge) {
-    throw new AppError(
-      403,
-      'AGE_RESTRICTED',
-      `Acesso bloqueado: e obrigatorio ter no minimo ${minAge} anos conforme diretrizes LGPD.`,
-    );
+  const birthDateToCheck =
+    input.birth_date ??
+    (existingUserPreview && existingProfilePreview?.onboarding_completed === 1
+      ? existingUserPreview.birth_date
+      : undefined);
+  if (birthDateToCheck) {
+    const age = calculateAgeUtc(birthDateToCheck);
+    if (age < 0) {
+      throw new AppError(400, 'INVALID_BIRTH_DATE', 'Data de nascimento invalida.');
+    }
+    if (age < minAge) {
+      throw new AppError(
+        403,
+        'AGE_RESTRICTED',
+        `Acesso bloqueado: e obrigatorio ter no minimo ${minAge} anos conforme diretrizes LGPD.`,
+      );
+    }
   }
 
   const existingDevice = await repo.findDeviceSecurity(input.device_fingerprint);
@@ -97,8 +112,8 @@ export async function authenticateGoogleOAuth(
   }
 
   const nowIso = new Date().toISOString();
-  let user = await repo.findUserByGoogleSubOrEmail(verifiedSub, verifiedEmail);
-  let profile = user ? await repo.findProfileByUserId(user.id) : null;
+  let user = existingUserPreview;
+  let profile = existingProfilePreview;
 
   if (user && user.account_status === 'locked') {
     throw new AppError(
@@ -128,25 +143,18 @@ export async function authenticateGoogleOAuth(
     let initialRole: UserRole;
     if (realUsersCount === 0 && !(env?.ENVIRONMENT === 'test' && input.requested_role)) {
       initialRole = 'superadmin';
-    } else if (
-      input.requested_role === 'jogador' ||
-      input.requested_role === 'assistente_mestre' ||
-      input.requested_role === 'mestre'
-    ) {
+    } else if (env?.ENVIRONMENT === 'test' && input.requested_role) {
       initialRole = input.requested_role;
-    } else if (input.requested_role && env?.ENVIRONMENT !== 'production') {
-      initialRole = input.requested_role;
-    } else if (input.requested_role) {
-      initialRole = 'jogador';
     } else {
-      initialRole = 'mestre';
+      // Regra estrita (01-visao-geral-e-rbac.md & 06_Planejamento): todo novo usuario inicia como jogador.
+      initialRole = 'jogador';
     }
 
     user = {
       id: userId,
       google_sub: verifiedSub,
       email: verifiedEmail,
-      birth_date: input.birth_date,
+      birth_date: input.birth_date ?? '2000-01-01',
       role: initialRole,
       account_status: 'active',
       lockout_token_hash: null,
@@ -158,9 +166,10 @@ export async function authenticateGoogleOAuth(
       user_id: userId,
       username,
       display_name: verifiedDisplayName,
-      bio: 'Aventureiro recem-chegado a Taverna ArcanaVTT.',
+      bio: '',
       avatar_icon: 'crown',
       preferred_role: initialRole,
+      contacts_json: '{}',
       reputation_points: 100,
       theme_preference: 'escuro_heraldico',
       font_scale: 1.0,

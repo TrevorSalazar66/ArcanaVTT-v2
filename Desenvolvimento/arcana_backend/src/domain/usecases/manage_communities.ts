@@ -1,5 +1,6 @@
 import type { z } from 'zod';
 import type { IArcanaRepository } from '../../data/interfaces';
+import { assertRole } from '../../middlewares/auth_middleware';
 import { AppError } from '../../middlewares/error_handler';
 import type {
   chatSendMessageSchema,
@@ -156,6 +157,7 @@ export async function createGuildUseCase(
   input: z.infer<typeof guildsCreateSchema>,
   repo: IArcanaRepository,
 ) {
+  assertRole(authUser.role, ['mestre', 'admin', 'superadmin']);
   const cleanTag = input.tag.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8);
   if (cleanTag.length < 2) {
     throw new AppError(400, 'INVALID_GUILD_TAG', 'A tag da guilda precisa ter pelo menos 2 caracteres.');

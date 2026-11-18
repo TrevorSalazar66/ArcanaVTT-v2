@@ -6,6 +6,7 @@ import type {
   campaignsApplySchema,
   campaignsCreateSchema,
   campaignsListSchema,
+  campaignsManageMemberSchema,
 } from '../../schemas/sync_schemas';
 import type { AuthenticatedUser } from '../../types/env';
 import { generateId } from '../../utils/crypto_jwt';
@@ -141,6 +142,29 @@ export async function createCampaignUseCase(
   return { ok: true, campaign };
 }
 
+export async function lookupCampaignByCodeUseCase(
+  userId: string,
+  rawCode: string,
+  repo: IArcanaRepository,
+) {
+  const normalizedCode = rawCode.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  const campaign = await repo.findCampaignByCode(normalizedCode);
+  if (!campaign) {
+    throw new AppError(
+      404,
+      'CAMPAIGN_CODE_NOT_FOUND',
+      `Nenhuma campanha encontrada para o codigo ${normalizedCode}.`,
+    );
+  }
+  const member = await repo.findCampaignMember(campaign.id, userId);
+  return {
+    ok: true,
+    campaign,
+    membership: member,
+    is_member: member?.status === 'active' || campaign.owner_id === userId,
+  };
+}
+
 export async function applyToCampaignUseCase(
   userId: string,
   input: z.infer<typeof campaignsApplySchema>,
@@ -151,14 +175,38 @@ export async function applyToCampaignUseCase(
     throw new AppError(404, 'CAMPAIGN_NOT_FOUND', 'Campanha nao encontrada.');
   }
 
+  const existing = await repo.findCampaignMember(campaign.id, userId);
+  if (existing?.status === 'active' || campaign.owner_id === userId) {
+    throw new AppError(
+      409,
+      'ALREADY_MEMBER',
+      'Voce ja faz parte desta campanha.',
+    );
+  }
+
+  const nowIso = new Date().toISOString();
   await repo.upsertCampaignMember({
     campaign_id: campaign.id,
     user_id: userId,
     table_role: 'jogador',
     status: 'pending',
-    application_pitch: `${input.character_name}: ${input.pitch}`,
+    application_pitch: input.pitch.trim(),
     character_id: null,
-    joined_at: new Date().toISOString(),
+    joined_at: nowIso,
+  });
+
+  await repo.createNotification({
+    id: generateId('not'),
+    user_id: campaign.owner_id,
+    category: 'mesas',
+    title: 'Nova Candidatura na Mesa',
+    body: `Um aventureiro solicitou entrada em "${campaign.title}".`,
+    action_payload_json: JSON.stringify({
+      campaign_id: campaign.id,
+      campaign_code: campaign.quick_join_code,
+    }),
+    is_read: 0,
+    created_at: nowIso,
   });
 
   return {
@@ -166,5 +214,94 @@ export async function applyToCampaignUseCase(
     application_status: 'pending',
     campaign_id: campaign.id,
   };
+}
+
+export async function listCampaignMembersUseCase(
+  authUser: AuthenticatedUser,
+  campaignId: string,
+  repo: IArcanaRepository,
+) {
+  const campaign = await repo.findCampaignById(campaignId);
+  if (!campaign) {
+    throw new AppError(404, 'CAMPAIGN_NOT_FOUND', 'Campanha nao encontrada.');
+  }
+  const canManage =
+    campaign.owner_id === authUser.userId ||
+    authUser.role === 'admin' ||
+    authUser.role === 'superadmin';
+  if (!canManage) {
+    throw new AppError(
+      403,
+      'FORBIDDEN_TABLE_MASTER',
+      'Somente o Mestre dono da mesa pode gerenciar participantes e solicitacoes.',
+    );
+  }
+  const members = await repo.listCampaignMembersByCampaign(campaignId);
+  return { ok: true, members };
+}
+
+export async function manageCampaignMemberUseCase(
+  authUser: AuthenticatedUser,
+  input: z.infer<typeof campaignsManageMemberSchema>,
+  repo: IArcanaRepository,
+) {
+  const campaign = await repo.findCampaignById(input.campaign_id);
+  if (!campaign) {
+    throw new AppError(404, 'CAMPAIGN_NOT_FOUND', 'Campanha nao encontrada.');
+  }
+  const canManage =
+    campaign.owner_id === authUser.userId ||
+    authUser.role === 'admin' ||
+    authUser.role === 'superadmin';
+  if (!canManage) {
+    throw new AppError(
+      403,
+      'FORBIDDEN_TABLE_MASTER',
+      'Somente o Mestre criador da mesa pode aprovar ou delegar funcoes locais.',
+    );
+  }
+
+  const target = await repo.findCampaignMember(campaign.id, input.target_user_id);
+  if (!target) {
+    throw new AppError(404, 'MEMBER_NOT_FOUND', 'Membro ou candidato nao localizado.');
+  }
+  if (input.target_user_id === campaign.owner_id) {
+    throw new AppError(400, 'CANNOT_ALTER_OWNER', 'O Mestre criador da mesa nao pode ser alterado.');
+  }
+
+  const nextStatus = input.status ?? target.status;
+  const nextTableRole = input.table_role ?? (target.table_role === 'mestre' ? 'jogador' : target.table_role);
+  const wasActive = target.status === 'active';
+
+  if (!wasActive && nextStatus === 'active') {
+    if (campaign.occupied_slots >= campaign.max_slots) {
+      throw new AppError(409, 'CAMPAIGN_FULL', 'Esta mesa ja atingiu o limite maximo de vagas.');
+    }
+    await repo.incrementCampaignOccupiedSlots(campaign.id);
+  }
+
+  await repo.upsertCampaignMember({
+    ...target,
+    status: nextStatus,
+    table_role: nextTableRole,
+  });
+
+  await repo.createNotification({
+    id: generateId('not'),
+    user_id: target.user_id,
+    category: 'mesas',
+    title: nextStatus === 'active'
+      ? `Candidatura Aprovada: ${campaign.title}`
+      : `Atualizacao de Mesa: ${campaign.title}`,
+    body: nextStatus === 'active'
+      ? 'Sua entrada foi aprovada! Crie sua ficha de heroi na aba Personagens da mesa.'
+      : 'Sua solicitacao foi atualizada pelo Mestre da mesa.',
+    action_payload_json: JSON.stringify({ campaign_id: campaign.id }),
+    is_read: 0,
+    created_at: new Date().toISOString(),
+  });
+
+  const members = await repo.listCampaignMembersByCampaign(campaign.id);
+  return { ok: true, members };
 }
 

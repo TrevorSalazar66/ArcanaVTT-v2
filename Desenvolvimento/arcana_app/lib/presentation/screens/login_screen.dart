@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../controllers/app_controller.dart';
 import '../../core/constants/svg_icons.dart';
-import '../../core/security/rbac_guard.dart';
 import '../../core/theme/arcana_colors.dart';
 import '../../domain/usecases/authenticate_oauth_usecase.dart';
 import '../widgets/heraldic_buttons.dart';
@@ -10,7 +9,7 @@ import '../widgets/heraldic_section_divider.dart';
 import '../widgets/svg_icon_widget.dart';
 
 /// Portal de Autenticação 100% Google OAuth 2.0 (Zero Senhas).
-/// Sincronizado com Cloudflare Workers + D1 em tempo real.
+/// Configurações de servidor e Client IDs permanecem ocultos internamente.
 class LoginScreen extends StatefulWidget {
   final AppController controller;
 
@@ -23,15 +22,14 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   late final TextEditingController _usernameCtrl;
   late final TextEditingController _displayNameCtrl;
-  late final TextEditingController _edgeUrlCtrl;
-  late final TextEditingController _googleClientIdCtrl;
+  late final TextEditingController _bioCtrl;
+  late final TextEditingController _discordCtrl;
+  late final TextEditingController _whatsappCtrl;
+  late final TextEditingController _instagramCtrl;
   final TextEditingController _recoveryEmailCtrl = TextEditingController();
   final TextEditingController _recoveryCodeCtrl = TextEditingController();
 
-  bool _showServerConfig = false;
-  bool _testingConnection = false;
-  bool? _connectionOk;
-  String? _connectionStatusText;
+  String? _onboardingError;
 
   @override
   void initState() {
@@ -39,12 +37,10 @@ class _LoginScreenState extends State<LoginScreen> {
     final user = widget.controller.currentUser;
     _usernameCtrl = TextEditingController(text: user.username);
     _displayNameCtrl = TextEditingController(text: user.displayName);
-    _edgeUrlCtrl = TextEditingController(
-      text: widget.controller.edgeClient.baseUrl,
-    );
-    _googleClientIdCtrl = TextEditingController(
-      text: widget.controller.googleServerClientId,
-    );
+    _bioCtrl = TextEditingController(text: user.bio);
+    _discordCtrl = TextEditingController(text: user.socialContacts['discord'] ?? '');
+    _whatsappCtrl = TextEditingController(text: user.socialContacts['whatsapp'] ?? '');
+    _instagramCtrl = TextEditingController(text: user.socialContacts['instagram'] ?? '');
     widget.controller.addListener(_syncFromController);
   }
 
@@ -62,12 +58,6 @@ class _LoginScreenState extends State<LoginScreen> {
         _displayNameCtrl.text = ctrl.currentUser.displayName;
       }
     }
-    if (_edgeUrlCtrl.text != ctrl.edgeClient.baseUrl) {
-      _edgeUrlCtrl.text = ctrl.edgeClient.baseUrl;
-    }
-    if (_googleClientIdCtrl.text != ctrl.googleServerClientId) {
-      _googleClientIdCtrl.text = ctrl.googleServerClientId;
-    }
   }
 
   @override
@@ -75,8 +65,10 @@ class _LoginScreenState extends State<LoginScreen> {
     widget.controller.removeListener(_syncFromController);
     _usernameCtrl.dispose();
     _displayNameCtrl.dispose();
-    _edgeUrlCtrl.dispose();
-    _googleClientIdCtrl.dispose();
+    _bioCtrl.dispose();
+    _discordCtrl.dispose();
+    _whatsappCtrl.dispose();
+    _instagramCtrl.dispose();
     _recoveryEmailCtrl.dispose();
     _recoveryCodeCtrl.dispose();
     super.dispose();
@@ -102,24 +94,38 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _saveAndTestConnection(AppController ctrl) async {
-    setState(() {
-      _testingConnection = true;
-      _connectionStatusText = null;
-    });
-    await ctrl.updateServerConfig(
-      edgeUrl: _edgeUrlCtrl.text,
-      googleClientId: _googleClientIdCtrl.text,
+  Future<void> _submitOnboarding(AppController ctrl) async {
+    final display = _displayNameCtrl.text.trim();
+    final cleanUsername = _usernameCtrl.text
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9_]'), '_');
+    if (display.length < 2) {
+      setState(() {
+        _onboardingError = 'Informe um Nome de Exibição com pelo menos 2 caracteres.';
+      });
+      return;
+    }
+    if (cleanUsername.length < 3) {
+      setState(() {
+        _onboardingError =
+            'O identificador @username precisa de pelo menos 3 letras ou números.';
+      });
+      return;
+    }
+    setState(() => _onboardingError = null);
+
+    await ctrl.completeLoginTransitionToHub(
+      newUsername: cleanUsername,
+      newDisplayName: display,
+      birthDate: ctrl.selectedBirthDate,
+      bio: _bioCtrl.text.trim(),
+      contacts: {
+        'discord': _discordCtrl.text.trim(),
+        'whatsapp': _whatsappCtrl.text.trim(),
+        'instagram': _instagramCtrl.text.trim(),
+      },
     );
-    final res = await ctrl.testEdgeConnection();
-    if (!mounted) return;
-    setState(() {
-      _testingConnection = false;
-      _connectionOk = res.ok;
-      _connectionStatusText = res.ok
-          ? 'Conectado ao Edge Worker (HTTP ${res.statusCode}) • Serviço ativo'
-          : 'Falha ao conectar (${res.statusCode == 0 ? 'Sem resposta de rede' : 'HTTP ${res.statusCode}'}): verifique a URL do Worker';
-    });
   }
 
   @override
@@ -149,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     _buildSecurityErrorView(context, ctrl, p),
                   const SizedBox(height: 20),
                   Text(
-                    '100% Google OAuth 2.0 • Zero senhas armazenadas • LGPD (>= 16 anos)',
+                    '100% Google OAuth 2.0 • Zero custódia de senhas • LGPD (>= 16 anos)',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
@@ -210,12 +216,6 @@ class _LoginScreenState extends State<LoginScreen> {
     AppController ctrl,
     ArcanaPalette p,
   ) {
-    final roleChoices = const <(UserRole, String)>[
-      (UserRole.jogador, 'Jogador'),
-      (UserRole.assistenteMestre, 'Auxiliar'),
-      (UserRole.mestre, 'Mestre'),
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -246,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Acesso exclusivo via Conta Google. Nenhuma senha é criada ou armazenada pelo ArcanaVTT.',
+                'Entre com sua Conta Google para sincronizar suas campanhas, personagens e mesas com proteção criptográfica.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
@@ -287,91 +287,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Conta Google Android (OAuth 2.0)',
+                          'Conta Google do Aparelho',
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         Text(
-                          'O seletor nativo do Google abrirá ao continuar',
+                          'Autenticação nativa Google Android • Zero senhas',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
                     ),
                   ),
                   HeraldicChipPill(
-                    label: 'OAuth 2.0',
+                    label: '1-Toque',
                     color: p.emerald,
                     svgIcon: ArcanaSvgIcons.check,
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              Divider(color: p.subtleBorder, height: 1),
-              const SizedBox(height: 10),
-              InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: ctrl.isSyncing ? null : () => _pickBirthDate(ctrl),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    children: [
-                      SvgIconWidget(
-                        ArcanaSvgIcons.calendar,
-                        size: 18,
-                        color: p.goldPrimary,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Data de Nascimento (LGPD >= 16 anos)',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                            Text(
-                              _formatDate(ctrl.selectedBirthDate),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: p.goldPrimary,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const HeraldicChipPill(label: 'Alterar'),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Divider(color: p.subtleBorder, height: 1),
-              const SizedBox(height: 10),
-              Text(
-                'PAPEL INICIAL NA TAVERNA',
-                style: TextStyle(
-                  color: p.textSecondary,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.9,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: roleChoices.map((entry) {
-                  final selected = ctrl.initialRequestedRole == entry.$1;
-                  return ChoiceChip(
-                    label: Text(entry.$2),
-                    selected: selected,
-                    onSelected: ctrl.isSyncing
-                        ? null
-                        : (_) => ctrl.setInitialRequestedRole(entry.$1),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 10),
               Divider(color: p.subtleBorder, height: 1),
               const SizedBox(height: 10),
               Row(
@@ -405,85 +338,17 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 12),
-        HeraldicCard(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: () => setState(() {
-                  _showServerConfig = !_showServerConfig;
-                }),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    children: [
-                      SvgIconWidget(
-                        ArcanaSvgIcons.settings,
-                        size: 16,
-                        color: p.goldPrimary,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Servidor Cloudflare Edge & Client ID OAuth',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: p.textPrimary,
-                                fontWeight: FontWeight.w700,
-                              ),
-                        ),
-                      ),
-                      HeraldicChipPill(
-                        label: _showServerConfig ? 'Ocultar' : 'Configurar',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (_showServerConfig) ...[
-                const SizedBox(height: 10),
-                TextField(
-                  controller: _edgeUrlCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'URL do Cloudflare Worker (Edge API)',
-                    hintText: 'https://arcana-edge.<subdominio>.workers.dev',
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: _googleClientIdCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Google Web/Server Client ID (OAuth 2.0)',
-                    hintText: 'xxxxxxxx.apps.googleusercontent.com',
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SecondaryHeraldicButton(
-                  label: _testingConnection
-                      ? 'Testando conexão Edge...'
-                      : 'Salvar & Testar Cloudflare Worker',
-                  svgIcon: ArcanaSvgIcons.wifi,
-                  expand: true,
-                  onPressed: _testingConnection
-                      ? null
-                      : () => _saveAndTestConnection(ctrl),
-                ),
-                if (_connectionStatusText != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    _connectionStatusText!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: _connectionOk == true ? p.emerald : p.crimson,
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ],
-              ],
-            ],
+        if (ctrl.lastSyncError != null) ...[
+          const SizedBox(height: 12),
+          HeraldicCard(
+            borderColor: p.crimson,
+            padding: const EdgeInsets.all(12),
+            child: Text(
+              ctrl.lastSyncError!,
+              style: TextStyle(color: p.crimson, fontSize: 12, fontWeight: FontWeight.w600),
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: 16),
         if (ctrl.isSyncing)
           HeraldicCard(
@@ -511,14 +376,37 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
           )
-        else
+        else ...[
           PrimaryGoldPillButton(
-            label: 'Continuar com o Google',
+            label: 'Entrar com Conta Google',
             svgIcon: ArcanaSvgIcons.sparkles,
-            onPressed: () async {
-              await ctrl.signInWithGoogleOAuth();
-            },
+            onPressed: () => ctrl.signInWithGoogleOAuth(),
           ),
+          const SizedBox(height: 10),
+          SecondaryHeraldicButton(
+            label: 'Selecionar Outra Conta Google no Android',
+            svgIcon: ArcanaSvgIcons.users,
+            expand: true,
+            onPressed: () => ctrl.signInWithGoogleOAuth(forceAccountPicker: true),
+          ),
+        ],
+        const SizedBox(height: 14),
+        HeraldicCard(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SvgIconWidget(ArcanaSvgIcons.lock, size: 16, color: p.infoBlue),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Zero custódia de senhas • Novos usuários iniciam como Jogador • Verificação etária LGPD (>= 16 anos) concluída ao criar o perfil.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -634,25 +522,29 @@ class _LoginScreenState extends State<LoginScreen> {
           borderColor: p.emerald,
           padding: const EdgeInsets.all(18),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: p.emerald.withValues(alpha: 0.14),
-                  border: Border.all(color: p.emerald),
-                ),
-                alignment: Alignment.center,
-                child: SvgIconWidget(
-                  ArcanaSvgIcons.circleCheck,
-                  size: 28,
-                  color: p.emerald,
+              Center(
+                child: Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: p.emerald.withValues(alpha: 0.14),
+                    border: Border.all(color: p.emerald),
+                  ),
+                  alignment: Alignment.center,
+                  child: SvgIconWidget(
+                    ArcanaSvgIcons.circleCheck,
+                    size: 28,
+                    color: p.emerald,
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
               Text(
-                'Autenticação Google Verificada!',
+                'FORJE SUA IDENTIDADE DE AVENTUREIRO',
+                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: p.emerald,
                       fontWeight: FontWeight.w800,
@@ -660,25 +552,145 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Confirme seu identificador único na Taverna antes de entrar no Hub Central.',
+                'Conta Google verificada! Complete seus dados antes de entrar no Hub Central.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
+              HeraldicCard(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Cargo atribuído pelo servidor',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          Text(
+                            'Definido automaticamente pela governança',
+                            style: TextStyle(fontSize: 10, color: p.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    RoleBadgeWidget(role: ctrl.currentUser.role),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _displayNameCtrl,
+                maxLength: 60,
+                decoration: const InputDecoration(
+                  labelText: 'Nome de Exibição (2–60)',
+                  hintText: 'Ex: Lyra Vespera',
+                ),
+              ),
+              const SizedBox(height: 8),
               TextField(
                 controller: _usernameCtrl,
+                maxLength: 24,
                 decoration: const InputDecoration(
                   labelText: 'Identificador Único (@username)',
                   prefixText: '@',
                 ),
               ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _displayNameCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Nome de Aventureiro / Mestre',
+              const SizedBox(height: 8),
+              InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: ctrl.isSyncing ? null : () => _pickBirthDate(ctrl),
+                child: HeraldicCard(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Row(
+                    children: [
+                      SvgIconWidget(
+                        ArcanaSvgIcons.calendar,
+                        size: 18,
+                        color: p.goldPrimary,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Data de Nascimento (LGPD >= 16 anos)',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            Text(
+                              _formatDate(ctrl.selectedBirthDate),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: p.goldPrimary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const HeraldicChipPill(label: 'Alterar'),
+                    ],
+                  ),
                 ),
               ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _bioCtrl,
+                maxLines: 3,
+                maxLength: 500,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  labelText: 'Biografia do Aventureiro (opcional)',
+                  hintText: 'Conte seus estilos de campanha favoritos...',
+                  helperText: '${_bioCtrl.text.length} / 500 caracteres',
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'CONTATOS OPCIONAIS',
+                style: TextStyle(
+                  color: p.textSecondary,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.9,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _discordCtrl,
+                maxLength: 60,
+                decoration: const InputDecoration(
+                  labelText: 'Discord (opcional)',
+                  hintText: 'Ex: aventureiro#1234',
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _whatsappCtrl,
+                maxLength: 30,
+                decoration: const InputDecoration(
+                  labelText: 'WhatsApp (opcional)',
+                  hintText: 'Ex: +55 11 99999-9999',
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _instagramCtrl,
+                maxLength: 60,
+                decoration: const InputDecoration(
+                  labelText: 'Instagram (opcional)',
+                  hintText: 'Ex: @seu_instagram',
+                ),
+              ),
+              if (_onboardingError != null || ctrl.lastSyncError != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  _onboardingError ?? ctrl.lastSyncError!,
+                  style: TextStyle(color: p.crimson, fontSize: 12),
+                ),
+              ],
             ],
           ),
         ),
@@ -688,17 +700,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ? 'Salvando perfil no Cloudflare D1...'
               : 'Entrar no Hub da Taverna',
           svgIcon: ArcanaSvgIcons.arrowRight,
-          onPressed: ctrl.isSyncing
-              ? null
-              : () async {
-                  await ctrl.completeLoginTransitionToHub(
-                    newUsername: _usernameCtrl.text,
-                    newDisplayName: _displayNameCtrl.text,
-                  );
-                },
+          onPressed: ctrl.isSyncing ? null : () => _submitOnboarding(ctrl),
         ),
       ],
     );
   }
 }
-

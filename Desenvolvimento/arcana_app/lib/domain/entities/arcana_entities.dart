@@ -12,6 +12,7 @@ class UserAccount {
   final bool onboardingCompleted;
   final bool trustedDeviceEnabled;
   final int trustedDaysRemaining;
+  final Map<String, String> socialContacts;
 
   const UserAccount({
     required this.id,
@@ -25,6 +26,7 @@ class UserAccount {
     required this.onboardingCompleted,
     required this.trustedDeviceEnabled,
     required this.trustedDaysRemaining,
+    this.socialContacts = const {},
   });
 
   UserAccount copyWith({
@@ -36,6 +38,7 @@ class UserAccount {
     int? reputationPoints,
     bool? onboardingCompleted,
     bool? trustedDeviceEnabled,
+    Map<String, String>? socialContacts,
   }) {
     return UserAccount(
       id: id,
@@ -49,6 +52,7 @@ class UserAccount {
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       trustedDeviceEnabled: trustedDeviceEnabled ?? this.trustedDeviceEnabled,
       trustedDaysRemaining: trustedDaysRemaining,
+      socialContacts: socialContacts ?? this.socialContacts,
     );
   }
 }
@@ -104,6 +108,7 @@ class Campaign {
 
 class HeroCharacter {
   final String id;
+  final String campaignId;
   final String name;
   final String heroClass;
   final String campaignTitle;
@@ -120,6 +125,7 @@ class HeroCharacter {
 
   const HeroCharacter({
     required this.id,
+    this.campaignId = '',
     required this.name,
     required this.heroClass,
     required this.campaignTitle,
@@ -134,6 +140,70 @@ class HeroCharacter {
     required this.espirito,
     required this.slots,
   });
+}
+
+class CampaignLookupResult {
+  final Campaign campaign;
+  final bool isMember;
+  final String membershipStatus; // none | pending | active | rejected
+
+  const CampaignLookupResult({
+    required this.campaign,
+    required this.isMember,
+    required this.membershipStatus,
+  });
+}
+
+class CampaignMemberSummary {
+  final String campaignId;
+  final String userId;
+  final String username;
+  final String displayName;
+  final String tableRole; // jogador | assistente_mestre | mestre
+  final String status; // pending | active | rejected
+  final String applicationPitch;
+
+  const CampaignMemberSummary({
+    required this.campaignId,
+    required this.userId,
+    required this.username,
+    required this.displayName,
+    required this.tableRole,
+    required this.status,
+    required this.applicationPitch,
+  });
+}
+
+class AdminUserSummary {
+  final String id;
+  final String email;
+  final String birthDate;
+  final UserRole role;
+  final String accountStatus;
+  final String username;
+  final String displayName;
+
+  const AdminUserSummary({
+    required this.id,
+    required this.email,
+    required this.birthDate,
+    required this.role,
+    required this.accountStatus,
+    required this.username,
+    required this.displayName,
+  });
+
+  AdminUserSummary copyWith({UserRole? role}) {
+    return AdminUserSummary(
+      id: id,
+      email: email,
+      birthDate: birthDate,
+      role: role ?? this.role,
+      accountStatus: accountStatus,
+      username: username,
+      displayName: displayName,
+    );
+  }
 }
 
 enum SystemSegment { oficiais, proprios, meus, comunidade }

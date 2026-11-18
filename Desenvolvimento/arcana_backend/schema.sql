@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   bio TEXT NOT NULL DEFAULT '',
   avatar_icon TEXT NOT NULL DEFAULT 'crown',
   preferred_role TEXT NOT NULL DEFAULT 'jogador',
+  contacts_json TEXT NOT NULL DEFAULT '{}',
   reputation_points INTEGER NOT NULL DEFAULT 100,
   theme_preference TEXT NOT NULL DEFAULT 'escuro_heraldico' CHECK (theme_preference IN ('escuro_heraldico', 'oled', 'alto_contraste_solar')),
   font_scale REAL NOT NULL DEFAULT 1.0,
