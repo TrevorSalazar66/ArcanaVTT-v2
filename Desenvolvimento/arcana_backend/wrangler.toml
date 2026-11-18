@@ -16,6 +16,6 @@ GOOGLE_CLIENT_ID = "411573114471-lf15tft9ps4ethpdlqm0gr0irmr0dgjg.apps.googleuse
 [[d1_databases]]
 binding = "DB"
 database_name = "arcana_vtt_db"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "a8c54fd2-cd5a-492d-9cc5-7a1a129ae6dc"
 migrations_dir = "migrations"
 

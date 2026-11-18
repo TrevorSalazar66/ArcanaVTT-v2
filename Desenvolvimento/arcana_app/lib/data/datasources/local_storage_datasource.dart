@@ -83,6 +83,13 @@ class LocalStorageDatasource {
   Future<Map<String, dynamic>> loadSessionState() async {
     final prefs = await SharedPreferences.getInstance();
     final storedGoogleClientId = prefs.getString(_keyGoogleClientId)?.trim();
+    final storedEdgeUrl = prefs.getString(_keyEdgeUrl)?.trim();
+    const legacyPlaceholderUrl = 'https://arcana-vtt-backend.workers.dev';
+    final effectiveEdgeUrl = (storedEdgeUrl != null &&
+            storedEdgeUrl.isNotEmpty &&
+            storedEdgeUrl != legacyPlaceholderUrl)
+        ? storedEdgeUrl
+        : CloudflareEdgeClient.defaultBaseUrl;
     return {
       'active': prefs.getBool(_keySessionActive) ?? false,
       'trusted': prefs.getBool(_keyTrustedDevice) ?? true,
@@ -93,7 +100,7 @@ class LocalStorageDatasource {
       'displayName': prefs.getString(_keyDisplayName) ?? 'Aventureiro',
       'bio': prefs.getString(_keyBio) ?? '',
       'role': prefs.getString(_keyRole) ?? 'mestre',
-      'edgeUrl': prefs.getString(_keyEdgeUrl) ?? CloudflareEdgeClient.defaultBaseUrl,
+      'edgeUrl': effectiveEdgeUrl,
       'googleClientId':
           (storedGoogleClientId != null && storedGoogleClientId.isNotEmpty)
               ? storedGoogleClientId

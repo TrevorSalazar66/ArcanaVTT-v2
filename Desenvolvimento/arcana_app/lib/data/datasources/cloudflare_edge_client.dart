@@ -17,7 +17,7 @@ class EdgeResponse {
 class CloudflareEdgeClient {
   static const String defaultBaseUrl = String.fromEnvironment(
     'ARCANA_EDGE_URL',
-    defaultValue: 'https://arcana-vtt-backend.workers.dev',
+    defaultValue: 'https://arcana-vtt-backend.testgamingdev.workers.dev',
   );
 
   String baseUrl;
