@@ -9,6 +9,7 @@ ENVIRONMENT = "production"
 MIN_AGE_YEARS = "16"
 SESSION_TTL_DAYS = "30"
 ALLOWED_ORIGINS = "https://arcanavtt.app,http://localhost:8080,capacitor://localhost"
+GOOGLE_CLIENT_ID = "411573114471-lf15tft9ps4ethpdlqm0gr0irmr0dgjg.apps.googleusercontent.com,411573114471-0fpqopqcgvgrj1moc8vgga04pvmebsmu.apps.googleusercontent.com"
 
 # Binding do banco Cloudflare D1.
 # Após executar `npx wrangler d1 create arcana_vtt_db`, substitua database_id pelo ID retornado.

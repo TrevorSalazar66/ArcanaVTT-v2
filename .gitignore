@@ -9,6 +9,8 @@ Thumbs.db
 **/.env*
 .dev.vars
 **/.dev.vars
+client_secret*.json
+**/client_secret*.json
 
 # Build, caches e artefatos Flutter/Gradle/Cloudflare
 dist/

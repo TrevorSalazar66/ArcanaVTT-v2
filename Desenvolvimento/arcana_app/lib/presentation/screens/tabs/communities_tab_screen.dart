@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../controllers/app_controller.dart';
 import '../../../core/constants/svg_icons.dart';
 import '../../../core/theme/arcana_colors.dart';
@@ -49,9 +50,15 @@ class _CommunitiesTabScreenState extends State<CommunitiesTabScreen> {
                   children: [
                     HeraldicChipPill(label: n.tag, color: p.goldPrimary),
                     const SizedBox(height: 8),
-                    Text(n.title, style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      n.title,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 4),
-                    Text(n.summary, style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      n.summary,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
                 ),
               ),
@@ -105,17 +112,29 @@ class _CommunitiesTabScreenState extends State<CommunitiesTabScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Flexible(
-                            child: Text(g.name,
-                                style: Theme.of(context).textTheme.titleMedium),
+                            child: Text(
+                              g.name,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
                           ),
-                          HeraldicChipPill(label: '[${g.tag}]', color: p.goldPrimary),
+                          HeraldicChipPill(
+                            label: '[${g.tag}]',
+                            color: p.goldPrimary,
+                          ),
                         ],
                       ),
                       const SizedBox(height: 6),
-                      Text(g.description, style: Theme.of(context).textTheme.bodySmall),
+                      Text(
+                        g.description,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                       const SizedBox(height: 10),
                       LinearProgressIndicator(
-                        value: (g.boostGoal <= 0 ? 0.0 : g.boostPoints / g.boostGoal).clamp(0.0, 1.0),
+                        value:
+                            (g.boostGoal <= 0
+                                    ? 0.0
+                                    : g.boostPoints / g.boostGoal)
+                                .clamp(0.0, 1.0),
                         minHeight: 6,
                         borderRadius: BorderRadius.circular(99),
                         color: p.goldPrimary,
@@ -184,9 +203,15 @@ class _CommunitiesTabScreenState extends State<CommunitiesTabScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Text(topic.title, style: Theme.of(context).textTheme.titleMedium),
+                      Text(
+                        topic.title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                       const SizedBox(height: 4),
-                      Text(topic.content, style: Theme.of(context).textTheme.bodySmall),
+                      Text(
+                        topic.content,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                       const SizedBox(height: 10),
                       Row(
                         children: [
@@ -276,4 +301,3 @@ class _CommunitiesTabScreenState extends State<CommunitiesTabScreen> {
     );
   }
 }
-

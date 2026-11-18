@@ -52,10 +52,13 @@ export async function authenticateGoogleOAuth(
       aud?: string;
       name?: string;
     };
+    const allowedClientIds = (env?.GOOGLE_CLIENT_ID ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
     if (
-      env?.GOOGLE_CLIENT_ID &&
-      env.GOOGLE_CLIENT_ID.trim().length > 0 &&
-      tokenInfo.aud !== env.GOOGLE_CLIENT_ID.trim()
+      allowedClientIds.length > 0 &&
+      (!tokenInfo.aud || !allowedClientIds.includes(tokenInfo.aud))
     ) {
       throw new AppError(
         401,

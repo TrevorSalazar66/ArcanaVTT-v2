@@ -6,8 +6,12 @@ import 'cloudflare_edge_client.dart';
 class LocalStorageDatasource {
   static const String defaultGoogleServerClientId = String.fromEnvironment(
     'GOOGLE_SERVER_CLIENT_ID',
-    defaultValue: '',
+    defaultValue:
+        '411573114471-lf15tft9ps4ethpdlqm0gr0irmr0dgjg.apps.googleusercontent.com',
   );
+
+  static const String defaultGoogleAndroidClientId =
+      '411573114471-0fpqopqcgvgrj1moc8vgga04pvmebsmu.apps.googleusercontent.com';
 
   static const _keyTheme = 'arcana_theme_mode';
   static const _keyFontScale = 'arcana_font_scale';
@@ -78,6 +82,7 @@ class LocalStorageDatasource {
 
   Future<Map<String, dynamic>> loadSessionState() async {
     final prefs = await SharedPreferences.getInstance();
+    final storedGoogleClientId = prefs.getString(_keyGoogleClientId)?.trim();
     return {
       'active': prefs.getBool(_keySessionActive) ?? false,
       'trusted': prefs.getBool(_keyTrustedDevice) ?? true,
@@ -90,7 +95,9 @@ class LocalStorageDatasource {
       'role': prefs.getString(_keyRole) ?? 'mestre',
       'edgeUrl': prefs.getString(_keyEdgeUrl) ?? CloudflareEdgeClient.defaultBaseUrl,
       'googleClientId':
-          prefs.getString(_keyGoogleClientId) ?? defaultGoogleServerClientId,
+          (storedGoogleClientId != null && storedGoogleClientId.isNotEmpty)
+              ? storedGoogleClientId
+              : defaultGoogleServerClientId,
     };
   }
 
