@@ -1,4 +1,8 @@
 /// Papéis Zero-Trust RBAC oficiais do ArcanaVTT.
+library;
+
+import '../../domain/entities/arcana_entities.dart';
+
 enum UserRole {
   jogador,
   assistenteMestre,
@@ -79,14 +83,46 @@ class RbacGuard {
   /// Regra de Rebaixamento Local (01-visao-geral-e-rbac.md item 2.2):
   /// Mesmo que possua cargo global Mestre, em mesas de terceiros atua como Jogador/Auxiliar.
   static bool canManageCampaignTable({
-    required bool isTableMaster,
+    bool isTableMaster = false,
+    CampaignSegment? relation,
     required UserRole globalRole,
   }) {
-    return isTableMaster || canAccessAdminPanel(globalRole);
+    return isTableMaster ||
+        relation == CampaignSegment.mestre ||
+        relation == CampaignSegment.auxiliar ||
+        canAccessAdminPanel(globalRole);
   }
 
   static bool canModerateReports(UserRole role) {
     return canAccessAdminPanel(role);
+  }
+
+  static bool canEditDiaryChronicle({
+    required UserRole globalRole,
+    required CampaignSegment relation,
+  }) {
+    return globalRole == UserRole.superadmin ||
+        globalRole == UserRole.admin ||
+        relation == CampaignSegment.mestre ||
+        relation == CampaignSegment.auxiliar;
+  }
+
+  static bool canViewSecretNotes({
+    required UserRole globalRole,
+    required CampaignSegment relation,
+  }) {
+    return canEditDiaryChronicle(globalRole: globalRole, relation: relation);
+  }
+
+  static bool canApproveActionCard({
+    required UserRole globalRole,
+    required CampaignSegment relation,
+  }) {
+    return canEditDiaryChronicle(globalRole: globalRole, relation: relation);
+  }
+
+  static bool canPublishOfficialAnnouncement(UserRole role) {
+    return role == UserRole.admin || role == UserRole.superadmin;
   }
 }
 

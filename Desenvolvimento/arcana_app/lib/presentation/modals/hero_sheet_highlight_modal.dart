@@ -1,65 +1,130 @@
 import 'package:flutter/material.dart';
-import '../../controllers/app_controller.dart';
-import '../../core/constants/svg_icons.dart';
-import '../../core/theme/arcana_colors.dart';
-import '../../domain/entities/arcana_entities.dart';
+import '../../../controllers/app_controller.dart';
+import '../../../core/constants/svg_icons.dart';
+import '../../../core/theme/arcana_colors.dart';
+import '../../../domain/entities/arcana_entities.dart';
 import '../widgets/heraldic_buttons.dart';
 import '../widgets/heraldic_card.dart';
-import '../widgets/heraldic_section_divider.dart';
-import '../widgets/svg_icon_widget.dart';
 import 'modal_shell.dart';
+import 'universal_report_modal.dart';
 
-/// Modal de Ficha Rápida e Criação/Edição do Herói vinculada a uma Campanha (AlphaD6 Core: 3d6 e 12 Slots).
 class HeroSheetHighlightModal extends StatefulWidget {
   final AppController controller;
-  final Campaign? boundCampaign;
+  final String? initialCampaignId;
 
   const HeroSheetHighlightModal({
     super.key,
     required this.controller,
-    this.boundCampaign,
+    this.initialCampaignId,
   });
 
   @override
-  State<HeroSheetHighlightModal> createState() =>
-      _HeroSheetHighlightModalState();
+  State<HeroSheetHighlightModal> createState() => _HeroSheetHighlightModalState();
 }
 
 class _HeroSheetHighlightModalState extends State<HeroSheetHighlightModal> {
-  late final TextEditingController _nameCtrl;
-  late final TextEditingController _classCtrl;
-  late final TextEditingController _slotsCtrl;
+  String? _selectedCampaignId;
+  late TextEditingController _nameCtrl;
+  late TextEditingController _classCtrl;
+  late TextEditingController _slotsCtrl;
+  late TextEditingController _specsCtrl;
+  late TextEditingController _powersCtrl;
+  late TextEditingController _contactsCtrl;
+  late TextEditingController _loreCtrl;
+  late TextEditingController _formulaCtrl;
 
   int _level = 1;
   int _corpo = 2;
   int _mente = 2;
   int _espirito = 2;
-  bool _editing = false;
+  int _hpCur = 20;
+  int _hpMax = 20;
+  int _animaCur = 10;
+  int _animaMax = 10;
+  int _exhaustion = 0;
+  int _silver = 25;
+  int _xp = 0;
+  Map<String, String> _equipped = {};
   bool _saving = false;
-  String? _formError;
 
-  HeroCharacter? _resolveTargetHero() {
-    final bound = widget.boundCampaign;
-    if (bound != null) {
-      return widget.controller.characterForCampaign(bound.id);
-    }
-    return widget.controller.hero;
-  }
+  static const _paperdollSlots = [
+    'Cabeca',
+    'Tronco',
+    'Costas',
+    'Mao 1',
+    'Mao 2',
+    'Pernas',
+    'Pes',
+    'Acessorio 1',
+    'Acessorio 2',
+  ];
 
   @override
   void initState() {
     super.initState();
-    final h = _resolveTargetHero();
-    _nameCtrl = TextEditingController(text: h?.name ?? '');
-    _classCtrl = TextEditingController(text: h?.heroClass ?? '');
-    _slotsCtrl = TextEditingController(
-      text: h != null ? h.slots.join(', ') : '',
-    );
-    _level = h?.level ?? 1;
-    _corpo = h?.corpo ?? 2;
-    _mente = h?.mente ?? 2;
-    _espirito = h?.espirito ?? 2;
-    _editing = h == null && widget.boundCampaign != null;
+    final memberCampaigns = widget.controller.campaigns
+        .where((c) => c.userRelation != CampaignSegment.explorar)
+        .toList();
+    _selectedCampaignId = widget.initialCampaignId ??
+        widget.controller.hero?.campaignId ??
+        (memberCampaigns.isNotEmpty ? memberCampaigns.first.id : null);
+
+    _nameCtrl = TextEditingController();
+    _classCtrl = TextEditingController();
+    _slotsCtrl = TextEditingController();
+    _specsCtrl = TextEditingController();
+    _powersCtrl = TextEditingController();
+    _contactsCtrl = TextEditingController();
+    _loreCtrl = TextEditingController();
+    _formulaCtrl = TextEditingController(text: '3d6');
+    _loadForSelectedCampaign();
+  }
+
+  void _loadForSelectedCampaign() {
+    final existing = _selectedCampaignId != null
+        ? widget.controller.characterForCampaign(_selectedCampaignId!)
+        : null;
+    if (existing != null) {
+      _nameCtrl.text = existing.name;
+      _classCtrl.text = existing.heroClass;
+      _slotsCtrl.text = existing.slots.join(', ');
+      _specsCtrl.text = existing.specializations.join(', ');
+      _powersCtrl.text = existing.powers.join(', ');
+      _contactsCtrl.text = existing.contacts.join(', ');
+      _loreCtrl.text = existing.lore;
+      _level = existing.level;
+      _corpo = existing.corpo;
+      _mente = existing.mente;
+      _espirito = existing.espirito;
+      _hpCur = existing.hpCurrent;
+      _hpMax = existing.hpMax;
+      _animaCur = existing.animaCurrent;
+      _animaMax = existing.animaMax;
+      _exhaustion = existing.exhaustion;
+      _silver = existing.silverCoins;
+      _xp = existing.xpCurrent;
+      _equipped = Map<String, String>.from(existing.equippedSlotsMap);
+    } else {
+      _nameCtrl.text = '';
+      _classCtrl.text = 'Aventureiro';
+      _slotsCtrl.text = 'Cantil, Tocha';
+      _specsCtrl.text = '';
+      _powersCtrl.text = '';
+      _contactsCtrl.text = '';
+      _loreCtrl.text = '';
+      _level = 1;
+      _corpo = 2;
+      _mente = 2;
+      _espirito = 2;
+      _hpCur = 20;
+      _hpMax = 20;
+      _animaCur = 10;
+      _animaMax = 10;
+      _exhaustion = 0;
+      _silver = 25;
+      _xp = 0;
+      _equipped = {};
+    }
   }
 
   @override
@@ -67,476 +132,432 @@ class _HeroSheetHighlightModalState extends State<HeroSheetHighlightModal> {
     _nameCtrl.dispose();
     _classCtrl.dispose();
     _slotsCtrl.dispose();
+    _specsCtrl.dispose();
+    _powersCtrl.dispose();
+    _contactsCtrl.dispose();
+    _loreCtrl.dispose();
+    _formulaCtrl.dispose();
     super.dispose();
   }
 
-  void _openEditor(HeroCharacter h) {
-    setState(() {
-      _nameCtrl.text = h.name;
-      _classCtrl.text = h.heroClass;
-      _slotsCtrl.text = h.slots.join(', ');
-      _level = h.level;
-      _corpo = h.corpo;
-      _mente = h.mente;
-      _espirito = h.espirito;
-      _formError = null;
-      _editing = true;
-    });
-  }
-
-  Future<void> _saveHero() async {
-    final currentHero = _resolveTargetHero();
-    final targetCampaignId =
-        widget.boundCampaign?.id ?? currentHero?.campaignId ?? '';
-    final targetCampaignTitle =
-        widget.boundCampaign?.title ?? currentHero?.campaignTitle ?? '';
-    if (targetCampaignId.trim().isEmpty) {
-      setState(() {
-        _formError =
-            'Fichas de herói precisam estar vinculadas a uma campanha ativa.';
-      });
-      return;
-    }
-
-    final name = _nameCtrl.text.trim();
-    if (name.length < 2) {
-      setState(() {
-        _formError = 'Informe um nome de herói com pelo menos 2 caracteres.';
-      });
-      return;
-    }
-    final heroClass = _classCtrl.text.trim().isEmpty
-        ? 'Aventureiro'
-        : _classCtrl.text.trim();
-    final slots = _slotsCtrl.text
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .take(12)
-        .toList();
-
-    setState(() {
-      _saving = true;
-      _formError = null;
-    });
-
-    final ok = await widget.controller.saveHeroCharacter(
-      campaignId: targetCampaignId,
-      name: name,
-      heroClass: heroClass,
-      campaignTitle: targetCampaignTitle,
-      level: _level,
-      corpo: _corpo,
-      mente: _mente,
-      espirito: _espirito,
-      slots: slots,
-    );
-
-    if (!mounted) return;
-    setState(() {
-      _saving = false;
-      if (ok) {
-        _editing = false;
-      } else {
-        _formError = widget.controller.lastSyncError ??
-            'Falha ao sincronizar ficha com o Cloudflare D1.';
-      }
-    });
+  String _wealthTierForSilver(int s) {
+    if (s >= 1000) return 'Nobreza';
+    if (s >= 250) return 'Prospero';
+    if (s >= 40) return 'Comum';
+    return 'Escasso';
   }
 
   @override
   Widget build(BuildContext context) {
     final p = context.arcana;
-    return ListenableBuilder(
-      listenable: widget.controller,
-      builder: (context, _) {
-        final h = _resolveTargetHero();
-        final lastRoll = widget.controller.lastHeroRoll;
+    final ctrl = widget.controller;
+    final memberCampaigns = ctrl.campaigns
+        .where((c) => c.userRelation != CampaignSegment.explorar)
+        .toList();
 
-        if (h == null && widget.boundCampaign == null) {
-          return ArcanaModalScaffold(
-            svgIcon: ArcanaSvgIcons.swords,
-            title: 'FICHAS DE HERÓI',
-            subtitle: 'Regra Oficial de Vínculo com Campanha',
-            badgeLabel: 'ALPHAD6',
-            badgeColor: p.infoBlue,
-            child: Column(
+    return ArcanaModalScaffold(
+      svgIcon: ArcanaSvgIcons.sword,
+      title: 'Ficha do Heroi',
+      subtitle: 'Estritamente 1 ficha por jogador em cada campanha ativa',
+      badgeLabel: _selectedCampaignId != null ? 'NV.$_level' : 'BLOQUEADO',
+      badgeColor: _selectedCampaignId != null ? p.goldPrimary : p.crimson,
+      child: memberCampaigns.isEmpty
+          ? HeraldicCard(
+              child: Column(
+                children: [
+                  Icon(Icons.lock_outline, size: 36, color: p.crimson),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Personagens nao podem ser criados fora de uma campanha',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Cinzel',
+                      fontWeight: FontWeight.w700,
+                      color: p.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Entre em uma mesa via Quick Join, convite direto ou Explore a Taverna primeiro.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12.5, color: p.textSecondary),
+                  ),
+                ],
+              ),
+            )
+          : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                HeraldicCard(
-                  borderColor: p.infoBlue,
-                  child: Text(
-                    'Suas fichas de herói só podem ser criadas dentro da aba "Personagens" de uma campanha em que você já seja membro ativo (ou aprovado pelo Mestre).',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                PrimaryGoldPillButton(
-                  label: 'Entendi • Explorar Campanhas',
-                  svgIcon: ArcanaSvgIcons.scroll,
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    widget.controller.setTabIndex(1);
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedCampaignId,
+                  decoration: const InputDecoration(labelText: 'Campanha Vinculada'),
+                  items: memberCampaigns
+                      .map((c) => DropdownMenuItem(value: c.id, child: Text(c.title)))
+                      .toList(),
+                  onChanged: (v) {
+                    setState(() {
+                      _selectedCampaignId = v;
+                      _loadForSelectedCampaign();
+                    });
                   },
-                ),
-              ],
-            ),
-          );
-        }
-
-        if (_editing || h == null) {
-          final resolvedTitle =
-              widget.boundCampaign?.title ?? h?.campaignTitle ?? 'Campanha';
-          return ArcanaModalScaffold(
-            svgIcon: ArcanaSvgIcons.swords,
-            title: h == null ? 'FORJAR FICHA NA MESA' : 'EDITAR FICHA',
-            subtitle: '$resolvedTitle • Sistema AlphaD6 Core (3d6 • 12 Slots)',
-            badgeLabel: 'ALPHAD6',
-            badgeColor: p.goldPrimary,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                HeraldicCard(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  child: Row(
-                    children: [
-                      SvgIconWidget(
-                        ArcanaSvgIcons.scroll,
-                        size: 16,
-                        color: p.goldPrimary,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Mesa vinculada: $resolvedTitle',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: p.goldPrimary,
-                                fontWeight: FontWeight.w700,
-                              ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _nameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Nome do Herói',
-                    hintText: 'Ex: Kaelen Silvaris',
-                  ),
+                  decoration: const InputDecoration(labelText: 'Nome do Heroi'),
                 ),
                 const SizedBox(height: 10),
-                TextField(
-                  controller: _classCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Classe / Arquétipo',
-                    hintText: 'Ex: Lâmina Arcana',
-                  ),
-                ),
-                const SizedBox(height: 12),
                 Row(
                   children: [
-                    _stepperCard(
-                      context,
-                      'Nível',
-                      _level,
-                      1,
-                      20,
-                      (v) => setState(() => _level = v),
-                      p,
+                    Expanded(
+                      child: TextField(
+                        controller: _classCtrl,
+                        decoration: const InputDecoration(labelText: 'Classe / Arquetipo'),
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    _stepperCard(
-                      context,
-                      'Corpo',
-                      _corpo,
-                      0,
-                      6,
-                      (v) => setState(() => _corpo = v),
-                      p,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _stepperCard(
-                      context,
-                      'Mente',
-                      _mente,
-                      0,
-                      6,
-                      (v) => setState(() => _mente = v),
-                      p,
-                    ),
-                    const SizedBox(width: 8),
-                    _stepperCard(
-                      context,
-                      'Espírito',
-                      _espirito,
-                      0,
-                      6,
-                      (v) => setState(() => _espirito = v),
-                      p,
+                    SizedBox(
+                      width: 105,
+                      child: DropdownButtonFormField<int>(
+                        initialValue: _level,
+                        decoration: const InputDecoration(labelText: 'Nivel'),
+                        items: List.generate(20, (i) => i + 1)
+                            .map((n) => DropdownMenuItem(value: n, child: Text('Nv.$n')))
+                            .toList(),
+                        onChanged: (v) => setState(() => _level = v ?? 1),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: _slotsCtrl,
-                  maxLines: 2,
-                  decoration: const InputDecoration(
-                    labelText: 'Equipamentos / Mochila (separados por vírgula)',
-                    hintText: 'Ex: Espada Curta, Tocha, Cantil, Corda 10m',
-                  ),
-                ),
-                if (_formError != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    _formError!,
-                    style: TextStyle(color: p.crimson, fontSize: 12),
-                  ),
-                ],
-                const SizedBox(height: 14),
-                PrimaryGoldPillButton(
-                  label: _saving
-                      ? 'Salvando Ficha na Nuvem...'
-                      : 'Salvar Ficha AlphaD6',
-                  svgIcon: ArcanaSvgIcons.check,
-                  onPressed: _saving ? null : _saveHero,
-                ),
-                if (h != null) ...[
-                  const SizedBox(height: 8),
-                  SecondaryHeraldicButton(
-                    label: 'Cancelar Edição',
-                    expand: true,
-                    onPressed: _saving
-                        ? null
-                        : () => setState(() {
-                              _editing = false;
-                              _formError = null;
-                            }),
-                  ),
-                ],
-              ],
-            ),
-          );
-        }
 
-        return ArcanaModalScaffold(
-          svgIcon: ArcanaSvgIcons.swords,
-          title: h.name.toUpperCase(),
-          subtitle: '${h.heroClass} • Nível ${h.level} • ${h.campaignTitle}',
-          badgeLabel: 'ALPHAD6',
-          badgeColor: p.goldPrimary,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  _attrCard(context, 'Corpo', h.corpo, p, widget.controller),
-                  const SizedBox(width: 8),
-                  _attrCard(context, 'Mente', h.mente, p, widget.controller),
-                  const SizedBox(width: 8),
-                  _attrCard(
-                      context, 'Espírito', h.espirito, p, widget.controller),
-                ],
-              ),
-              const SizedBox(height: 12),
-              HeraldicCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _barRow('Vitalidade', h.hpCurrent, h.hpMax, p.emerald),
-                    const SizedBox(height: 8),
-                    _barRow('Reserva de Ânima', h.animaCurrent, h.animaMax,
-                        p.infoBlue),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Exaustão Atual: ${h.exhaustion} nível • Peso em Mochila: ${h.slots.length}/12 Slots',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-              if (lastRoll != null) ...[
-                const SizedBox(height: 12),
+                // Rolagem Universal / Atributos Dinamicos
                 HeraldicCard(
                   goldAccent: true,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        lastRoll.label,
-                        style: TextStyle(
-                          color: p.goldPrimary,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12,
-                        ),
+                        'Atributos & Rolador Universal',
+                        style: TextStyle(fontWeight: FontWeight.w700, color: p.goldHighlight),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Dados: [${lastRoll.dice.join(', ')}] -> ${lastRoll.outcome}',
-                        style: TextStyle(
-                          color:
-                              lastRoll.successes > 0 ? p.emerald : p.crimson,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          _statStepper('Corpo', _corpo, (v) => setState(() => _corpo = v)),
+                          const SizedBox(width: 8),
+                          _statStepper('Mente', _mente, (v) => setState(() => _mente = v)),
+                          const SizedBox(width: 8),
+                          _statStepper('Espirito', _espirito, (v) => setState(() => _espirito = v)),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _formulaCtrl,
+                              decoration: const InputDecoration(
+                                labelText: 'Formula (ex: 3d6, 2d20kh1, 4d6>=4)',
+                                isDense: true,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          SecondaryHeraldicButton(
+                            label: 'Rolar',
+                            svgIcon: ArcanaSvgIcons.dices,
+                            onPressed: () async {
+                              await ctrl.rollUniversal(
+                                _formulaCtrl.text.trim(),
+                                label: '${_nameCtrl.text.isEmpty ? "HEROI" : _nameCtrl.text.toUpperCase()} TESTE',
+                              );
+                              if (mounted) setState(() {});
+                            },
+                          ),
+                        ],
+                      ),
+                      if (ctrl.lastHeroRoll != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          '${ctrl.lastHeroRoll!.label}: ${ctrl.lastHeroRoll!.dice} -> ${ctrl.lastHeroRoll!.outcome}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            color: p.emerald,
+                          ),
                         ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Recursos Vitais & Economia Prata
+                HeraldicCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Recursos & Economia (${_wealthTierForSilver(_silver)})',
+                        style: TextStyle(fontWeight: FontWeight.w700, color: p.textPrimary),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          _statStepper('PV', _hpCur, (v) => setState(() => _hpCur = v)),
+                          const SizedBox(width: 8),
+                          _statStepper('Anima', _animaCur, (v) => setState(() => _animaCur = v)),
+                          const SizedBox(width: 8),
+                          _statStepper('Exaustao', _exhaustion, (v) => setState(() => _exhaustion = v)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          _statStepper('Prata', _silver, (v) => setState(() => _silver = v), step: 10),
+                          const SizedBox(width: 8),
+                          _statStepper('XP', _xp, (v) => setState(() => _xp = v), step: 50),
+                        ],
                       ),
                     ],
                   ),
                 ),
-              ],
-              const SizedBox(height: 12),
-              const HeraldicSectionDivider(
-                svgIcon: ArcanaSvgIcons.shield,
-                title: 'INVENTÁRIO (12 SLOTS)',
-              ),
-              if (h.slots.isEmpty)
+                const SizedBox(height: 12),
+
+                // Paperdoll 9 Slots Equipaveis
                 HeraldicCard(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  child: Text(
-                    'Nenhum equipamento na mochila ainda.',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                )
-              else
-                ...h.slots.map(
-                  (slot) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: HeraldicCard(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      child:
-                          Text(slot, style: Theme.of(context).textTheme.bodyMedium),
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Equipamentos (9 Slots Corporais)',
+                        style: TextStyle(fontWeight: FontWeight.w700, color: p.goldHighlight),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: _paperdollSlots.map((slotName) {
+                          final val = _equipped[slotName] ?? 'Vazio';
+                          return ActionChip(
+                            label: Text('$slotName: $val', style: const TextStyle(fontSize: 11.5)),
+                            onPressed: () async {
+                              final editCtrl = TextEditingController(
+                                text: _equipped[slotName] ?? '',
+                              );
+                              final res = await showDialog<String>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: Text('Slot: $slotName'),
+                                  content: TextField(
+                                    controller: editCtrl,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Nome do equipamento...',
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx),
+                                      child: const Text('Cancelar'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, editCtrl.text.trim()),
+                                      child: const Text('Equipar'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (res != null && mounted) {
+                                setState(() {
+                                  if (res.isEmpty) {
+                                    _equipped.remove(slotName);
+                                  } else {
+                                    _equipped[slotName] = res;
+                                  }
+                                });
+                              }
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ],
                   ),
                 ),
-              const SizedBox(height: 10),
-              PrimaryGoldPillButton(
-                label: 'Executar Teste de Espírito (3d6)',
-                svgIcon: ArcanaSvgIcons.dices,
-                onPressed: () =>
-                    widget.controller.rollHeroAttributeTest('ESPÍRITO'),
-              ),
-              const SizedBox(height: 8),
-              SecondaryHeraldicButton(
-                label: 'Editar Ficha de Herói',
-                svgIcon: ArcanaSvgIcons.feather,
-                borderColor: p.goldBorder,
-                expand: true,
-                onPressed: () => _openEditor(h),
-              ),
-            ],
-          ),
-        );
-      },
+                const SizedBox(height: 12),
+
+                TextField(
+                  controller: _slotsCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Mochila Geral (itens separados por virgula, max 24)',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _specsCtrl,
+                  decoration: const InputDecoration(labelText: 'Especializacoes & Pericias'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _powersCtrl,
+                  decoration: const InputDecoration(labelText: 'Poderes, Magias & Talentos'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _contactsCtrl,
+                  decoration: const InputDecoration(labelText: 'Contatos / Aliados em Cenario'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _loreCtrl,
+                  maxLines: 3,
+                  decoration: const InputDecoration(labelText: 'Historia / Lore Pessoal'),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: PrimaryGoldPillButton(
+                        label: _saving ? 'Salvando...' : 'Salvar Ficha na Mesa',
+                        svgIcon: ArcanaSvgIcons.check,
+                        expand: true,
+                        onPressed: _saving
+                            ? null
+                            : () async {
+                                if (_selectedCampaignId == null ||
+                                    _nameCtrl.text.trim().length < 2) {
+                                  return;
+                                }
+                                setState(() => _saving = true);
+                                final messenger = ScaffoldMessenger.of(context);
+                                final cmp = memberCampaigns.firstWhere(
+                                  (c) => c.id == _selectedCampaignId,
+                                  orElse: () => memberCampaigns.first,
+                                );
+                                final ok = await ctrl.saveHeroCharacter(
+                                  campaignId: _selectedCampaignId!,
+                                  systemId: cmp.systemId,
+                                  name: _nameCtrl.text,
+                                  heroClass: _classCtrl.text,
+                                  level: _level,
+                                  corpo: _corpo,
+                                  mente: _mente,
+                                  espirito: _espirito,
+                                  hpCurrent: _hpCur,
+                                  hpMax: _hpMax,
+                                  animaCurrent: _animaCur,
+                                  animaMax: _animaMax,
+                                  exhaustion: _exhaustion,
+                                  slots: _slotsCtrl.text
+                                      .split(',')
+                                      .map((e) => e.trim())
+                                      .where((e) => e.isNotEmpty)
+                                      .toList(),
+                                  equippedSlotsMap: _equipped,
+                                  specializations: _specsCtrl.text
+                                      .split(',')
+                                      .map((e) => e.trim())
+                                      .where((e) => e.isNotEmpty)
+                                      .toList(),
+                                  powers: _powersCtrl.text
+                                      .split(',')
+                                      .map((e) => e.trim())
+                                      .where((e) => e.isNotEmpty)
+                                      .toList(),
+                                  contacts: _contactsCtrl.text
+                                      .split(',')
+                                      .map((e) => e.trim())
+                                      .where((e) => e.isNotEmpty)
+                                      .toList(),
+                                  silverCoins: _silver,
+                                  wealthTier: _wealthTierForSilver(_silver),
+                                  lore: _loreCtrl.text.trim(),
+                                  xpCurrent: _xp,
+                                );
+                                if (mounted) {
+                                  setState(() => _saving = false);
+                                  if (ok) {
+                                    messenger.showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Ficha salva com sucesso na mesa!'),
+                                      ),
+                                    );
+                                  } else {
+                                    messenger.showSnackBar(
+                                      SnackBar(
+                                        content: Text(ctrl.lastSyncError ?? 'Erro.'),
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SecondaryHeraldicButton(
+                      label: 'Denunciar',
+                      svgIcon: ArcanaSvgIcons.flag,
+                      borderColor: p.crimson,
+                      textColor: p.crimson,
+                      onPressed: () {
+                        final cur = ctrl.characterForCampaign(_selectedCampaignId!);
+                        showArcanaModal(context,
+                          builder: (_) => UniversalReportModal(
+                            controller: ctrl,
+                            originType: 'ficha_personagem',
+                            originId: cur?.id ?? (_selectedCampaignId ?? 'ficha'),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
     );
   }
 
-  Widget _stepperCard(
-    BuildContext context,
+  Widget _statStepper(
     String label,
     int value,
-    int min,
-    int max,
-    ValueChanged<int> onChanged,
-    ArcanaPalette p,
-  ) {
+    ValueChanged<int> onChanged, {
+    int step = 1,
+  }) {
+    final p = context.arcana;
     return Expanded(
-      child: HeraldicCard(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: Theme.of(context).textTheme.bodySmall),
-                  Text(
-                    '$value',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(color: p.goldPrimary),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              onPressed: value > min ? () => onChanged(value - 1) : null,
-              icon: const Text('−', style: TextStyle(fontSize: 18)),
-            ),
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              onPressed: value < max ? () => onChanged(value + 1) : null,
-              icon: const Text('+', style: TextStyle(fontSize: 16)),
-            ),
-          ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        decoration: BoxDecoration(
+          color: p.surfaceElevated,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: p.subtleBorder),
         ),
-      ),
-    );
-  }
-
-  Widget _attrCard(
-    BuildContext context,
-    String name,
-    int value,
-    ArcanaPalette p,
-    AppController ctrl,
-  ) {
-    return Expanded(
-      child: HeraldicCard(
-        goldAccent: true,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        onTap: () => ctrl.rollHeroAttributeTest(name),
         child: Column(
           children: [
-            Text(name.toUpperCase(), style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 4),
-            Text(
-              '+$value',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: p.goldPrimary,
+            Text(label, style: TextStyle(fontSize: 10.5, color: p.textSecondary)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                InkWell(
+                  onTap: () => onChanged((value - step).clamp(0, 9999)),
+                  child: const Icon(Icons.remove, size: 16),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text(
+                    '$value',
+                    style: TextStyle(fontWeight: FontWeight.w700, color: p.textPrimary),
                   ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'Toque 3d6',
-              style: TextStyle(fontSize: 10, color: p.textSecondary),
+                ),
+                InkWell(
+                  onTap: () => onChanged((value + step).clamp(0, 9999)),
+                  child: const Icon(Icons.add, size: 16),
+                ),
+              ],
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _barRow(String label, int cur, int max, Color barColor) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-            Text('$cur / $max', style: TextStyle(fontSize: 12, color: barColor)),
-          ],
-        ),
-        const SizedBox(height: 4),
-        LinearProgressIndicator(
-          value: (max <= 0 ? 0.0 : cur / max).clamp(0.0, 1.0),
-          minHeight: 7,
-          borderRadius: BorderRadius.circular(99),
-          color: barColor,
-          backgroundColor: barColor.withValues(alpha: 0.18),
-        ),
-      ],
     );
   }
 }
-

@@ -8,7 +8,7 @@ import { calculateAgeUtc } from '../../utils/crypto_jwt';
 type ProfileSetupInput = z.infer<typeof profileSetupSchema>;
 
 /**
- * Configura perfil social (@username único, nome, data de nascimento LGPD, bio, contatos e preferências).
+ * Configura perfil social (@username único, nome, data de nascimento LGPD, bio, avatar e 7+ contatos sociais).
  * NUNCA altera `users.role`: promoção de cargo é exclusiva do Painel Admin / Superadmin.
  */
 export async function setupUserProfile(
@@ -51,20 +51,40 @@ export async function setupUserProfile(
     );
   }
 
-  const sanitizedContacts = input.contacts
-    ? JSON.stringify({
-      discord: input.contacts.discord?.trim() ?? '',
-      whatsapp: input.contacts.whatsapp?.trim() ?? '',
-      instagram: input.contacts.instagram?.trim() ?? '',
-    })
-    : existingProfile.contacts_json ?? '{}';
+  let prevContacts: Record<string, string> = {};
+  try {
+    prevContacts = JSON.parse(existingProfile.contacts_json ?? '{}') as Record<string, string>;
+  } catch {
+    prevContacts = {};
+  }
+
+  const allowedKeys = [
+    'discord',
+    'twitch',
+    'youtube',
+    'steam',
+    'instagram',
+    'x_twitter',
+    'reddit',
+    'whatsapp',
+  ] as const;
+
+  let nextContacts = prevContacts;
+  if (input.contacts) {
+    nextContacts = {};
+    for (const k of allowedKeys) {
+      const val = input.contacts[k]?.trim() ?? '';
+      if (val) nextContacts[k] = val;
+    }
+  }
 
   const updated = {
     ...existingProfile,
     username: input.username,
     display_name: input.display_name,
     bio: input.bio,
-    contacts_json: sanitizedContacts,
+    avatar_icon: input.avatar_icon ?? existingProfile.avatar_icon,
+    contacts_json: JSON.stringify(nextContacts),
     theme_preference: input.theme_preference ?? existingProfile.theme_preference,
     font_scale: input.font_scale ?? existingProfile.font_scale,
     onboarding_completed: 1,

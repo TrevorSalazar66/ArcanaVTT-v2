@@ -22,11 +22,13 @@ class CloudflareEdgeClient {
 
   String baseUrl;
   String? bearerToken;
+  String deviceFingerprint;
   final http.Client _httpClient;
 
   CloudflareEdgeClient({
     String? baseUrl,
     this.bearerToken,
+    this.deviceFingerprint = 'android-keystore-arcana-v1',
     http.Client? httpClient,
   })  : baseUrl = baseUrl ?? defaultBaseUrl,
         _httpClient = httpClient ?? http.Client();
@@ -72,7 +74,7 @@ class CloudflareEdgeClient {
       final cleanBase = baseUrl.trim().replaceAll(RegExp(r'/+$'), '');
       final headers = <String, String>{
         'Content-Type': 'application/json',
-        'X-Device-Fingerprint': 'android-keystore-arcana-v1',
+        'X-Device-Fingerprint': deviceFingerprint,
       };
       if (authenticated && bearerToken != null && bearerToken!.isNotEmpty) {
         headers['Authorization'] = 'Bearer $bearerToken';

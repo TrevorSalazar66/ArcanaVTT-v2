@@ -1,6 +1,7 @@
 import type {
   AccountStatus,
   CompendiumCategory,
+  SceneModelType,
   ThemePreference,
   UserRole,
 } from '../types/env';
@@ -12,6 +13,7 @@ export interface UserRecord {
   birth_date: string;
   role: UserRole;
   account_status: AccountStatus;
+  suspended_until?: string | null;
   lockout_token_hash: string | null;
   created_at: string;
   updated_at: string;
@@ -69,6 +71,15 @@ export interface SystemRecord {
   created_at: string;
 }
 
+export interface SystemCreationKeyRecord {
+  code: string;
+  created_by: string;
+  assigned_to_user_id: string | null;
+  used_by_user_id: string | null;
+  is_used: number;
+  created_at: string;
+}
+
 export interface CampaignRecord {
   id: string;
   owner_id: string;
@@ -82,6 +93,8 @@ export interface CampaignRecord {
   occupied_slots: number;
   visibility: 'publica' | 'privada' | 'guilda';
   state_json: string;
+  is_inactive_archived?: number;
+  last_activity_at?: string;
   created_at: string;
 }
 
@@ -93,6 +106,39 @@ export interface CampaignMemberRecord {
   application_pitch: string | null;
   character_id: string | null;
   joined_at: string;
+}
+
+export interface CampaignInviteRecord {
+  id: string;
+  campaign_id: string;
+  target_user_id: string;
+  invited_by_user_id: string;
+  status: 'pending' | 'accepted' | 'declined';
+  created_at: string;
+}
+
+export interface GmBanRecord {
+  gm_id: string;
+  player_id: string;
+  reason: string;
+  created_at: string;
+  player_username?: string;
+  player_display_name?: string;
+}
+
+export interface CampaignSceneRecord {
+  id: string;
+  campaign_id: string;
+  name: string;
+  description: string;
+  model_type: SceneModelType;
+  is_active: number;
+  max_players: number;
+  model_data_json: string;
+  rules_data_json: string;
+  state_data_json: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CompendiumItemRecord {
@@ -132,6 +178,24 @@ export interface ForumTopicRecord {
   upvotes: number;
   replies_count: number;
   pinned: number;
+  created_at: string;
+}
+
+export interface ForumCommentRecord {
+  id: string;
+  topic_id: string;
+  author_id: string;
+  author_handle: string;
+  content: string;
+  created_at: string;
+}
+
+export interface AnnouncementRecord {
+  id: string;
+  author_id: string;
+  tag: string;
+  title: string;
+  summary: string;
   created_at: string;
 }
 
@@ -175,11 +239,13 @@ export interface UniversalReportRecord {
   reporter_id: string;
   target_user_id: string | null;
   origin_type: 'chat' | 'campanha' | 'usuario' | 'sistema' | 'forum';
+  entity_type?: string;
   origin_id: string;
   reason_category: string;
   description: string;
   auto_tags_json: string;
   evidence_snapshot_json: string;
+  votes_json?: string;
   status: 'pending' | 'resolved' | 'dismissed';
   created_at: string;
 }
@@ -215,6 +281,7 @@ export interface AdminUserSummaryRecord {
   birth_date: string;
   role: UserRole;
   account_status: AccountStatus;
+  suspended_until?: string | null;
   created_at: string;
   username: string;
   display_name: string;
@@ -232,6 +299,7 @@ export interface IArcanaRepository {
   createUserWithProfile(user: UserRecord, profile: UserProfileRecord): Promise<void>;
   updateUserRole(userId: string, role: UserRole): Promise<void>;
   updateUserBirthDate(userId: string, birthDate: string): Promise<void>;
+  updateUserSuspension(userId: string, suspendedUntil: string | null): Promise<void>;
   updateUserStatusAndLockout(userId: string, status: AccountStatus, lockoutHash: string | null): Promise<void>;
   listUsersWithProfiles(): Promise<AdminUserSummaryRecord[]>;
   findProfileByUserId(userId: string): Promise<UserProfileRecord | null>;
@@ -239,7 +307,9 @@ export interface IArcanaRepository {
   updateProfile(profile: UserProfileRecord): Promise<void>;
 
   findDeviceSecurity(fingerprint: string): Promise<DeviceSecurityRecord | null>;
+  findLatestDeviceByUserId(userId: string): Promise<DeviceSecurityRecord | null>;
   upsertDeviceSecurity(record: DeviceSecurityRecord): Promise<void>;
+  listBannedDevices(): Promise<DeviceSecurityRecord[]>;
 
   createSession(session: SessionRecord): Promise<void>;
   findSessionByJti(jti: string): Promise<SessionRecord | null>;
@@ -253,34 +323,73 @@ export interface IArcanaRepository {
   findCampaignByCode(code: string): Promise<CampaignRecord | null>;
   findCampaignById(id: string): Promise<CampaignRecord | null>;
   createCampaign(campaign: CampaignRecord, ownerMembership: CampaignMemberRecord): Promise<void>;
+  updateCampaign(campaign: CampaignRecord): Promise<void>;
   upsertCampaignMember(member: CampaignMemberRecord): Promise<void>;
   incrementCampaignOccupiedSlots(campaignId: string): Promise<void>;
+  decrementCampaignOccupiedSlots(campaignId: string): Promise<void>;
+
+  createCampaignInvite(invite: CampaignInviteRecord): Promise<void>;
+  findCampaignInvite(inviteId: string): Promise<CampaignInviteRecord | null>;
+  updateCampaignInviteStatus(inviteId: string, status: 'pending' | 'accepted' | 'declined'): Promise<void>;
+
+  banPlayerFromGM(gmId: string, playerId: string, reason: string): Promise<void>;
+  unbanPlayerFromGM(gmId: string, playerId: string): Promise<void>;
+  isPlayerBannedByGM(gmId: string, playerId: string): Promise<boolean>;
+  listGMBannedPlayers(gmId: string): Promise<GmBanRecord[]>;
+
+  listScenesByCampaign(campaignId: string): Promise<CampaignSceneRecord[]>;
+  findSceneById(sceneId: string): Promise<CampaignSceneRecord | null>;
+  upsertScene(scene: CampaignSceneRecord): Promise<void>;
+  deleteScene(sceneId: string): Promise<void>;
 
   listSystems(): Promise<SystemRecord[]>;
   createSystem(system: SystemRecord): Promise<void>;
   listCompendiumBySystem(systemId: string): Promise<CompendiumItemRecord[]>;
+  findCompendiumItemById(itemId: string): Promise<CompendiumItemRecord | null>;
+  upsertCompendiumItem(item: CompendiumItemRecord): Promise<void>;
+
+  createSystemKey(record: SystemCreationKeyRecord): Promise<void>;
+  findSystemKey(code: string): Promise<SystemCreationKeyRecord | null>;
+  markSystemKeyUsed(code: string, usedByUserId: string): Promise<void>;
+  listSystemKeys(): Promise<SystemCreationKeyRecord[]>;
+
+  listFavoriteSystemIds(userId: string): Promise<string[]>;
+  toggleFavoriteSystem(userId: string, systemId: string): Promise<string[]>;
 
   listGuilds(): Promise<GuildRecord[]>;
   createGuild(guild: GuildRecord): Promise<void>;
+  updateGuild(guild: GuildRecord): Promise<void>;
   boostGuild(guildId: string, points: number): Promise<GuildRecord | null>;
   listForumTopics(): Promise<ForumTopicRecord[]>;
   createForumTopic(topic: ForumTopicRecord): Promise<void>;
-  upvoteForumTopic(topicId: string): Promise<ForumTopicRecord | null>;
+  upvoteForumTopic(topicId: string, delta?: number): Promise<ForumTopicRecord | null>;
+  listForumComments(topicId: string): Promise<ForumCommentRecord[]>;
+  createForumComment(comment: ForumCommentRecord): Promise<void>;
+  listAnnouncements(): Promise<AnnouncementRecord[]>;
+  createAnnouncement(announcement: AnnouncementRecord): Promise<void>;
+
   listChatMessages(channelId: string): Promise<ChatMessageRecord[]>;
   findChatMessageById(messageId: string): Promise<ChatMessageRecord | null>;
   createChatMessage(message: ChatMessageRecord): Promise<void>;
+  deleteChatMessage(messageId: string): Promise<void>;
+  clearChatChannel(channelId: string): Promise<void>;
 
   listFriendships(userId: string): Promise<FriendshipRecord[]>;
   addFriendship(record: FriendshipRecord): Promise<void>;
+  removeFriendship(userId: string, friendId: string): Promise<void>;
   listNotifications(userId: string): Promise<NotificationRecord[]>;
   createNotification(notification: NotificationRecord): Promise<void>;
   markNotificationsRead(userId: string, notificationId?: string): Promise<void>;
 
   listCharactersByUser(userId: string): Promise<CharacterRecord[]>;
+  listCharactersByCampaign(campaignId: string): Promise<CharacterRecord[]>;
+  findCharacterByUserAndCampaign(userId: string, campaignId: string): Promise<CharacterRecord | null>;
   upsertCharacter(character: CharacterRecord): Promise<void>;
 
   createReport(report: UniversalReportRecord): Promise<void>;
   listReports(): Promise<UniversalReportRecord[]>;
+  findReportById(reportId: string): Promise<UniversalReportRecord | null>;
+  updateReportVotes(reportId: string, votesJson: string, status?: 'pending' | 'resolved' | 'dismissed'): Promise<void>;
   updateReportStatus(reportId: string, status: 'resolved' | 'dismissed'): Promise<void>;
 
   createP2pSignal(signal: P2pSignalRecord): Promise<void>;
@@ -292,4 +401,3 @@ export interface IArcanaRepository {
     banned_devices_count: number;
   }>;
 }
-

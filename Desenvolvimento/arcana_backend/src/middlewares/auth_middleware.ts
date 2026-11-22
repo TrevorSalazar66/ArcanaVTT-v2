@@ -9,7 +9,7 @@ export function resolveJwtSecret(env?: Env): string {
 }
 
 /**
- * Middleware Zero-Trust: valida JWT, revogação de sessão, bloqueio/ban e hardware ban.
+ * Middleware Zero-Trust: valida JWT, revogação de sessão, suspensão temporária, bloqueio/ban e hardware ban.
  */
 export function createAuthMiddleware(getRepo: (env?: Env) => IArcanaRepository) {
   return async (
@@ -34,12 +34,32 @@ export function createAuthMiddleware(getRepo: (env?: Env) => IArcanaRepository) 
     }
 
     const user = await repo.findUserById(payload.sub);
-    if (!user || user.account_status !== 'active') {
+    if (!user) {
+      throw new AppError(401, 'USER_NOT_FOUND', 'Conta nao localizada.');
+    }
+    if (user.account_status === 'banned') {
+      throw new AppError(
+        403,
+        'ACCOUNT_BANNED',
+        'Conta banida permanentemente pelas Diretrizes da Taverna.',
+      );
+    }
+    if (user.account_status === 'locked') {
       throw new AppError(
         423,
         'ACCOUNT_LOCKED',
         'Conta bloqueada ou em Lockout Total. Verifique seu e-mail para desbloqueio.',
       );
+    }
+    if (user.suspended_until) {
+      const untilMs = Date.parse(user.suspended_until);
+      if (Number.isFinite(untilMs) && untilMs > Date.now()) {
+        throw new AppError(
+          403,
+          'ACCOUNT_SUSPENDED',
+          `Conta temporariamente suspensa ate ${user.suspended_until}.`,
+        );
+      }
     }
 
     const device = await repo.findDeviceSecurity(payload.dfp);
@@ -51,12 +71,15 @@ export function createAuthMiddleware(getRepo: (env?: Env) => IArcanaRepository) 
       );
     }
 
+    const profile = await repo.findProfileByUserId(user.id);
+
     c.set('authUser', {
       userId: user.id,
       email: user.email,
       role: user.role,
       jti: payload.jti,
       deviceFingerprint: payload.dfp,
+      onboardingCompleted: profile?.onboarding_completed ?? 0,
     });
 
     await next();
@@ -75,4 +98,3 @@ export function assertRole(userRole: UserRole, allowedRoles: UserRole[]): void {
     );
   }
 }
-

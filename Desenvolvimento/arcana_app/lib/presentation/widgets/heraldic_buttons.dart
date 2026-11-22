@@ -75,7 +75,13 @@ class PrimaryGoldPillButton extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
-      child: expand ? SizedBox(width: double.infinity, child: button) : button,
+      child: expand
+          ? LayoutBuilder(
+              builder: (context, constraints) => constraints.hasBoundedWidth
+                  ? SizedBox(width: double.infinity, child: button)
+                  : button,
+            )
+          : button,
     );
   }
 }
@@ -137,7 +143,13 @@ class SecondaryHeraldicButton extends StatelessWidget {
         ),
       ),
     );
-    return expand ? SizedBox(width: double.infinity, child: button) : button;
+    return expand
+        ? LayoutBuilder(
+            builder: (context, constraints) => constraints.hasBoundedWidth
+                ? SizedBox(width: double.infinity, child: button)
+                : button,
+          )
+        : button;
   }
 }
 

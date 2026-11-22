@@ -21,6 +21,14 @@ export type CompendiumCategory =
   | 'poderes'
   | 'pistas';
 
+export type SceneModelType =
+  | 'grid_2d'
+  | 'mahjong'
+  | 'password'
+  | 'dialogue'
+  | 'jrpg_combat'
+  | 'terminal';
+
 export interface Env {
   DB?: D1Database;
   ENVIRONMENT?: string;
@@ -39,9 +47,9 @@ export interface AuthenticatedUser {
   role: UserRole;
   jti: string;
   deviceFingerprint: string;
+  onboardingCompleted?: number;
 }
 
 export interface HonoVariables {
   authUser?: AuthenticatedUser;
 }
-

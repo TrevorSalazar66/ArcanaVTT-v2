@@ -1,7 +1,7 @@
 import '../../core/security/rbac_guard.dart';
 import '../entities/arcana_entities.dart';
 
-/// Gera denúncia universal enriquecida automaticamente com autotags de contexto.
+/// Gera denuncia universal enriquecida automaticamente com 5 tags oficiais e [TIPO: ...].
 class BuildUniversalReportUseCase {
   UniversalReport execute({
     required String originType,
@@ -10,9 +10,15 @@ class BuildUniversalReportUseCase {
     required String description,
     required UserRole reporterRole,
     required String sessionContext,
+    String? targetUserId,
   }) {
     final nowUtc = DateTime.now().toUtc();
-    final stamp = nowUtc.toIso8601String().substring(0, 19);
+    final stamp = '${nowUtc.hour.toString().padLeft(2, '0')}:${nowUtc.minute.toString().padLeft(2, '0')}';
+    final cleanDesc = description.trim();
+    final prefixedDesc = cleanDesc.startsWith('[TIPO:')
+        ? cleanDesc
+        : '[TIPO: ${originType.toUpperCase()}] $cleanDesc';
+
     final autoTags = [
       '#origem:$originType',
       '#alvo:$originId',
@@ -24,13 +30,16 @@ class BuildUniversalReportUseCase {
     return UniversalReport(
       id: 'rep_${nowUtc.millisecondsSinceEpoch}',
       originType: originType,
+      entityType: originType,
       originId: originId,
+      targetUserId: targetUserId,
       reasonCategory: reasonCategory,
-      description: description.trim(),
+      description: prefixedDesc,
       autoTags: autoTags,
       status: 'pending',
       createdAtText: 'Agora ($stamp UTC)',
+      votesCount: 0,
+      requiredVotes: 3,
     );
   }
 }
-

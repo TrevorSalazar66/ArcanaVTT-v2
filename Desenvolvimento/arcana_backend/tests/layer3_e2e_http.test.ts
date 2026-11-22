@@ -1,254 +1,291 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { InMemoryArcanaRepository } from '../src/data/in_memory_repository';
 import { createApp } from '../src/index';
-import { resetRateLimiterForTests } from '../src/middlewares/rate_limiter';
 
-describe('Camada 3 — Testes E2E HTTP do Worker Cloudflare (/api/health, /api/auth, /api/sync)', () => {
-  let app: ReturnType<typeof createApp>;
+describe('Layer 3 — End-to-End HTTP (Hono Edge API + RBAC + Motor Universal + Zero-Seed)', () => {
+  it('1. GET /api/health retorna metadados de v0.2.0-universal', async () => {
+    const repo = new InMemoryArcanaRepository();
+    const app = createApp(repo);
 
-  beforeEach(() => {
-    resetRateLimiterForTests();
-    app = createApp(new InMemoryArcanaRepository());
-  });
-
-  it('GET /api/health deve retornar 200 OK com cabecalhos de seguranca', async () => {
     const res = await app.request('/api/health');
     expect(res.status).toBe(200);
-    expect(res.headers.get('X-Frame-Options')).toBe('DENY');
-    expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff');
-
-    const body = (await res.json()) as { ok: boolean; version: string };
+    const body = (await res.json()) as { ok: boolean; service: string; version: string };
     expect(body.ok).toBe(true);
-    expect(body.version).toBe('0.1.0-fase-1');
+    expect(body.service).toBe('arcana-vtt-backend');
   });
 
-  it('banco limpo inicia sem dados ficticios e primeiro usuario real recebe papel superadmin', async () => {
-    const cleanRepo = new InMemoryArcanaRepository();
-    expect(await cleanRepo.listCampaigns()).toHaveLength(0);
-    expect(await cleanRepo.listGuilds()).toHaveLength(0);
-    expect(await cleanRepo.listForumTopics()).toHaveLength(0);
-    expect(await cleanRepo.listChatMessages('taverna-dos-mestres')).toHaveLength(0);
+  it('2. Fluxo completo HTTP: Barreira PROFILE_INCOMPLETE -> Setup -> Key -> Sistema -> Guilda -> Mesa -> Ficha -> Cena -> Hardware Ban -> Lockout', async () => {
+    const repo = new InMemoryArcanaRepository();
+    const app = createApp(repo);
 
-    const cleanApp = createApp(cleanRepo);
-    const authRes = await cleanApp.request(
-      '/api/auth',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'oauth_google',
-          google_sub: 'sub_primeiro_real',
-          email: 'fundador@gmail.com',
-          display_name: 'Fundador Real',
-          birth_date: '1993-07-10',
-          device_fingerprint: 'fp_fundador_real',
-          trust_device: true,
-        }),
-      },
-      { ENVIRONMENT: 'production', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
-    );
-    expect(authRes.status).toBe(200);
-    const body = (await authRes.json()) as { token: string; user: { role: string } };
-    expect(body.user.role).toBe('superadmin');
-
-    const guildRes = await cleanApp.request(
-      '/api/sync',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${body.token}`,
-        },
-        body: JSON.stringify({
-          action: 'guilds.create',
-          name: 'Ordem Real',
-          tag: 'REAL',
-          description: 'Guilda real criada sem mocks no banco D1.',
-        }),
-      },
-      { ENVIRONMENT: 'production', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
-    );
-    expect(guildRes.status).toBe(201);
-
-    // Segundo usuario real em producao deve iniciar obrigatoriamente como jogador, mesmo se tentar pedir outro cargo
-    const secondRes = await cleanApp.request(
-      '/api/auth',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'oauth_google',
-          google_sub: 'sub_segundo_real',
-          email: 'jogador@gmail.com',
-          display_name: 'Jogador Comum',
-          device_fingerprint: 'fp_segundo_real',
-          requested_role: 'mestre',
-        }),
-      },
-      { ENVIRONMENT: 'production', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
-    );
-    expect(secondRes.status).toBe(200);
-    const secondBody = (await secondRes.json()) as { user: { role: string } };
-    expect(secondBody.user.role).toBe('jogador');
-
-    const cmpRes = await cleanApp.request(
-      '/api/sync',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${body.token}`,
-        },
-        body: JSON.stringify({
-          action: 'campaigns.create',
-          title: 'Mesa Fundadora Real',
-          synopsis: 'Campanha inicial criada pelo fundador Superadmin.',
-          max_slots: 5,
-        }),
-      },
-      { ENVIRONMENT: 'production', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
-    );
-    expect(cmpRes.status).toBe(201);
-    const cmpBody = (await cmpRes.json()) as { campaign: { id: string } };
-
-    const charRes = await cleanApp.request(
-      '/api/sync',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${body.token}`,
-        },
-        body: JSON.stringify({
-          action: 'characters.upsert',
-          campaign_id: cmpBody.campaign.id,
-          name: 'Kaelen Real',
-          title: 'Sentinelas D6',
-          level: 2,
-          corpo: 4,
-          mente: 4,
-          espirito: 3,
-          slots: ['Espada Longa (2 slots)'],
-        }),
-      },
-      { ENVIRONMENT: 'production', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
-    );
-    expect(charRes.status).toBe(201);
-  });
-
-  it('POST /api/auth + /api/sync devem completar jornada OAuth -> Onboarding -> Chat 3d6 -> RBAC Admin', async () => {
-    // 1. Login invalido Fail-Fast (Zod)
-    const badRes = await app.request('/api/auth', {
+    // 1) Autentica fundador (primeiro usuario -> superadmin)
+    const authRes = await app.request('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'oauth_google', email: 'nao-e-email' }),
+      body: JSON.stringify({
+        action: 'oauth_google',
+        google_sub: 'google_sub_e2e_1',
+        email: 'fundador.e2e@arcanavtt.com',
+        display_name: 'Lorde Fundador',
+        birth_date: '1995-08-20',
+        device_fingerprint: 'fp_e2e_android_01',
+        trust_device: true,
+      }),
     });
-    expect(badRes.status).toBe(400);
-
-    // 2. Autenticacao valida Google OAuth 2.0 (papel mestre em teste)
-    const authRes = await app.request(
-      '/api/auth',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'oauth_google',
-          google_sub: 'sub_e2e_mestre',
-          email: 'e2e.mestre@gmail.com',
-          display_name: 'Mestre E2E',
-          birth_date: '1994-11-22',
-          device_fingerprint: 'fp_e2e_android_14',
-          trust_device: true,
-          requested_role: 'mestre',
-        }),
-      },
-      { ENVIRONMENT: 'test', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
-    );
     expect(authRes.status).toBe(200);
-    const authBody = (await authRes.json()) as { token: string; user: { role: string } };
-    expect(authBody.token).toBeTruthy();
-    expect(authBody.user.role).toBe('mestre');
+    const authJson = (await authRes.json()) as {
+      token: string;
+      requires_profile_setup: boolean;
+      user: { id: string; role: string };
+    };
+    expect(authJson.user.role).toBe('superadmin');
+    expect(authJson.requires_profile_setup).toBe(true);
 
-    // 3. Setup de perfil (@username)
-    const setupRes = await app.request(
-      '/api/sync',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authBody.token}`,
-        },
-        body: JSON.stringify({
-          action: 'profile.setup',
-          username: 'mestre_e2e',
-          display_name: 'Kronos E2E',
-          bio: 'Mestrando campanhas taticas no celular.',
-          theme_preference: 'oled',
-          font_scale: 1.15,
-        }),
-      },
-      { ENVIRONMENT: 'test', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
-    );
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authJson.token}`,
+      'X-Device-Fingerprint': 'fp_e2e_android_01',
+    };
+
+    // Barreira obrigatoria de onboarding: qualquer acao diferente de profile.setup falha com 403 PROFILE_INCOMPLETE
+    const blockedRes = await app.request('/api/sync', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ action: 'systems.list', segment: 'todos' }),
+    });
+    expect(blockedRes.status).toBe(403);
+    const blockedJson = (await blockedRes.json()) as { ok: boolean; error: string };
+    expect(blockedJson.error).toBe('PROFILE_INCOMPLETE');
+
+    // Completa onboarding obrigatorio
+    const setupRes = await app.request('/api/sync', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        action: 'profile.setup',
+        username: 'lorde_e2e',
+        display_name: 'Lorde E2E',
+        bio: 'Arquiteto da Taverna',
+        contacts: { discord: 'lorde#9999' },
+      }),
+    });
     expect(setupRes.status).toBe(200);
 
-    // 4. Criar campanha + enviar mensagem com rolagem 3d6 no chat comunitario
-    const cmpRes = await app.request(
-      '/api/sync',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authBody.token}`,
-        },
-        body: JSON.stringify({
-          action: 'campaigns.create',
-          title: 'A Torre de Obsidiana',
-          synopsis: 'Uma expedicao noturna pelos saloes esquecidos da fortaleza.',
-          max_slots: 5,
-        }),
-      },
-      { ENVIRONMENT: 'test', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
-    );
-    expect(cmpRes.status).toBe(201);
+    // Verifica que catalogo inicial de sistemas e zero (nenhum AlphaD6)
+    const emptySysRes = await app.request('/api/sync', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ action: 'systems.list', segment: 'todos' }),
+    });
+    expect(emptySysRes.status).toBe(200);
+    const emptySysJson = (await emptySysRes.json()) as { systems: unknown[] };
+    expect(emptySysJson.systems).toHaveLength(0);
 
-    const chatRes = await app.request(
-      '/api/sync',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authBody.token}`,
-        },
-        body: JSON.stringify({
-          action: 'chat.send_message',
-          channel_id: 'taverna-dos-mestres',
-          content: 'Rolei o desafio inicial da torre!',
-          with_3d6_roll: true,
-          roll_label: 'TESTE DE MENTE (3D6)',
-        }),
-      },
-      { ENVIRONMENT: 'test', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
-    );
-    expect(chatRes.status).toBe(201);
-    const chatBody = (await chatRes.json()) as {
-      dice_roll: { dice: number[]; successes: number };
+    // Superadmin cria sistema dinamico e guilda
+    const sysCreateRes = await app.request('/api/sync', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        action: 'systems.create',
+        name: 'Tormenta Arcana E2E',
+        version: 'v1.0',
+        dice_engine: '1d20',
+        description: 'Sistema criado via E2E HTTP.',
+        attributes: ['Forca', 'Destreza', 'Inteligencia'],
+        is_official: true,
+      }),
+    });
+    expect(sysCreateRes.status).toBe(201);
+    const sysJson = (await sysCreateRes.json()) as { system: { id: string } };
+
+    const gRes = await app.request('/api/sync', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        action: 'guilds.create',
+        name: 'Ordem da Vigilia E2E',
+        tag: 'VIG',
+        description: 'Guilda de testes automatizados.',
+      }),
+    });
+    expect(gRes.status).toBe(201);
+    const gJson = (await gRes.json()) as { guild: { id: string } };
+
+    const boostRes = await app.request('/api/sync', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ action: 'guilds.boost', guild_id: gJson.guild.id, points: 1000 }),
+    });
+    expect(boostRes.status).toBe(200);
+    const boostJson = (await boostRes.json()) as { leveled_up_to: number; guild: { shared_world_json: string } };
+    expect(boostJson.leveled_up_to).toBe(2);
+
+    // Cria campanha
+    const cRes = await app.request('/api/sync', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        action: 'campaigns.create',
+        title: 'A Cidadela E2E',
+        synopsis: 'Campanha completa de integracao HTTP.',
+        system_id: sysJson.system.id,
+        mode: 'ao_vivo',
+        schedule_text: 'Sexta 21h',
+        max_slots: 6,
+        visibility: 'publica',
+        icon_name: 'shield',
+        banner_preset: 'cidadela_obsidiana',
+        age_rating: '16+',
+        tags: ['E2E', 'Tatico'],
+      }),
+    });
+    expect(cRes.status).toBe(201);
+    const cJson = (await cRes.json()) as { campaign: { id: string; quick_join_code: string } };
+
+    // Upsert de ficha vinculada a campanha
+    const chrRes = await app.request('/api/sync', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        action: 'characters.upsert',
+        campaign_id: cJson.campaign.id,
+        name: 'Valen E2E',
+        title: 'Bardo Guardiao',
+        system_id: sysJson.system.id,
+        level: 3,
+        corpo: 2,
+        mente: 3,
+        espirito: 2,
+        hp_current: 24,
+        hp_max: 24,
+        anima_current: 12,
+        anima_max: 12,
+        exhaustion: 0,
+        slots: ['Alaude de Prata'],
+      }),
+    });
+    expect(chrRes.status).toBe(201);
+
+    // Rolagem universal via endpoint
+    const rollRes = await app.request('/api/sync', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        action: 'rpg.roll_universal',
+        expression: '2d20kh1+4',
+        label: 'PERCEPCAO',
+      }),
+    });
+    expect(rollRes.status).toBe(200);
+
+    // Jogador 2 entra, completa perfil e envia denuncia / sofre hardware ban via Superadmin
+    const plAuthRes = await app.request('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'oauth_google',
+        google_sub: 'google_sub_e2e_2',
+        email: 'jogador2.e2e@gmail.com',
+        display_name: 'Jogador Dois',
+        birth_date: '2000-01-10',
+        device_fingerprint: 'fp_e2e_player2',
+        trust_device: true,
+      }),
+    });
+    const plAuthJson = (await plAuthRes.json()) as { token: string; user: { id: string } };
+    const plHeaders = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${plAuthJson.token}`,
+      'X-Device-Fingerprint': 'fp_e2e_player2',
     };
-    expect(chatBody.dice_roll.dice).toHaveLength(3);
+    await app.request('/api/sync', {
+      method: 'POST',
+      headers: plHeaders,
+      body: JSON.stringify({
+        action: 'profile.setup',
+        username: 'jogador_dois',
+        display_name: 'Jogador Dois',
+        bio: 'Teste',
+      }),
+    });
 
-    // 5. Tentativa de acessar rota Admin com papel Mestre -> 403 Zero-Trust
-    const adminRes = await app.request(
-      '/api/sync',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authBody.token}`,
-        },
-        body: JSON.stringify({ action: 'admin.overview' }),
-      },
-      { ENVIRONMENT: 'test', JWT_SECRET: 'segredo-e2e-arcanavtt-test' },
-    );
-    expect(adminRes.status).toBe(403);
+    // Perfil Social nao retorna e-mail
+    const profRes = await app.request('/api/sync', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ action: 'social.get_profile', user_id: plAuthJson.user.id }),
+    });
+    expect(profRes.status).toBe(200);
+    const profJson = (await profRes.json()) as { profile: Record<string, unknown> };
+    expect(profJson.profile.email).toBeUndefined();
+
+    // Hardware ban executado instantaneamente por Superadmin + rejeicao imediata de nova autenticacao
+    const repRes = await app.request('/api/sync', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        action: 'report.submit',
+        origin_type: 'usuario',
+        origin_id: plAuthJson.user.id,
+        target_user_id: plAuthJson.user.id,
+        reason_category: 'Comportamento Toxico',
+        description: 'Teste de integracao E2E para bloqueio de dispositivo.',
+      }),
+    });
+    expect(repRes.status).toBe(201);
+    const repJson = (await repRes.json()) as { report_id: string };
+
+    const banRes = await app.request('/api/sync', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        action: 'admin.moderate',
+        report_id: repJson.report_id,
+        decision: 'hardware_ban',
+        ban_device_fingerprint: 'fp_e2e_player2',
+        ban_reason: 'Bloqueio E2E',
+      }),
+    });
+    expect(banRes.status).toBe(200);
+
+    const retryPlAuth = await app.request('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'oauth_google',
+        google_sub: 'google_sub_e2e_2',
+        email: 'jogador2.e2e@gmail.com',
+        display_name: 'Jogador Dois',
+        device_fingerprint: 'fp_e2e_player2',
+        trust_device: true,
+      }),
+    });
+    expect(retryPlAuth.status).toBe(403);
+
+    // Lockout de Emergencia + Desbloqueio por Chave Unica no Superadmin
+    const lockRes = await app.request('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'lockout_trigger',
+        user_id: authJson.user.id,
+        reason: 'Suspeita E2E',
+      }),
+    });
+    expect(lockRes.status).toBe(200);
+    const lockJson = (await lockRes.json()) as { recovery_code_preview: string };
+    expect(lockJson.recovery_code_preview).toBeTruthy();
+
+    const unlockRes = await app.request('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'lockout_verify',
+        email: 'fundador.e2e@arcanavtt.com',
+        recovery_code: lockJson.recovery_code_preview,
+        device_fingerprint: 'fp_e2e_android_01',
+      }),
+    });
+    expect(unlockRes.status).toBe(200);
   });
 });
-

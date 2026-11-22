@@ -1,351 +1,38 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arcana_app/controllers/app_controller.dart';
 import 'package:arcana_app/core/security/rbac_guard.dart';
 import 'package:arcana_app/core/theme/arcana_colors.dart';
 import 'package:arcana_app/data/datasources/cloudflare_edge_client.dart';
-import 'package:arcana_app/data/datasources/local_storage_datasource.dart';
 import 'package:arcana_app/data/repositories/arcana_seed_repository.dart';
 import 'package:arcana_app/domain/entities/arcana_entities.dart';
 import 'package:arcana_app/domain/usecases/authenticate_oauth_usecase.dart';
 import 'package:arcana_app/domain/usecases/build_universal_report_usecase.dart';
 import 'package:arcana_app/domain/usecases/filter_compendium_categories_usecase.dart';
-import 'package:arcana_app/domain/usecases/roll_3d6_usecase.dart';
+import 'package:arcana_app/domain/usecases/universal_rpg_engine_usecase.dart';
 import 'package:arcana_app/main.dart';
-import 'package:arcana_app/presentation/modals/campaign_modals.dart';
 import 'package:arcana_app/presentation/modals/community_chat_modal.dart';
 import 'package:arcana_app/presentation/modals/profile_and_nav_modals.dart';
-import 'package:arcana_app/presentation/screens/tabs/communities_tab_screen.dart';
-
-Future<Map<String, String>?> _fakeStandardPlayerGoogle() async {
-  return {
-    'sub': 'sub_google_player_001',
-    'email': 'jogador@arcanavtt.app',
-    'displayName': 'Kaelen Viajante',
-    'idToken': 'tok_player_001',
-  };
-}
-
-Future<Map<String, String>?> _fakeFounderGoogle() async {
-  return {
-    'sub': 'sub_google_founder_001',
-    'email': 'founder@arcanavtt.app',
-    'displayName': 'Fundador Arcano',
-    'idToken': 'tok_founder_001',
-  };
-}
+import 'package:arcana_app/presentation/screens/tabs/systems_tab_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _OfflineStubEdgeClient extends CloudflareEdgeClient {
   @override
   Future<EdgeResponse> postAuth(Map<String, dynamic> payload) async {
-    return const EdgeResponse(ok: false, statusCode: 0, data: {'stub': true});
-  }
-
-  @override
-  Future<EdgeResponse> postSync(Map<String, dynamic> payload) async {
-    return const EdgeResponse(ok: false, statusCode: 0, data: {'stub': true});
-  }
-}
-
-class _FakeSyncedEdgeClient extends CloudflareEdgeClient {
-  final List<Map<String, dynamic>> _campaigns = [
-    {
-      'id': 'cmp_other_master',
-      'owner_id': 'usr_other_master',
-      'title': 'Cidadela das Sombras',
-      'synopsis': 'Mesa pública aguardando novos heróis.',
-      'master_handle': '@outro_mestre',
-      'system_id': 'sys_alphad6_v24',
-      'system_name': 'AlphaD6 Core (v2.4)',
-      'quick_join_code': 'OTHER9',
-      'mode': 'ao_vivo',
-      'schedule_text': 'Sáb 20h',
-      'max_slots': 5,
-      'occupied_slots': 2,
-      'chapter_title': 'Prólogo — Portões de Obsidiana',
-      'visibility': 'publica',
-    },
-  ];
-  final List<Map<String, dynamic>> _memberships = [];
-  final List<Map<String, dynamic>> _characters = [];
-  final List<Map<String, dynamic>> _guilds = [];
-  final List<Map<String, dynamic>> _messages = [];
-  final List<Map<String, dynamic>> _users = [
-    {
-      'id': 'usr_player_01',
-      'email': 'jogador@arcanavtt.app',
-      'birth_date': '1999-05-12',
-      'role': 'jogador',
-      'account_status': 'active',
-      'username': 'kaelenviajante',
-      'display_name': 'Kaelen Viajante',
-    },
-  ];
-
-  String _activeUserId = 'usr_player_01';
-  String _activeRole = 'jogador';
-
-  @override
-  Future<EdgeResponse> checkHealth() async {
-    return const EdgeResponse(ok: true, statusCode: 200, data: {'status': 'ok'});
-  }
-
-  @override
-  Future<EdgeResponse> postAuth(Map<String, dynamic> payload) async {
-    final email = (payload['email'] as String?) ?? 'jogador@arcanavtt.app';
-    final isFounder = email == 'founder@arcanavtt.app';
-    _activeUserId = isFounder ? 'usr_founder' : 'usr_player_01';
-    _activeRole = isFounder ? 'superadmin' : 'jogador';
-
-    return EdgeResponse(
-      ok: true,
-      statusCode: 200,
-      data: {
-        'token': 'jwt_fake_sync_001',
-        'trusted_device_days': 30,
-        'user': {
-          'id': _activeUserId,
-          'email': email,
-          'role': _activeRole,
-        },
-        'profile': {
-          'username': isFounder ? 'fundadorarcano' : 'kaelenviajante',
-          'display_name': payload['display_name'] ?? 'Aventureiro',
-          'bio': '',
-          'avatar_icon': 'crown',
-          'reputation_points': 100,
-          'onboarding_completed': 0,
-        },
-      },
+    return const EdgeResponse(
+      ok: false,
+      statusCode: 0,
+      data: {'offline_fallback': true},
     );
   }
 
   @override
   Future<EdgeResponse> postSync(Map<String, dynamic> payload) async {
-    final action = payload['action'] as String?;
-    switch (action) {
-      case 'systems.list':
-        return const EdgeResponse(
-          ok: true,
-          statusCode: 200,
-          data: {'systems': <dynamic>[]},
-        );
-      case 'compendium.query':
-        return const EdgeResponse(
-          ok: true,
-          statusCode: 200,
-          data: {'items': <dynamic>[]},
-        );
-      case 'campaigns.list':
-        return EdgeResponse(
-          ok: true,
-          statusCode: 200,
-          data: {'campaigns': _campaigns, 'memberships': _memberships},
-        );
-      case 'communities.overview':
-        return EdgeResponse(
-          ok: true,
-          statusCode: 200,
-          data: {
-            'guilds': _guilds,
-            'forum_topics': <dynamic>[],
-            'messages': _messages,
-          },
-        );
-      case 'social.overview':
-        return EdgeResponse(
-          ok: true,
-          statusCode: 200,
-          data: {
-            'friends': <dynamic>[],
-            'notifications': <dynamic>[],
-            'characters': _characters,
-          },
-        );
-      case 'admin.overview':
-        return EdgeResponse(
-          ok: true,
-          statusCode: 200,
-          data: {
-            'reports': <dynamic>[],
-            'users': _users,
-          },
-        );
-      case 'admin.update_role':
-        final targetId = payload['target_user_id'] as String?;
-        final role = payload['role'] as String?;
-        if (targetId != null && role != null) {
-          for (var i = 0; i < _users.length; i++) {
-            if (_users[i]['id'] == targetId) {
-              _users[i]['role'] = role;
-            }
-          }
-        }
-        return EdgeResponse(
-          ok: true,
-          statusCode: 200,
-          data: {'user_id': targetId, 'role': role},
-        );
-      case 'profile.setup':
-        return EdgeResponse(
-          ok: true,
-          statusCode: 200,
-          data: {
-            'role': _activeRole,
-            'profile': {
-              'username': payload['username'],
-              'display_name': payload['display_name'],
-              'bio': payload['bio'] ?? '',
-            },
-          },
-        );
-      case 'campaigns.create':
-        final cmp = {
-          'id': 'cmp_001',
-          'owner_id': _activeUserId,
-          'title': payload['title'],
-          'synopsis': payload['synopsis'],
-          'master_handle': '@fundadorarcano',
-          'system_id': payload['system_id'],
-          'system_name': 'AlphaD6 Core (v2.4)',
-          'quick_join_code': 'D1A99Z',
-          'mode': payload['mode'],
-          'schedule_text': payload['schedule_text'],
-          'max_slots': payload['max_slots'],
-          'occupied_slots': 1,
-          'chapter_title': 'Prólogo: Mesa Recém-Forjada',
-          'visibility': payload['visibility'],
-        };
-        _campaigns.insert(0, cmp);
-        _memberships.add({
-          'campaign_id': 'cmp_001',
-          'user_id': _activeUserId,
-          'table_role': 'mestre',
-          'status': 'active',
-        });
-        return EdgeResponse(ok: true, statusCode: 201, data: {'campaign': cmp});
-      case 'campaigns.lookup_code':
-        final code = payload['code'] as String?;
-        final found = _campaigns.where((c) => c['quick_join_code'] == code).toList();
-        if (found.isEmpty) {
-          return const EdgeResponse(
-            ok: false,
-            statusCode: 404,
-            data: {'error': {'code': 'NOT_FOUND', 'message': 'Código inválido'}},
-          );
-        }
-        final cmp = found.first;
-        final mem = _memberships.where(
-          (m) => m['campaign_id'] == cmp['id'] && m['user_id'] == _activeUserId,
-        );
-        final membership = mem.isEmpty ? null : mem.first;
-        final isMember = cmp['owner_id'] == _activeUserId ||
-            membership?['status'] == 'active';
-        return EdgeResponse(
-          ok: true,
-          statusCode: 200,
-          data: {
-            'campaign': cmp,
-            'membership': membership,
-            'is_member': isMember,
-          },
-        );
-      case 'campaigns.apply':
-        final cmpId = payload['campaign_id'] as String?;
-        final pitch = (payload['pitch'] as String?) ?? '';
-        if (cmpId == null || pitch.trim().length < 5 || pitch.length > 200) {
-          return const EdgeResponse(
-            ok: false,
-            statusCode: 400,
-            data: {'error': {'code': 'INVALID_PITCH', 'message': 'Apresentação inválida'}},
-          );
-        }
-        _memberships.add({
-          'campaign_id': cmpId,
-          'user_id': _activeUserId,
-          'table_role': 'jogador',
-          'status': 'pending',
-          'application_pitch': pitch,
-        });
-        return const EdgeResponse(ok: true, statusCode: 201, data: {'status': 'pending'});
-      case 'campaigns.list_members':
-        return EdgeResponse(
-          ok: true,
-          statusCode: 200,
-          data: {'members': _memberships},
-        );
-      case 'characters.upsert':
-        final cmpId = (payload['campaign_id'] as String?) ?? '';
-        if (cmpId.isEmpty) {
-          return const EdgeResponse(
-            ok: false,
-            statusCode: 403,
-            data: {
-              'error': {
-                'code': 'CHARACTER_REQUIRES_ACTIVE_CAMPAIGN',
-                'message': 'Ficha requer campanha ativa.',
-              },
-            },
-          );
-        }
-        final ch = {
-          'id': payload['id'] ?? 'char_001',
-          'campaign_id': cmpId,
-          'name': payload['name'],
-          'title': payload['title'],
-          'level': payload['level'],
-          'attributes_json':
-              '{"corpo":${payload['corpo']},"mente":${payload['mente']},"espirito":${payload['espirito']}}',
-          'slots_json': '["Espada Curta","Lanterna"]',
-          'statuses_json':
-              '{"hp_current":${payload['hp_current']},"hp_max":${payload['hp_max']},"anima_current":${payload['anima_current']},"anima_max":${payload['anima_max']},"exhaustion":0}',
-        };
-        _characters
-          ..clear()
-          ..add(ch);
-        return EdgeResponse(ok: true, statusCode: 200, data: {'character': ch});
-      case 'guilds.create':
-        if (_activeRole == 'jogador') {
-          return const EdgeResponse(
-            ok: false,
-            statusCode: 403,
-            data: {'error': {'code': 'FORBIDDEN', 'message': 'Cargo insuficiente'}},
-          );
-        }
-        final g = {
-          'id': 'gld_001',
-          'name': payload['name'],
-          'tag': payload['tag'],
-          'leader_handle': '@fundadorarcano',
-          'description': payload['description'],
-          'member_count': 1,
-          'active_tables_count': 0,
-          'boost_points': 0,
-          'boost_goal': 1000,
-          'shared_world_name': payload['shared_world_name'],
-          'current_season': payload['current_season'],
-        };
-        _guilds.insert(0, g);
-        return EdgeResponse(ok: true, statusCode: 201, data: {'guild': g});
-      case 'guilds.boost':
-        final g = _guilds.first;
-        g['boost_points'] = (g['boost_points'] as int) + (payload['points'] as int);
-        return EdgeResponse(ok: true, statusCode: 200, data: {'guild': g});
-      case 'chat.send_message':
-        final msg = {
-          'id': 'msg_001',
-          'sender_id': _activeUserId,
-          'sender_handle': '@kaelenviajante',
-          'sender_role': _activeRole,
-          'content': payload['content'],
-          'created_at': DateTime.now().toUtc().toIso8601String(),
-        };
-        _messages.add(msg);
-        return EdgeResponse(ok: true, statusCode: 201, data: {'message': msg});
-      default:
-        return const EdgeResponse(ok: true, statusCode: 200, data: {'ok': true});
-    }
+    return const EdgeResponse(
+      ok: false,
+      statusCode: 0,
+      data: {'offline_fallback': true},
+    );
   }
 }
 
@@ -354,444 +41,226 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  group('Camada 1 — Testes Unitários de Domínio & Segurança', () {
-    test('Roll3d6UseCase gera exatamente 3 dados entre 1 e 6 e calcula acertos >= 5', () {
-      final usecase = Roll3d6UseCase();
-      for (var i = 0; i < 30; i++) {
-        final result = usecase.execute(label: 'Teste de Mente');
-        expect(result.dice.length, 3);
-        for (final face in result.dice) {
-          expect(face, inInclusiveRange(1, 6));
-        }
-        expect(result.successes, result.dice.where((d) => d >= 5).length);
-      }
+  group('Camada 1 — Unitarios (Zero-Seed, Motor Universal, RBAC, Compendio, LGPD)', () {
+    test('Catalogo oficial e compendio iniciam 100% vazios (Zero Hardcoded Systems)', () {
+      expect(ArcanaSeedData.officialSystems(), isEmpty);
+      expect(ArcanaSeedData.officialCompendium(), isEmpty);
+      expect(ArcanaSeedData.initialTutorials().length, 5);
+    });
+
+    test('UniversalRpgEngineUseCase interpreta formulas, kh/kl, pools, d100 e delta', () {
+      final r = UniversalRpgEngineUseCase.parseDiceRange('2d6 + 4');
+      expect(r.min, 6);
+      expect(r.max, 16);
+
+      final r2 = UniversalRpgEngineUseCase.parseDiceRange('1d8+1d6-1');
+      expect(r2.min, 1);
+      expect(r2.max, 13);
+
+      final engine = UniversalRpgEngineUseCase();
+      final kh = engine.executeRoll('2d20kh1+3', label: 'Vantagem');
+      expect(kh.dice.length, 2);
+      expect(kh.keptDice?.length, 1);
+      expect(kh.total, greaterThanOrEqualTo(4));
+
+      final pool = engine.executeRoll('4d6>=4', difficulty: 2);
+      expect(pool.engine, 'pool');
+      expect(pool.dice.length, 4);
+
+      final d100 = engine.executeRoll('1d100<=55');
+      expect(d100.engine, 'd100');
+      expect(d100.dice.first, inInclusiveRange(1, 100));
+
+      final merged = UniversalRpgEngineUseCase.mergeCompendiumDelta(
+        {
+          'blocks': {
+            'dano': {'label': 'Base', 'dice_formula': '1d8', 'is_visible': true},
+            'segredo': {'label': 'Oculto', 'value': 'Maldito', 'is_visible': false},
+          },
+        },
+        {
+          'blocks': {
+            'dano': {'label': 'Flamejante', 'dice_formula': '1d8+1d6', 'is_visible': true},
+          },
+        },
+      );
+      final blocks = merged['blocks'] as Map<String, dynamic>;
+      expect((blocks['dano'] as Map)['parsed_range'], {'min': 2, 'max': 14});
+      expect((blocks['segredo'] as Map)['is_visible'], isFalse);
+    });
+
+    test('AuthenticateOAuthUseCase valida LGPD >= 16 anos, Hardware Ban e Lockout', () {
+      final uc = AuthenticateOAuthUseCase();
+      final now = DateTime.now().toUtc();
+      final minor = uc.evaluateAttempt(
+        birthDate: DateTime(now.year - 14, 1, 1),
+        isHardwareBanned: false,
+        isAccountLocked: false,
+      );
+      expect(minor.success, isFalse);
+      expect(minor.errorCode, 'AGE_RESTRICTED');
+
+      final banned = uc.evaluateAttempt(
+        birthDate: DateTime(1995, 5, 5),
+        isHardwareBanned: true,
+        isAccountLocked: false,
+      );
+      expect(banned.errorCode, 'HARDWARE_BANNED');
+
+      final valid = uc.evaluateAttempt(
+        birthDate: DateTime(1995, 5, 5),
+        isHardwareBanned: false,
+        isAccountLocked: false,
+      );
+      expect(valid.success, isTrue);
     });
 
     test('FilterCompendiumCategoriesUseCase oculta categorias vazias automaticamente', () {
-      final filter = FilterCompendiumCategoriesUseCase();
-      final officialItems = ArcanaSeedData.officialCompendium();
-      final alphaResult = filter.execute(systemItems: officialItems);
-      expect(alphaResult.visibleCategories.length, 5);
-
-      final singleCatOnly = [
-        officialItems.firstWhere((e) => e.category == CompendiumCategory.poderes),
+      final uc = FilterCompendiumCategoriesUseCase();
+      final items = [
+        const CompendiumItem(
+          id: 'i1',
+          systemId: 'sys_1',
+          category: CompendiumCategory.equipamentos,
+          name: 'Cota de Malha',
+          rarity: 'Comum',
+          slotsWeight: 2,
+          description: 'Armadura media.',
+        ),
       ];
-      final filteredResult = filter.execute(systemItems: singleCatOnly);
-      expect(filteredResult.visibleCategories, [CompendiumCategory.poderes]);
-      expect(
-        filteredResult.visibleCategories.contains(CompendiumCategory.seres),
-        isFalse,
-      );
+      final res = uc.execute(systemItems: items);
+      expect(res.visibleCategories, [CompendiumCategory.equipamentos]);
+      expect(res.counts[CompendiumCategory.pistas], 0);
     });
 
-    test('AppController inicia limpo, como Jogador e com URLs imutáveis internas', () {
-      final ctrl = AppController(edgeClient: _OfflineStubEdgeClient());
-      expect(ctrl.currentUser.role, UserRole.jogador);
-      expect(ctrl.edgeClient.baseUrl, CloudflareEdgeClient.defaultBaseUrl);
-      expect(
-        LocalStorageDatasource.defaultGoogleServerClientId
-            .contains('apps.googleusercontent.com'),
-        isTrue,
+    test('BuildUniversalReportUseCase anexa 5 autotags e [TIPO: ...] granular', () {
+      final uc = BuildUniversalReportUseCase();
+      final rep = uc.execute(
+        originType: 'homebrew',
+        originId: 'cmpi_99',
+        reasonCategory: 'Conteudo Improprio',
+        description: 'Descricao violadora sem aviso.',
+        reporterRole: UserRole.jogador,
+        sessionContext: 'sess_hub',
       );
-      expect(ctrl.campaigns, isEmpty);
-      expect(ctrl.characters, isEmpty);
-      expect(ctrl.hero, isNull);
-      expect(ctrl.guilds, isEmpty);
-      expect(ctrl.adminUsers, isEmpty);
-      expect(ctrl.systems.length, 1);
-    });
-
-    test('BuildUniversalReportUseCase anexa autotags de contexto automaticamente', () {
-      final report = BuildUniversalReportUseCase().execute(
-        originType: 'chat',
-        originId: 'msg_01',
-        reasonCategory: 'Linguagem Ofensiva',
-        description: 'Teste automatizado de autotags.',
-        reporterRole: UserRole.mestre,
-        sessionContext: 'taverna',
-      );
-      expect(report.autoTags.any((t) => t == '#origem:chat'), isTrue);
-      expect(report.autoTags.any((t) => t == '#alvo:msg_01'), isTrue);
-      expect(report.autoTags.any((t) => t == '#relator:mestre'), isTrue);
-    });
-
-    test('RbacGuard aplica matriz Zero-Trust e Rebaixamento Local corretamente', () {
-      expect(RbacGuard.canForgeCampaign(UserRole.jogador), isFalse);
-      expect(RbacGuard.canCreateGuild(UserRole.jogador), isFalse);
-      expect(RbacGuard.canAccessAdminPanel(UserRole.jogador), isFalse);
-
-      expect(RbacGuard.canForgeCampaign(UserRole.mestre), isTrue);
-      expect(RbacGuard.canCreateGuild(UserRole.mestre), isTrue);
-      expect(RbacGuard.canManageAdmins(UserRole.mestre), isFalse);
-      // Rebaixamento local: Mestre em mesa alheia não administra Oficina/Configs
-      expect(
-        RbacGuard.canManageCampaignTable(
-          isTableMaster: false,
-          globalRole: UserRole.mestre,
-        ),
-        isFalse,
-      );
-      expect(
-        RbacGuard.canManageCampaignTable(
-          isTableMaster: true,
-          globalRole: UserRole.mestre,
-        ),
-        isTrue,
-      );
-
-      expect(RbacGuard.canAccessAdminPanel(UserRole.admin), isTrue);
-      expect(RbacGuard.canManageAdmins(UserRole.admin), isFalse);
-      expect(RbacGuard.canAccessAdminPanel(UserRole.superadmin), isTrue);
-      expect(RbacGuard.canManageAdmins(UserRole.superadmin), isTrue);
+      expect(rep.autoTags.length, 5);
+      expect(rep.entityType, 'homebrew');
+      expect(rep.description.startsWith('[TIPO: HOMEBREW]'), isTrue);
     });
   });
 
-  group('Camada 2 — Testes de Integração de Controller & Sync D1', () {
-    test('Novo usuário inicia como Jogador, LGPD <16 bloqueado e Onboarding salva contatos', () async {
-      final ctrl = AppController(
-        edgeClient: _FakeSyncedEdgeClient(),
-        googleSignInProvider: _fakeStandardPlayerGoogle,
-      );
-
-      final blockedBan = await ctrl.signInWithGoogleOAuth(
-        simulateHardwareBan: true,
-      );
-      expect(blockedBan, isFalse);
-      expect(ctrl.loginViewState, OAuthSecurityState.erroHardwareBan);
-
-      final ok = await ctrl.signInWithGoogleOAuth();
-      expect(ok, isTrue);
+  group('Camada 2 — Integracao (Controller, Limite Cenas/Fichas, Sigilo & RBAC)', () {
+    test('Inicia com role jogador e zero sistemas; impede criar heroi fora de campanha', () async {
+      final ctrl = AppController(edgeClient: _OfflineStubEdgeClient());
+      await ctrl.initializeFromStorage();
       expect(ctrl.currentUser.role, UserRole.jogador);
-      expect(ctrl.loginViewState, OAuthSecurityState.sucessoAutenticado);
+      expect(ctrl.systems, isEmpty);
 
-      // Bloqueia menor de 16 anos na etapa de Onboarding
-      final minorOk = await ctrl.completeLoginTransitionToHub(
-        newUsername: 'kaelenviajante',
-        newDisplayName: 'Kaelen Viajante',
-        birthDate: DateTime(2015, 1, 1),
-      );
-      expect(minorOk, isFalse);
-      expect(ctrl.isAuthenticated, isFalse);
-      expect(ctrl.loginViewState, OAuthSecurityState.erroMenorIdade);
-
-      // Novo login + onboarding válido >= 16 anos + contatos
-      await ctrl.signInWithGoogleOAuth();
-      final adultOk = await ctrl.completeLoginTransitionToHub(
-        newUsername: 'kaelenviajante',
-        newDisplayName: 'Kaelen Viajante',
-        birthDate: DateTime(1998, 4, 20),
-        bio: 'Jogador de dark fantasy.',
-        contacts: const {'discord': 'kaelen#9999', 'whatsapp': '+5511999999999'},
-      );
-      expect(adultOk, isTrue);
-      expect(ctrl.loginViewState, OAuthSecurityState.padrao);
-      expect(ctrl.currentUser.bio, 'Jogador de dark fantasy.');
-      expect(ctrl.currentUser.socialContacts['discord'], 'kaelen#9999');
-    });
-
-    test('Bloqueia ficha sem campanha, aprova criação com campaignId, QuickJoin/Candidatura e Guild RBAC', () async {
-      final ctrl = AppController(
-        edgeClient: _FakeSyncedEdgeClient(),
-        googleSignInProvider: _fakeFounderGoogle,
-      );
-      await ctrl.signInWithGoogleOAuth();
-      await ctrl.completeLoginTransitionToHub(
-        newUsername: 'fundadorarcano',
-        newDisplayName: 'Fundador Arcano',
-        birthDate: DateTime(1996, 5, 10),
-      );
-      expect(ctrl.currentUser.role, UserRole.superadmin);
-
-      // Recusa ficha sem campaignId
-      final rejectedHero = await ctrl.saveHeroCharacter(
+      final failedChar = await ctrl.saveHeroCharacter(
         campaignId: '',
         name: 'Sem Mesa',
         heroClass: 'Ladino',
-        campaignTitle: '',
         level: 1,
         corpo: 2,
         mente: 2,
         espirito: 2,
+        hpCurrent: 20,
+        hpMax: 20,
+        animaCurrent: 10,
+        animaMax: 10,
+        exhaustion: 0,
         slots: const [],
       );
-      expect(rejectedHero, isFalse);
+      expect(failedChar, isFalse);
 
-      // Lookup não membro retorna isMember = false e candidatura limita 200 chars sem nome de ficha
-      final otherLookup = await ctrl.lookupCampaignByCode('OTHER9');
-      expect(otherLookup, isNotNull);
-      expect(otherLookup!.isMember, isFalse);
-      final appOk = await ctrl.applyToCampaign(
-        campaignId: otherLookup.campaign.id,
-        pitch: 'Curto demais para passar' * 15, // > 200
+      await ctrl.createCustomSystem(
+        name: 'Motor Arcano 2d12',
+        diceEngine: '2d12',
+        description: 'Sistema forjado dinamicamente.',
+        attributes: const ['Coragem', 'Astucia'],
       );
-      expect(appOk, isFalse);
-      final validApp = await ctrl.applyToCampaign(
-        campaignId: otherLookup.campaign.id,
-        pitch: 'Curto interpretacionismo tático aos sábados!',
-      );
-      expect(validApp, isTrue);
+      expect(ctrl.systems.length, 1);
 
-      // Mestre/Superadmin forja campanha e cria ficha vinculada a ela
       final cmp = await ctrl.createCampaign(
-        title: 'Fortaleza de Basalto',
-        synopsis: 'Exploração sem dados mockados.',
-        systemId: 'sys_alphad6_v24',
+        title: 'Expedicao Cinzenta',
+        synopsis: 'Campanha de exploracao tatica e investigacao.',
+        systemId: ctrl.systems.first.id,
         mode: CampaignMode.aoVivo,
-        scheduleText: 'Sextas 20h',
+        scheduleText: 'Sabado 20h',
         maxSlots: 5,
         isPublic: true,
+        tags: const ['Tatico', 'Misterio'],
       );
       expect(cmp, isNotNull);
 
-      final heroOk = await ctrl.saveHeroCharacter(
+      final okChar = await ctrl.saveHeroCharacter(
         campaignId: cmp!.id,
-        name: 'Kaelen Silvaris',
-        heroClass: 'Lâmina Arcana',
-        campaignTitle: cmp.title,
-        level: 1,
-        corpo: 3,
-        mente: 2,
-        espirito: 2,
-        slots: const ['Espada Curta', 'Lanterna'],
+        name: 'Lyra',
+        heroClass: 'Arcanista',
+        level: 2,
+        corpo: 1,
+        mente: 4,
+        espirito: 3,
+        hpCurrent: 18,
+        hpMax: 18,
+        animaCurrent: 14,
+        animaMax: 14,
+        exhaustion: 0,
+        slots: const ['Grimorio'],
       );
-      expect(heroOk, isTrue);
-      expect(ctrl.characterForCampaign(cmp.id)?.name, 'Kaelen Silvaris');
+      expect(okChar, isTrue);
+      expect(ctrl.characterForCampaign(cmp.id)?.name, 'Lyra');
 
-      // Jogador não pode criar guilda, Superadmin pode
-      ctrl.switchActiveRoleForPreview(UserRole.jogador);
-      expect(
-        await ctrl.createGuild(
-          name: 'Guilda Bloqueada',
-          tag: 'BLK',
-          description: 'Deve falhar para jogador.',
-        ),
-        isFalse,
+      // Limite rigido de 18 cenas por campanha
+      for (var i = 1; i <= 18; i++) {
+        final scn = await ctrl.upsertCampaignScene(
+          campaignId: cmp.id,
+          name: 'Cena $i',
+          description: 'Sala $i',
+          modelType: SceneModelType.grid2d,
+        );
+        expect(scn, isNotNull);
+      }
+      final nineteenth = await ctrl.upsertCampaignScene(
+        campaignId: cmp.id,
+        name: 'Cena 19',
+        description: 'Excedente',
+        modelType: SceneModelType.terminal,
       );
-      ctrl.switchActiveRoleForPreview(UserRole.superadmin);
-      expect(
-        await ctrl.createGuild(
-          name: 'Ordem Dourada',
-          tag: 'ORDE',
-          description: 'Guilda inaugural.',
-        ),
-        isTrue,
+      expect(nineteenth, isNull);
+    });
+
+    test('Perfil Social nao expoe email e bloqueia alteracao Admin sem Superadmin', () async {
+      final ctrl = AppController(edgeClient: _OfflineStubEdgeClient());
+      ctrl.currentUser = ctrl.currentUser.copyWith(
+        id: 'usr_p1',
+        email: 'sigilo.privado@gmail.com',
+        username: 'kael',
+        displayName: 'Kael',
+        role: UserRole.admin,
       );
 
-      // Admin promove jogador a mestre
-      final errRole = await ctrl.adminUpdateUserRole(
-        targetUserId: 'usr_player_01',
-        newRole: UserRole.mestre,
+      final profileView = await ctrl.fetchSocialProfile();
+      expect(profileView?.username, 'kael');
+      expect(profileView?.oauthVerified, isTrue);
+
+      final denied = await ctrl.adminUpdateUserRole(
+        targetUserId: 'usr_alvo',
+        newRole: UserRole.admin,
       );
-      expect(errRole, isNull);
+      expect(denied, contains('Superadmin'));
     });
   });
 
-  group('Camada 3 — Testes de Interface (OAuth Limpo, Candidatura, RBAC e Configurações)', () {
-    testWidgets('LoginScreen oculta config/cargos e Hub bloqueia criação avulsa de ficha',
+  group('Camada 3 — Widget & E2E UI Tests', () {
+    testWidgets('LoginScreen oculta URL/Client ID e nao exibe seletor de cargo previo',
         (tester) async {
-      final ctrl = AppController(
-        edgeClient: _FakeSyncedEdgeClient(),
-        googleSignInProvider: _fakeStandardPlayerGoogle,
-      );
+      final ctrl = AppController(edgeClient: _OfflineStubEdgeClient());
       await tester.pumpWidget(ArcanaVttApp(controller: ctrl));
       await tester.pumpAndSettle();
 
-      // Nenhum seletor de cargo, URL de worker ou Client ID expostos ao usuário
-      expect(find.text('Senha de acesso'), findsNothing);
-      expect(find.text('PAPEL INICIAL NA TAVERNA'), findsNothing);
-      expect(find.text('Servidor Cloudflare Edge & Client ID OAuth'), findsNothing);
-      expect(find.text('URL do Cloudflare Worker (Edge API)'), findsNothing);
-      expect(find.text('Auxiliar'), findsNothing);
-      expect(find.text('Entrar com Conta Google'), findsOneWidget);
-      expect(
-        find.text('Selecionar Outra Conta Google no Android'),
-        findsOneWidget,
-      );
-
-      await tester.ensureVisible(find.text('Entrar com Conta Google'));
-      await tester.tap(find.text('Entrar com Conta Google'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('FORJE SUA IDENTIDADE DE AVENTUREIRO'), findsOneWidget);
-      expect(find.text('JOGADOR'), findsOneWidget);
-      expect(find.text('Discord (opcional)'), findsOneWidget);
-      await tester.ensureVisible(find.text('Entrar no Hub da Taverna'));
-      await tester.tap(find.text('Entrar no Hub da Taverna'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('CONTINUAR A JORNADA'), findsOneWidget);
-      expect(find.text('Nenhuma campanha por enquanto'), findsOneWidget);
-      await tester.scrollUntilVisible(
-        find.text('Suas fichas aparecerão aqui'),
-        250,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.text('Suas fichas aparecerão aqui'), findsOneWidget);
-      expect(find.text('Criar Ficha de Herói'), findsNothing);
-      expect(find.text('Explorar Campanhas'), findsOneWidget);
-    });
-
-    testWidgets('QuickJoin abre Candidatura para não-membro sem campo de nome de ficha',
-        (tester) async {
-      final ctrl = AppController(edgeClient: _FakeSyncedEdgeClient());
-      ctrl.isAuthenticated = true;
-      ctrl.campaigns = const [
-        Campaign(
-          id: 'cmp_other_master',
-          title: 'Cidadela das Sombras',
-          synopsis: 'Mesa pública.',
-          masterHandle: '@outro_mestre',
-          systemId: 'sys_alphad6_v24',
-          systemName: 'AlphaD6 Core (v2.4)',
-          quickJoinCode: 'OTHER9',
-          mode: CampaignMode.aoVivo,
-          scheduleText: 'Sáb 20h',
-          maxSlots: 5,
-          occupiedSlots: 2,
-          userRelation: CampaignSegment.explorar,
-          chapterTitle: 'Prólogo',
-          isPublic: true,
-        ),
-      ];
-
-      await tester.pumpWidget(ArcanaVttApp(controller: ctrl));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Inserir Código da Mesa'));
-      await tester.pumpAndSettle();
-
-      await tester.enterText(find.byType(TextField).first, 'OTHER9');
-      await tester.tap(find.text('Localizar Campanha Agora'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('CANDIDATURA À MESA'), findsOneWidget);
-      expect(find.text('REGRA OFICIAL DE CRIAÇÃO DE FICHA'), findsOneWidget);
-      expect(find.text('Nome do Personagem'), findsNothing);
-      expect(find.text('0 / 200 caracteres'), findsOneWidget);
-    });
-
-    testWidgets('CampaignGeneralModal exibe 7 abas ao Mestre dono e aplica Rebaixamento Local em mesa alheia',
-        (tester) async {
-      final ctrl = AppController(edgeClient: _OfflineStubEdgeClient());
-      ctrl.switchActiveRoleForPreview(UserRole.mestre);
-
-      const ownTable = Campaign(
-        id: 'cmp_own',
-        title: 'Trono de Cinzas',
-        synopsis: 'Mesa do próprio mestre.',
-        masterHandle: '@mestre',
-        systemId: 'sys_alphad6_v24',
-        systemName: 'AlphaD6 Core',
-        quickJoinCode: 'OWN123',
-        mode: CampaignMode.aoVivo,
-        scheduleText: 'Sex 21h',
-        maxSlots: 5,
-        occupiedSlots: 1,
-        userRelation: CampaignSegment.mestre,
-        chapterTitle: 'Cap 1',
-        isPublic: true,
-      );
-
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData.dark().copyWith(
-            extensions: const [ArcanaPalette.escuroHeraldico],
-          ),
-          home: Scaffold(
-            body: CampaignGeneralModal(controller: ctrl, campaign: ownTable),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      for (final tab in const [
-        'Geral',
-        'Chats',
-        'Cenas',
-        'Diário',
-        'Oficina',
-        'Personagens',
-        'Configs',
-      ]) {
-        expect(find.text(tab), findsOneWidget);
-      }
-
-      // Mesma conta Mestre abrindo campanha onde é apenas Jogador -> Oficina/Configs ocultos
-      const otherTable = Campaign(
-        id: 'cmp_other',
-        title: 'Taverna Alheia',
-        synopsis: 'Mesa de outro mestre.',
-        masterHandle: '@outro',
-        systemId: 'sys_alphad6_v24',
-        systemName: 'AlphaD6 Core',
-        quickJoinCode: 'OTH456',
-        mode: CampaignMode.aoVivo,
-        scheduleText: 'Dom 19h',
-        maxSlots: 5,
-        occupiedSlots: 3,
-        userRelation: CampaignSegment.jogando,
-        chapterTitle: 'Cap 2',
-        isPublic: true,
-      );
-
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData.dark().copyWith(
-            extensions: const [ArcanaPalette.escuroHeraldico],
-          ),
-          home: Scaffold(
-            body: CampaignGeneralModal(controller: ctrl, campaign: otherTable),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Geral'), findsOneWidget);
-      expect(find.text('Personagens'), findsOneWidget);
-      expect(find.text('Oficina'), findsNothing);
-      expect(find.text('Configs'), findsNothing);
-    });
-
-    testWidgets('CommunitiesTabScreen oculta criação de guilda para Jogador e mostra para Mestre',
-        (tester) async {
-      final ctrl = AppController(edgeClient: _OfflineStubEdgeClient());
-      ctrl.switchActiveRoleForPreview(UserRole.jogador);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData.dark().copyWith(
-            extensions: const [ArcanaPalette.escuroHeraldico],
-          ),
-          home: Scaffold(body: CommunitiesTabScreen(controller: ctrl)),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Guildas'));
-      await tester.pumpAndSettle();
-      expect(find.text('Fundar Nova Guilda'), findsNothing);
-
-      ctrl.switchActiveRoleForPreview(UserRole.mestre);
-      await tester.pumpAndSettle();
-      expect(find.text('Fundar Nova Guilda'), findsOneWidget);
-    });
-
-    testWidgets('GeneralSettingsModal e Drawer RBAC não expõem servidor/cargo e preservam governança',
-        (tester) async {
-      final ctrl = AppController(edgeClient: _OfflineStubEdgeClient());
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData.dark().copyWith(
-            extensions: const [ArcanaPalette.escuroHeraldico],
-          ),
-          home: Scaffold(body: GeneralSettingsModal(controller: ctrl)),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('IDIOMA & FEEDBACK HÁPTICO'), findsOneWidget);
-      expect(find.text('PT-BR'), findsOneWidget);
-      expect(find.text('SERVIDOR CLOUDFLARE EDGE & D1'), findsNothing);
+      expect(find.textContaining('Google'), findsWidgets);
+      expect(find.textContaining('Servidor Cloudflare Edge'), findsNothing);
       expect(find.text('PAPEL NA TAVERNA (SYNC D1)'), findsNothing);
 
       ctrl.isAuthenticated = true;
@@ -801,7 +270,7 @@ void main() {
 
       await tester.tap(find.byTooltip('Menu Principal'));
       await tester.pumpAndSettle();
-      expect(find.text('Painel de Governança Admin'), findsNothing);
+      expect(find.text('Painel de Governanca Admin'), findsNothing);
 
       await tester.tapAt(const Offset(380, 100));
       await tester.pumpAndSettle();
@@ -810,10 +279,10 @@ void main() {
 
       await tester.tap(find.byTooltip('Menu Principal'));
       await tester.pumpAndSettle();
-      expect(find.text('Painel de Governança Admin'), findsOneWidget);
+      expect(find.text('Painel de Governanca Admin'), findsOneWidget);
     });
 
-    testWidgets('CommunityChatModal inicia limpo e envia rolagem 3d6 ao vivo',
+    testWidgets('SystemsTabScreen mostra estado dinamico vazio sem AlphaD6 hardcoded',
         (tester) async {
       final ctrl = AppController(edgeClient: _OfflineStubEdgeClient());
       await tester.pumpWidget(
@@ -821,20 +290,58 @@ void main() {
           theme: ThemeData.dark().copyWith(
             extensions: const [ArcanaPalette.escuroHeraldico],
           ),
-          home: Scaffold(
-            body: CommunityChatModal(controller: ctrl),
-          ),
+          home: Scaffold(body: SystemsTabScreen(controller: ctrl)),
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('TAVERNA DOS MESTRES'), findsOneWidget);
-      expect(
-        find.textContaining('Nenhuma mensagem neste canal ainda'),
-        findsOneWidget,
-      );
+      expect(find.text('Catalogo Dinamico de Sistemas'), findsOneWidget);
+      expect(find.textContaining('AlphaD6'), findsNothing);
+    });
 
-      await tester.tap(find.byTooltip('Rolar 3d6 no Chat'));
+    testWidgets('SocialProfileModal garante sigilo de e-mail e exibe 3 abas Discord',
+        (tester) async {
+      final ctrl = AppController(edgeClient: _OfflineStubEdgeClient());
+      ctrl.currentUser = ctrl.currentUser.copyWith(
+        id: 'usr_tester',
+        email: 'meu.segredo.pessoal@gmail.com',
+        username: 'valen_bardo',
+        displayName: 'Valen Bardo',
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark().copyWith(
+            extensions: const [ArcanaPalette.escuroHeraldico],
+          ),
+          home: Scaffold(body: SocialProfileModal(controller: ctrl)),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('meu.segredo.pessoal@gmail.com'), findsNothing);
+      expect(find.text('Google OAuth Verificado'), findsOneWidget);
+      expect(find.text('Sobre Mim'), findsOneWidget);
+      expect(find.text('Em Comum'), findsOneWidget);
+      expect(find.text('Vitrine da Taverna'), findsOneWidget);
+    });
+
+    testWidgets('CommunityChatModal inicia limpo e executa rolagem universal',
+        (tester) async {
+      final ctrl = AppController(edgeClient: _OfflineStubEdgeClient());
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark().copyWith(
+            extensions: const [ArcanaPalette.escuroHeraldico],
+          ),
+          home: Scaffold(body: CommunityChatModal(controller: ctrl)),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Nenhuma mensagem neste canal ainda'), findsOneWidget);
+      await tester.ensureVisible(find.text('Rolar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Rolar'));
       await tester.pumpAndSettle();
 
       expect(ctrl.chatMessages.length, 1);

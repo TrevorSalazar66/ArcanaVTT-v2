@@ -1,20 +1,26 @@
 import type { D1Database } from '@cloudflare/workers-types';
 import type {
   AdminUserSummaryRecord,
+  AnnouncementRecord,
+  CampaignInviteRecord,
   CampaignMemberDetailRecord,
   CampaignMemberRecord,
   CampaignRecord,
+  CampaignSceneRecord,
   CharacterRecord,
   ChatMessageRecord,
   CompendiumItemRecord,
   DeviceSecurityRecord,
+  ForumCommentRecord,
   ForumTopicRecord,
   FriendshipRecord,
+  GmBanRecord,
   GuildRecord,
   IArcanaRepository,
   NotificationRecord,
   P2pSignalRecord,
   SessionRecord,
+  SystemCreationKeyRecord,
   SystemRecord,
   UniversalReportRecord,
   UserProfileRecord,
@@ -28,10 +34,7 @@ import type { AccountStatus, UserRole } from '../types/env';
 export class CloudflareD1Repository implements IArcanaRepository {
   constructor(private readonly db: D1Database) {}
 
-  async findUserByGoogleSubOrEmail(
-    googleSub: string,
-    email: string,
-  ): Promise<UserRecord | null> {
+  async findUserByGoogleSubOrEmail(googleSub: string, email: string): Promise<UserRecord | null> {
     return this.db
       .prepare('SELECT * FROM users WHERE google_sub = ?1 OR email = ?2 LIMIT 1')
       .bind(googleSub, email)
@@ -39,10 +42,7 @@ export class CloudflareD1Repository implements IArcanaRepository {
   }
 
   async findUserById(userId: string): Promise<UserRecord | null> {
-    return this.db
-      .prepare('SELECT * FROM users WHERE id = ?1 LIMIT 1')
-      .bind(userId)
-      .first<UserRecord>();
+    return this.db.prepare('SELECT * FROM users WHERE id = ?1 LIMIT 1').bind(userId).first<UserRecord>();
   }
 
   async countRealUsers(): Promise<number> {
@@ -66,15 +66,19 @@ export class CloudflareD1Repository implements IArcanaRepository {
       .run();
   }
 
-  async createUserWithProfile(
-    user: UserRecord,
-    profile: UserProfileRecord,
-  ): Promise<void> {
+  async updateUserSuspension(userId: string, suspendedUntil: string | null): Promise<void> {
+    await this.db
+      .prepare('UPDATE users SET suspended_until = ?1, updated_at = ?2 WHERE id = ?3')
+      .bind(suspendedUntil, new Date().toISOString(), userId)
+      .run();
+  }
+
+  async createUserWithProfile(user: UserRecord, profile: UserProfileRecord): Promise<void> {
     await this.db.batch([
       this.db
         .prepare(
-          `INSERT INTO users (id, google_sub, email, birth_date, role, account_status, lockout_token_hash, created_at, updated_at)
-           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)`,
+          `INSERT INTO users (id, google_sub, email, birth_date, role, account_status, suspended_until, lockout_token_hash, created_at, updated_at)
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)`,
         )
         .bind(
           user.id,
@@ -83,6 +87,7 @@ export class CloudflareD1Repository implements IArcanaRepository {
           user.birth_date,
           user.role,
           user.account_status,
+          user.suspended_until ?? null,
           user.lockout_token_hash,
           user.created_at,
           user.updated_at,
@@ -115,9 +120,7 @@ export class CloudflareD1Repository implements IArcanaRepository {
     lockoutHash: string | null,
   ): Promise<void> {
     await this.db
-      .prepare(
-        'UPDATE users SET account_status = ?1, lockout_token_hash = ?2, updated_at = ?3 WHERE id = ?4',
-      )
+      .prepare('UPDATE users SET account_status = ?1, lockout_token_hash = ?2, updated_at = ?3 WHERE id = ?4')
       .bind(status, lockoutHash, new Date().toISOString(), userId)
       .run();
   }
@@ -125,7 +128,7 @@ export class CloudflareD1Repository implements IArcanaRepository {
   async listUsersWithProfiles(): Promise<AdminUserSummaryRecord[]> {
     const res = await this.db
       .prepare(
-        `SELECT u.id, u.email, u.birth_date, u.role, u.account_status, u.created_at,
+        `SELECT u.id, u.email, u.birth_date, u.role, u.account_status, u.suspended_until, u.created_at,
                 COALESCE(up.username, '') AS username,
                 COALESCE(up.display_name, u.email) AS display_name
          FROM users u
@@ -146,7 +149,7 @@ export class CloudflareD1Repository implements IArcanaRepository {
 
   async findProfileByUsername(username: string): Promise<UserProfileRecord | null> {
     return this.db
-      .prepare('SELECT * FROM user_profiles WHERE username = ?1 LIMIT 1')
+      .prepare('SELECT * FROM user_profiles WHERE LOWER(username) = LOWER(?1) LIMIT 1')
       .bind(username)
       .first<UserProfileRecord>();
   }
@@ -155,14 +158,15 @@ export class CloudflareD1Repository implements IArcanaRepository {
     await this.db
       .prepare(
         `UPDATE user_profiles
-         SET username = ?1, display_name = ?2, bio = ?3, preferred_role = ?4,
-             contacts_json = ?5, theme_preference = ?6, font_scale = ?7, onboarding_completed = ?8, updated_at = ?9
-         WHERE user_id = ?10`,
+         SET username = ?1, display_name = ?2, bio = ?3, avatar_icon = ?4, preferred_role = ?5,
+             contacts_json = ?6, theme_preference = ?7, font_scale = ?8, onboarding_completed = ?9, updated_at = ?10
+         WHERE user_id = ?11`,
       )
       .bind(
         profile.username,
         profile.display_name,
         profile.bio,
+        profile.avatar_icon,
         profile.preferred_role,
         profile.contacts_json ?? '{}',
         profile.theme_preference,
@@ -174,12 +178,17 @@ export class CloudflareD1Repository implements IArcanaRepository {
       .run();
   }
 
-  async findDeviceSecurity(
-    fingerprint: string,
-  ): Promise<DeviceSecurityRecord | null> {
+  async findDeviceSecurity(fingerprint: string): Promise<DeviceSecurityRecord | null> {
     return this.db
       .prepare('SELECT * FROM device_security WHERE device_fingerprint = ?1 LIMIT 1')
       .bind(fingerprint)
+      .first<DeviceSecurityRecord>();
+  }
+
+  async findLatestDeviceByUserId(userId: string): Promise<DeviceSecurityRecord | null> {
+    return this.db
+      .prepare('SELECT * FROM device_security WHERE user_id = ?1 ORDER BY updated_at DESC LIMIT 1')
+      .bind(userId)
       .first<DeviceSecurityRecord>();
   }
 
@@ -211,6 +220,13 @@ export class CloudflareD1Repository implements IArcanaRepository {
       .run();
   }
 
+  async listBannedDevices(): Promise<DeviceSecurityRecord[]> {
+    const res = await this.db
+      .prepare('SELECT * FROM device_security WHERE is_hardware_banned = 1 ORDER BY updated_at DESC')
+      .all<DeviceSecurityRecord>();
+    return res.results;
+  }
+
   async createSession(session: SessionRecord): Promise<void> {
     await this.db
       .prepare(
@@ -237,29 +253,19 @@ export class CloudflareD1Repository implements IArcanaRepository {
   }
 
   async revokeSessionByJti(jti: string): Promise<void> {
-    await this.db
-      .prepare('UPDATE sessions SET revoked = 1 WHERE token_jti = ?1')
-      .bind(jti)
-      .run();
+    await this.db.prepare('UPDATE sessions SET revoked = 1 WHERE token_jti = ?1').bind(jti).run();
   }
 
   async revokeAllUserSessions(userId: string): Promise<void> {
-    await this.db
-      .prepare('UPDATE sessions SET revoked = 1 WHERE user_id = ?1')
-      .bind(userId)
-      .run();
+    await this.db.prepare('UPDATE sessions SET revoked = 1 WHERE user_id = ?1').bind(userId).run();
   }
 
   async listCampaigns(): Promise<CampaignRecord[]> {
-    const res = await this.db
-      .prepare('SELECT * FROM campaigns ORDER BY created_at DESC')
-      .all<CampaignRecord>();
+    const res = await this.db.prepare('SELECT * FROM campaigns ORDER BY created_at DESC').all<CampaignRecord>();
     return res.results;
   }
 
-  async listCampaignMembershipsByUser(
-    userId: string,
-  ): Promise<CampaignMemberRecord[]> {
+  async listCampaignMembershipsByUser(userId: string): Promise<CampaignMemberRecord[]> {
     const res = await this.db
       .prepare('SELECT * FROM campaign_members WHERE user_id = ?1')
       .bind(userId)
@@ -267,9 +273,7 @@ export class CloudflareD1Repository implements IArcanaRepository {
     return res.results;
   }
 
-  async listCampaignMembersByCampaign(
-    campaignId: string,
-  ): Promise<CampaignMemberDetailRecord[]> {
+  async listCampaignMembersByCampaign(campaignId: string): Promise<CampaignMemberDetailRecord[]> {
     const res = await this.db
       .prepare(
         `SELECT cm.*, COALESCE(up.username, '') AS username, COALESCE(up.display_name, '') AS display_name
@@ -283,14 +287,9 @@ export class CloudflareD1Repository implements IArcanaRepository {
     return res.results;
   }
 
-  async findCampaignMember(
-    campaignId: string,
-    userId: string,
-  ): Promise<CampaignMemberRecord | null> {
+  async findCampaignMember(campaignId: string, userId: string): Promise<CampaignMemberRecord | null> {
     return this.db
-      .prepare(
-        'SELECT * FROM campaign_members WHERE campaign_id = ?1 AND user_id = ?2 LIMIT 1',
-      )
+      .prepare('SELECT * FROM campaign_members WHERE campaign_id = ?1 AND user_id = ?2 LIMIT 1')
       .bind(campaignId, userId)
       .first<CampaignMemberRecord>();
   }
@@ -303,21 +302,15 @@ export class CloudflareD1Repository implements IArcanaRepository {
   }
 
   async findCampaignById(id: string): Promise<CampaignRecord | null> {
-    return this.db
-      .prepare('SELECT * FROM campaigns WHERE id = ?1 LIMIT 1')
-      .bind(id)
-      .first<CampaignRecord>();
+    return this.db.prepare('SELECT * FROM campaigns WHERE id = ?1 LIMIT 1').bind(id).first<CampaignRecord>();
   }
 
-  async createCampaign(
-    campaign: CampaignRecord,
-    ownerMembership: CampaignMemberRecord,
-  ): Promise<void> {
+  async createCampaign(campaign: CampaignRecord, ownerMembership: CampaignMemberRecord): Promise<void> {
     await this.db.batch([
       this.db
         .prepare(
-          `INSERT INTO campaigns (id, owner_id, title, synopsis, system_id, quick_join_code, mode, schedule_text, max_slots, occupied_slots, visibility, state_json, created_at)
-           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)`,
+          `INSERT INTO campaigns (id, owner_id, title, synopsis, system_id, quick_join_code, mode, schedule_text, max_slots, occupied_slots, visibility, state_json, is_inactive_archived, last_activity_at, created_at)
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)`,
         )
         .bind(
           campaign.id,
@@ -332,6 +325,8 @@ export class CloudflareD1Repository implements IArcanaRepository {
           campaign.occupied_slots,
           campaign.visibility,
           campaign.state_json,
+          campaign.is_inactive_archived ?? 0,
+          campaign.last_activity_at ?? campaign.created_at,
           campaign.created_at,
         ),
       this.db
@@ -349,6 +344,30 @@ export class CloudflareD1Repository implements IArcanaRepository {
           ownerMembership.joined_at,
         ),
     ]);
+  }
+
+  async updateCampaign(campaign: CampaignRecord): Promise<void> {
+    await this.db
+      .prepare(
+        `UPDATE campaigns
+         SET title = ?1, synopsis = ?2, system_id = ?3, mode = ?4, schedule_text = ?5,
+             max_slots = ?6, visibility = ?7, state_json = ?8, is_inactive_archived = ?9, last_activity_at = ?10
+         WHERE id = ?11`,
+      )
+      .bind(
+        campaign.title,
+        campaign.synopsis,
+        campaign.system_id,
+        campaign.mode,
+        campaign.schedule_text,
+        campaign.max_slots,
+        campaign.visibility,
+        campaign.state_json,
+        campaign.is_inactive_archived ?? 0,
+        campaign.last_activity_at ?? new Date().toISOString(),
+        campaign.id,
+      )
+      .run();
   }
 
   async upsertCampaignMember(member: CampaignMemberRecord): Promise<void> {
@@ -380,9 +399,154 @@ export class CloudflareD1Repository implements IArcanaRepository {
       .run();
   }
 
+  async decrementCampaignOccupiedSlots(campaignId: string): Promise<void> {
+    await this.db
+      .prepare('UPDATE campaigns SET occupied_slots = MAX(1, occupied_slots - 1) WHERE id = ?1')
+      .bind(campaignId)
+      .run();
+  }
+
+  async createCampaignInvite(invite: CampaignInviteRecord): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO campaign_invites (id, campaign_id, target_user_id, invited_by_user_id, status, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6)`,
+      )
+      .bind(invite.id, invite.campaign_id, invite.target_user_id, invite.invited_by_user_id, invite.status, invite.created_at)
+      .run();
+  }
+
+  async findCampaignInvite(inviteId: string): Promise<CampaignInviteRecord | null> {
+    return this.db
+      .prepare('SELECT * FROM campaign_invites WHERE id = ?1 LIMIT 1')
+      .bind(inviteId)
+      .first<CampaignInviteRecord>();
+  }
+
+  async updateCampaignInviteStatus(
+    inviteId: string,
+    status: 'pending' | 'accepted' | 'declined',
+  ): Promise<void> {
+    await this.db
+      .prepare('UPDATE campaign_invites SET status = ?1 WHERE id = ?2')
+      .bind(status, inviteId)
+      .run();
+  }
+
+  async banPlayerFromGM(gmId: string, playerId: string, reason: string): Promise<void> {
+    const nowIso = new Date().toISOString();
+    await this.db
+      .prepare(
+        `INSERT INTO gm_banned_players (gm_id, player_id, reason, created_at)
+         VALUES (?1, ?2, ?3, ?4)
+         ON CONFLICT(gm_id, player_id) DO UPDATE SET reason = excluded.reason`,
+      )
+      .bind(gmId, playerId, reason, nowIso)
+      .run();
+
+    const gmCampaigns = await this.db
+      .prepare('SELECT id FROM campaigns WHERE owner_id = ?1')
+      .bind(gmId)
+      .all<{ id: string }>();
+
+    for (const row of gmCampaigns.results) {
+      const mem = await this.findCampaignMember(row.id, playerId);
+      if (mem) {
+        if (mem.status === 'active') {
+          await this.decrementCampaignOccupiedSlots(row.id);
+        }
+        await this.db
+          .prepare("UPDATE campaign_members SET status = 'rejected' WHERE campaign_id = ?1 AND user_id = ?2")
+          .bind(row.id, playerId)
+          .run();
+      }
+    }
+  }
+
+  async unbanPlayerFromGM(gmId: string, playerId: string): Promise<void> {
+    await this.db
+      .prepare('DELETE FROM gm_banned_players WHERE gm_id = ?1 AND player_id = ?2')
+      .bind(gmId, playerId)
+      .run();
+  }
+
+  async isPlayerBannedByGM(gmId: string, playerId: string): Promise<boolean> {
+    const row = await this.db
+      .prepare('SELECT player_id FROM gm_banned_players WHERE gm_id = ?1 AND player_id = ?2 LIMIT 1')
+      .bind(gmId, playerId)
+      .first<{ player_id: string }>();
+    return Boolean(row);
+  }
+
+  async listGMBannedPlayers(gmId: string): Promise<GmBanRecord[]> {
+    const res = await this.db
+      .prepare(
+        `SELECT gbp.*, COALESCE(up.username, '') AS player_username, COALESCE(up.display_name, '') AS player_display_name
+         FROM gm_banned_players gbp
+         LEFT JOIN user_profiles up ON up.user_id = gbp.player_id
+         WHERE gbp.gm_id = ?1
+         ORDER BY gbp.created_at DESC`,
+      )
+      .bind(gmId)
+      .all<GmBanRecord>();
+    return res.results;
+  }
+
+  async listScenesByCampaign(campaignId: string): Promise<CampaignSceneRecord[]> {
+    const res = await this.db
+      .prepare('SELECT * FROM campaign_scenes WHERE campaign_id = ?1 ORDER BY created_at ASC')
+      .bind(campaignId)
+      .all<CampaignSceneRecord>();
+    return res.results;
+  }
+
+  async findSceneById(sceneId: string): Promise<CampaignSceneRecord | null> {
+    return this.db
+      .prepare('SELECT * FROM campaign_scenes WHERE id = ?1 LIMIT 1')
+      .bind(sceneId)
+      .first<CampaignSceneRecord>();
+  }
+
+  async upsertScene(scene: CampaignSceneRecord): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO campaign_scenes (id, campaign_id, name, description, model_type, is_active, max_players, model_data_json, rules_data_json, state_data_json, created_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+         ON CONFLICT(id) DO UPDATE SET
+           name = excluded.name,
+           description = excluded.description,
+           model_type = excluded.model_type,
+           is_active = excluded.is_active,
+           max_players = excluded.max_players,
+           model_data_json = excluded.model_data_json,
+           rules_data_json = excluded.rules_data_json,
+           state_data_json = excluded.state_data_json,
+           updated_at = excluded.updated_at`,
+      )
+      .bind(
+        scene.id,
+        scene.campaign_id,
+        scene.name,
+        scene.description,
+        scene.model_type,
+        scene.is_active,
+        scene.max_players,
+        scene.model_data_json,
+        scene.rules_data_json,
+        scene.state_data_json,
+        scene.created_at,
+        scene.updated_at,
+      )
+      .run();
+  }
+
+  async deleteScene(sceneId: string): Promise<void> {
+    await this.db.prepare('DELETE FROM campaign_scenes WHERE id = ?1').bind(sceneId).run();
+  }
+
   async listSystems(): Promise<SystemRecord[]> {
     const res = await this.db
-      .prepare('SELECT * FROM systems ORDER BY is_official DESC, downloads_count DESC')
+      .prepare("SELECT * FROM systems WHERE id != 'sys_universal' ORDER BY is_official DESC, downloads_count DESC")
       .all<SystemRecord>();
     return res.results;
   }
@@ -418,10 +582,100 @@ export class CloudflareD1Repository implements IArcanaRepository {
     return res.results;
   }
 
-  async listGuilds(): Promise<GuildRecord[]> {
+  async findCompendiumItemById(itemId: string): Promise<CompendiumItemRecord | null> {
+    return this.db
+      .prepare('SELECT * FROM compendium_items WHERE id = ?1 LIMIT 1')
+      .bind(itemId)
+      .first<CompendiumItemRecord>();
+  }
+
+  async upsertCompendiumItem(item: CompendiumItemRecord): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO compendium_items (id, system_id, campaign_id, category, name, rarity, slots_weight, description, properties_json, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+         ON CONFLICT(id) DO UPDATE SET
+           name = excluded.name,
+           rarity = excluded.rarity,
+           slots_weight = excluded.slots_weight,
+           description = excluded.description,
+           properties_json = excluded.properties_json`,
+      )
+      .bind(
+        item.id,
+        item.system_id,
+        item.campaign_id,
+        item.category,
+        item.name,
+        item.rarity,
+        item.slots_weight,
+        item.description,
+        item.properties_json,
+        item.created_at,
+      )
+      .run();
+  }
+
+  async createSystemKey(record: SystemCreationKeyRecord): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO system_creation_keys (code, created_by, assigned_to_user_id, used_by_user_id, is_used, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6)`,
+      )
+      .bind(record.code, record.created_by, record.assigned_to_user_id, record.used_by_user_id, record.is_used, record.created_at)
+      .run();
+  }
+
+  async findSystemKey(code: string): Promise<SystemCreationKeyRecord | null> {
+    return this.db
+      .prepare('SELECT * FROM system_creation_keys WHERE UPPER(code) = UPPER(?1) LIMIT 1')
+      .bind(code)
+      .first<SystemCreationKeyRecord>();
+  }
+
+  async markSystemKeyUsed(code: string, usedByUserId: string): Promise<void> {
+    await this.db
+      .prepare('UPDATE system_creation_keys SET is_used = 1, used_by_user_id = ?1 WHERE UPPER(code) = UPPER(?2)')
+      .bind(usedByUserId, code)
+      .run();
+  }
+
+  async listSystemKeys(): Promise<SystemCreationKeyRecord[]> {
     const res = await this.db
-      .prepare('SELECT * FROM guilds ORDER BY member_count DESC')
-      .all<GuildRecord>();
+      .prepare('SELECT * FROM system_creation_keys ORDER BY created_at DESC')
+      .all<SystemCreationKeyRecord>();
+    return res.results;
+  }
+
+  async listFavoriteSystemIds(userId: string): Promise<string[]> {
+    const res = await this.db
+      .prepare('SELECT system_id FROM system_favorites WHERE user_id = ?1')
+      .bind(userId)
+      .all<{ system_id: string }>();
+    return res.results.map((r) => r.system_id);
+  }
+
+  async toggleFavoriteSystem(userId: string, systemId: string): Promise<string[]> {
+    const existing = await this.db
+      .prepare('SELECT system_id FROM system_favorites WHERE user_id = ?1 AND system_id = ?2 LIMIT 1')
+      .bind(userId, systemId)
+      .first<{ system_id: string }>();
+    if (existing) {
+      await this.db
+        .prepare('DELETE FROM system_favorites WHERE user_id = ?1 AND system_id = ?2')
+        .bind(userId, systemId)
+        .run();
+    } else {
+      await this.db
+        .prepare('INSERT INTO system_favorites (user_id, system_id, created_at) VALUES (?1, ?2, ?3)')
+        .bind(userId, systemId, new Date().toISOString())
+        .run();
+    }
+    return this.listFavoriteSystemIds(userId);
+  }
+
+  async listGuilds(): Promise<GuildRecord[]> {
+    const res = await this.db.prepare('SELECT * FROM guilds ORDER BY member_count DESC').all<GuildRecord>();
     return res.results;
   }
 
@@ -447,17 +701,30 @@ export class CloudflareD1Repository implements IArcanaRepository {
       .run();
   }
 
-  async boostGuild(guildId: string, points: number): Promise<GuildRecord | null> {
+  async updateGuild(guild: GuildRecord): Promise<void> {
     await this.db
       .prepare(
-        'UPDATE guilds SET boost_points = MIN(boost_goal, boost_points + ?1) WHERE id = ?2',
+        `UPDATE guilds
+         SET boost_points = ?1, boost_goal = ?2, shared_world_json = ?3, member_count = ?4, active_tables_count = ?5
+         WHERE id = ?6`,
       )
+      .bind(
+        guild.boost_points,
+        guild.boost_goal,
+        guild.shared_world_json,
+        guild.member_count,
+        guild.active_tables_count,
+        guild.id,
+      )
+      .run();
+  }
+
+  async boostGuild(guildId: string, points: number): Promise<GuildRecord | null> {
+    await this.db
+      .prepare('UPDATE guilds SET boost_points = boost_points + ?1 WHERE id = ?2')
       .bind(points, guildId)
       .run();
-    return this.db
-      .prepare('SELECT * FROM guilds WHERE id = ?1 LIMIT 1')
-      .bind(guildId)
-      .first<GuildRecord>();
+    return this.db.prepare('SELECT * FROM guilds WHERE id = ?1 LIMIT 1').bind(guildId).first<GuildRecord>();
   }
 
   async listForumTopics(): Promise<ForumTopicRecord[]> {
@@ -488,15 +755,54 @@ export class CloudflareD1Repository implements IArcanaRepository {
       .run();
   }
 
-  async upvoteForumTopic(topicId: string): Promise<ForumTopicRecord | null> {
+  async upvoteForumTopic(topicId: string, delta = 1): Promise<ForumTopicRecord | null> {
     await this.db
-      .prepare('UPDATE forum_topics SET upvotes = upvotes + 1 WHERE id = ?1')
-      .bind(topicId)
+      .prepare('UPDATE forum_topics SET upvotes = upvotes + ?1 WHERE id = ?2')
+      .bind(delta, topicId)
       .run();
     return this.db
       .prepare('SELECT * FROM forum_topics WHERE id = ?1 LIMIT 1')
       .bind(topicId)
       .first<ForumTopicRecord>();
+  }
+
+  async listForumComments(topicId: string): Promise<ForumCommentRecord[]> {
+    const res = await this.db
+      .prepare('SELECT * FROM forum_comments WHERE topic_id = ?1 ORDER BY created_at ASC')
+      .bind(topicId)
+      .all<ForumCommentRecord>();
+    return res.results;
+  }
+
+  async createForumComment(comment: ForumCommentRecord): Promise<void> {
+    await this.db.batch([
+      this.db
+        .prepare(
+          `INSERT INTO forum_comments (id, topic_id, author_id, author_handle, content, created_at)
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6)`,
+        )
+        .bind(comment.id, comment.topic_id, comment.author_id, comment.author_handle, comment.content, comment.created_at),
+      this.db
+        .prepare('UPDATE forum_topics SET replies_count = replies_count + 1 WHERE id = ?1')
+        .bind(comment.topic_id),
+    ]);
+  }
+
+  async listAnnouncements(): Promise<AnnouncementRecord[]> {
+    const res = await this.db
+      .prepare('SELECT * FROM announcements ORDER BY created_at DESC')
+      .all<AnnouncementRecord>();
+    return res.results;
+  }
+
+  async createAnnouncement(announcement: AnnouncementRecord): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO announcements (id, author_id, tag, title, summary, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6)`,
+      )
+      .bind(announcement.id, announcement.author_id, announcement.tag, announcement.title, announcement.summary, announcement.created_at)
+      .run();
   }
 
   async listChatMessages(channelId: string): Promise<ChatMessageRecord[]> {
@@ -535,6 +841,14 @@ export class CloudflareD1Repository implements IArcanaRepository {
       .run();
   }
 
+  async deleteChatMessage(messageId: string): Promise<void> {
+    await this.db.prepare('DELETE FROM chat_messages WHERE id = ?1').bind(messageId).run();
+  }
+
+  async clearChatChannel(channelId: string): Promise<void> {
+    await this.db.prepare('DELETE FROM chat_messages WHERE channel_id = ?1').bind(channelId).run();
+  }
+
   async listFriendships(userId: string): Promise<FriendshipRecord[]> {
     const res = await this.db
       .prepare(
@@ -567,6 +881,13 @@ export class CloudflareD1Repository implements IArcanaRepository {
         record.presence_activity,
         record.updated_at,
       )
+      .run();
+  }
+
+  async removeFriendship(userId: string, friendId: string): Promise<void> {
+    await this.db
+      .prepare('DELETE FROM friendships WHERE user_id = ?1 AND friend_id = ?2')
+      .bind(userId, friendId)
       .run();
   }
 
@@ -605,10 +926,7 @@ export class CloudflareD1Repository implements IArcanaRepository {
         .run();
       return;
     }
-    await this.db
-      .prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ?1')
-      .bind(userId)
-      .run();
+    await this.db.prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ?1').bind(userId).run();
   }
 
   async listCharactersByUser(userId: string): Promise<CharacterRecord[]> {
@@ -617,6 +935,24 @@ export class CloudflareD1Repository implements IArcanaRepository {
       .bind(userId)
       .all<CharacterRecord>();
     return res.results;
+  }
+
+  async listCharactersByCampaign(campaignId: string): Promise<CharacterRecord[]> {
+    const res = await this.db
+      .prepare('SELECT * FROM characters WHERE campaign_id = ?1 ORDER BY updated_at DESC')
+      .bind(campaignId)
+      .all<CharacterRecord>();
+    return res.results;
+  }
+
+  async findCharacterByUserAndCampaign(
+    userId: string,
+    campaignId: string,
+  ): Promise<CharacterRecord | null> {
+    return this.db
+      .prepare('SELECT * FROM characters WHERE user_id = ?1 AND campaign_id = ?2 LIMIT 1')
+      .bind(userId, campaignId)
+      .first<CharacterRecord>();
   }
 
   async upsertCharacter(character: CharacterRecord): Promise<void> {
@@ -654,19 +990,21 @@ export class CloudflareD1Repository implements IArcanaRepository {
   async createReport(report: UniversalReportRecord): Promise<void> {
     await this.db
       .prepare(
-        `INSERT INTO universal_reports (id, reporter_id, target_user_id, origin_type, origin_id, reason_category, description, auto_tags_json, evidence_snapshot_json, status, created_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)`,
+        `INSERT INTO universal_reports (id, reporter_id, target_user_id, origin_type, entity_type, origin_id, reason_category, description, auto_tags_json, evidence_snapshot_json, votes_json, status, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)`,
       )
       .bind(
         report.id,
         report.reporter_id,
         report.target_user_id,
         report.origin_type,
+        report.entity_type ?? report.origin_type,
         report.origin_id,
         report.reason_category,
         report.description,
         report.auto_tags_json,
         report.evidence_snapshot_json,
+        report.votes_json ?? '[]',
         report.status,
         report.created_at,
       )
@@ -680,10 +1018,32 @@ export class CloudflareD1Repository implements IArcanaRepository {
     return res.results;
   }
 
-  async updateReportStatus(
+  async findReportById(reportId: string): Promise<UniversalReportRecord | null> {
+    return this.db
+      .prepare('SELECT * FROM universal_reports WHERE id = ?1 LIMIT 1')
+      .bind(reportId)
+      .first<UniversalReportRecord>();
+  }
+
+  async updateReportVotes(
     reportId: string,
-    status: 'resolved' | 'dismissed',
+    votesJson: string,
+    status?: 'pending' | 'resolved' | 'dismissed',
   ): Promise<void> {
+    if (status) {
+      await this.db
+        .prepare('UPDATE universal_reports SET votes_json = ?1, status = ?2 WHERE id = ?3')
+        .bind(votesJson, status, reportId)
+        .run();
+      return;
+    }
+    await this.db
+      .prepare('UPDATE universal_reports SET votes_json = ?1 WHERE id = ?2')
+      .bind(votesJson, reportId)
+      .run();
+  }
+
+  async updateReportStatus(reportId: string, status: 'resolved' | 'dismissed'): Promise<void> {
     await this.db
       .prepare('UPDATE universal_reports SET status = ?1 WHERE id = ?2')
       .bind(status, reportId)
@@ -711,9 +1071,7 @@ export class CloudflareD1Repository implements IArcanaRepository {
 
   async listP2pPresenceByCampaign(campaignId: string): Promise<P2pSignalRecord[]> {
     const res = await this.db
-      .prepare(
-        "SELECT * FROM p2p_signals WHERE campaign_id = ?1 AND signal_type = 'presence' ORDER BY created_at DESC",
-      )
+      .prepare("SELECT * FROM p2p_signals WHERE campaign_id = ?1 AND signal_type = 'presence' ORDER BY created_at DESC")
       .bind(campaignId)
       .all<P2pSignalRecord>();
     return res.results;
@@ -744,4 +1102,3 @@ export class CloudflareD1Repository implements IArcanaRepository {
     };
   }
 }
-

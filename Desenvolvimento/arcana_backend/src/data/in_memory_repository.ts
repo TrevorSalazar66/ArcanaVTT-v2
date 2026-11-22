@@ -1,19 +1,25 @@
 import type {
   AdminUserSummaryRecord,
+  AnnouncementRecord,
+  CampaignInviteRecord,
   CampaignMemberDetailRecord,
   CampaignMemberRecord,
   CampaignRecord,
+  CampaignSceneRecord,
   CharacterRecord,
   ChatMessageRecord,
   CompendiumItemRecord,
   DeviceSecurityRecord,
+  ForumCommentRecord,
   ForumTopicRecord,
   FriendshipRecord,
+  GmBanRecord,
   GuildRecord,
   IArcanaRepository,
   NotificationRecord,
   P2pSignalRecord,
   SessionRecord,
+  SystemCreationKeyRecord,
   SystemRecord,
   UniversalReportRecord,
   UserProfileRecord,
@@ -22,7 +28,7 @@ import type {
 import type { AccountStatus, UserRole } from '../types/env';
 
 /**
- * Repositório em memória espelhando fielmente o schema D1 (usado nos testes automatizados e dev sem DB).
+ * Repositório em memória espelhando fielmente o schema D1 Limpo (Zero sistemas hardcoded).
  */
 export class InMemoryArcanaRepository implements IArcanaRepository {
   public users = new Map<string, UserRecord>();
@@ -30,11 +36,18 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
   public devices = new Map<string, DeviceSecurityRecord>();
   public sessions = new Map<string, SessionRecord>();
   public systems = new Map<string, SystemRecord>();
+  public systemKeys = new Map<string, SystemCreationKeyRecord>();
+  public favoriteSystems = new Map<string, Set<string>>();
   public campaigns = new Map<string, CampaignRecord>();
   public memberships: CampaignMemberRecord[] = [];
+  public invites: CampaignInviteRecord[] = [];
+  public gmBans: GmBanRecord[] = [];
+  public scenes: CampaignSceneRecord[] = [];
   public compendium: CompendiumItemRecord[] = [];
   public guilds: GuildRecord[] = [];
   public topics: ForumTopicRecord[] = [];
+  public forumComments: ForumCommentRecord[] = [];
+  public announcements: AnnouncementRecord[] = [];
   public messages: ChatMessageRecord[] = [];
   public friendships: FriendshipRecord[] = [];
   public notifications: NotificationRecord[] = [];
@@ -43,13 +56,13 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
   public p2pSignals: P2pSignalRecord[] = [];
 
   constructor(options?: { withTestFixtures?: boolean }) {
-    this.seedCanonicalSystem();
+    this.seedCanonicalBase();
     if (options?.withTestFixtures) {
       this.seedTestFixtures();
     }
   }
 
-  private seedCanonicalSystem(): void {
+  private seedCanonicalBase(): void {
     const baseTime = '2026-01-01T00:00:00.000Z';
     this.users.set('usr_system_official', {
       id: 'usr_system_official',
@@ -58,6 +71,7 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
       birth_date: '1990-01-01',
       role: 'superadmin',
       account_status: 'active',
+      suspended_until: null,
       lockout_token_hash: null,
       created_at: baseTime,
       updated_at: baseTime,
@@ -67,7 +81,7 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
       user_id: 'usr_system_official',
       username: 'arcanavtt_oficial',
       display_name: 'ArcanaVTT Oficial',
-      bio: 'Mantenedor técnico do sistema oficial AlphaD6 Core.',
+      bio: 'Mantenedor técnico da plataforma e do Motor Universal.',
       avatar_icon: 'crown',
       preferred_role: 'superadmin',
       reputation_points: 0,
@@ -77,83 +91,21 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
       updated_at: baseTime,
     });
 
-    this.systems.set('sys_alphad6_v24', {
-      id: 'sys_alphad6_v24',
+    // Âncora técnica oculta de FK para campanhas agnósticas (excluída em listSystems)
+    this.systems.set('sys_universal', {
+      id: 'sys_universal',
       author_id: 'usr_system_official',
-      name: 'AlphaD6 Core',
-      version: 'v2.4',
+      name: 'Motor Universal',
+      version: 'v1.0',
       category_type: 'oficiais',
-      dice_engine: '3d6',
-      description: 'Sistema oficial Dark Fantasy baseado em rolagem de 3d6 e 12 slots.',
-      rules_json: '{"attributes":["Corpo","Mente","Espirito"],"inventory_slots":12}',
+      dice_engine: 'universal',
+      description: 'Motor agnóstico.',
+      rules_json: '{"universal":true}',
       downloads_count: 0,
       rating: 5.0,
-      is_official: 1,
+      is_official: 0,
       created_at: baseTime,
     });
-
-    this.compendium.push(
-      {
-        id: 'item_espada_runica',
-        system_id: 'sys_alphad6_v24',
-        campaign_id: null,
-        category: 'equipamentos',
-        name: 'Espada Runica de Ferro Negro',
-        rarity: 'Raro',
-        slots_weight: 2,
-        description: 'Lamina runica contra espectros.',
-        properties_json: '{}',
-        created_at: baseTime,
-      },
-      {
-        id: 'item_elixir_anima',
-        system_id: 'sys_alphad6_v24',
-        campaign_id: null,
-        category: 'itens',
-        name: 'Elixir de Anima Concentrada',
-        rarity: 'Incomum',
-        slots_weight: 1,
-        description: 'Restaura 4 pontos de Anima.',
-        properties_json: '{}',
-        created_at: baseTime,
-      },
-      {
-        id: 'item_sentinela_cinza',
-        system_id: 'sys_alphad6_v24',
-        campaign_id: null,
-        category: 'seres',
-        name: 'Sentinela das Cinzas',
-        rarity: 'Epico',
-        slots_weight: 0,
-        description: 'Automato de armadura oca movido por brasas arcanas.',
-        properties_json: '{}',
-        created_at: baseTime,
-      },
-      {
-        id: 'item_selo_chama',
-        system_id: 'sys_alphad6_v24',
-        campaign_id: null,
-        category: 'poderes',
-        name: 'Selo da Chama Eterna',
-        rarity: 'Raro',
-        slots_weight: 0,
-        description: 'Conjura um escudo circular dourado que reduz dano em 2.',
-        properties_json: '{}',
-        created_at: baseTime,
-      },
-      {
-        id: 'item_pergaminho_valen',
-        system_id: 'sys_alphad6_v24',
-        campaign_id: null,
-        category: 'pistas',
-        name: 'Pergaminho do Pacto de Valen',
-        rarity: 'Unico',
-        slots_weight: 1,
-        description: 'Documento rasgado revelando o nome verdadeiro do arquimago.',
-        properties_json: '{}',
-        created_at: baseTime,
-      },
-    );
   }
 
   private seedTestFixtures(): void {
@@ -166,6 +118,7 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
         birth_date: '1992-05-14',
         role: 'superadmin',
         account_status: 'active',
+        suspended_until: null,
         lockout_token_hash: null,
         created_at: baseTime,
         updated_at: baseTime,
@@ -177,6 +130,7 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
         birth_date: '1995-08-21',
         role: 'mestre',
         account_status: 'active',
+        suspended_until: null,
         lockout_token_hash: null,
         created_at: baseTime,
         updated_at: baseTime,
@@ -188,6 +142,7 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
         birth_date: '2001-03-10',
         role: 'jogador',
         account_status: 'active',
+        suspended_until: null,
         lockout_token_hash: null,
         created_at: baseTime,
         updated_at: baseTime,
@@ -200,7 +155,7 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
         user_id: 'usr_admin_thorin',
         username: 'admin_thorin',
         display_name: 'Thorin Guardiao',
-        bio: 'Arquiteto do Sistema Oficial AlphaD6.',
+        bio: 'Arquiteto da Plataforma.',
         avatar_icon: 'crown',
         preferred_role: 'superadmin',
         reputation_points: 990,
@@ -244,7 +199,7 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
       name: 'Lamina Carmesim',
       version: 'v1.2',
       category_type: 'comunidade',
-      dice_engine: '3d6',
+      dice_engine: 'universal',
       description: 'Adaptacao minimalista focada em esgrima.',
       rules_json: '{"attributes":["Acuidade","Engenho","Vontade"]}',
       downloads_count: 3120,
@@ -258,7 +213,7 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
       owner_id: 'usr_mestre_cypher',
       title: 'A Maldicao de Valen',
       synopsis: 'Os sinos da Capela Submersa voltaram a tocar.',
-      system_id: 'sys_alphad6_v24',
+      system_id: 'sys_universal',
       quick_join_code: 'ARC774',
       mode: 'ao_vivo',
       schedule_text: 'Sab 20h',
@@ -266,6 +221,8 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
       occupied_slots: 4,
       visibility: 'publica',
       state_json: '{}',
+      is_inactive_archived: 0,
+      last_activity_at: baseTime,
       created_at: baseTime,
     });
 
@@ -292,7 +249,7 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
       active_tables_count: 6,
       boost_points: 780,
       boost_goal: 1000,
-      shared_world_json: '{}',
+      shared_world_json: '{"level":1,"world":"Valen","season":"Temporada I","clans":[],"wiki":[]}',
       created_at: baseTime,
     });
 
@@ -301,8 +258,8 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
       author_id: 'usr_mestre_cypher',
       author_handle: '@mestre_cypher',
       category: 'Regras & Oficina',
-      title: 'Guia de balanceamento de encontros 3d6',
-      content: 'Mantenha o limiar de sucesso em 5 ou 6 para combates taticos.',
+      title: 'Guia de balanceamento de encontros',
+      content: 'Use o Motor Universal para testar formulas livremente.',
       upvotes: 29,
       replies_count: 8,
       pinned: 1,
@@ -323,14 +280,9 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
     });
   }
 
-  async findUserByGoogleSubOrEmail(
-    googleSub: string,
-    email: string,
-  ): Promise<UserRecord | null> {
+  async findUserByGoogleSubOrEmail(googleSub: string, email: string): Promise<UserRecord | null> {
     for (const user of this.users.values()) {
-      if (user.google_sub === googleSub || user.email === email) {
-        return user;
-      }
+      if (user.google_sub === googleSub || user.email === email) return user;
     }
     return null;
   }
@@ -350,29 +302,29 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
   async updateUserRole(userId: string, role: UserRole): Promise<void> {
     const user = this.users.get(userId);
     if (user) {
-      this.users.set(userId, {
-        ...user,
-        role,
-        updated_at: new Date().toISOString(),
-      });
+      this.users.set(userId, { ...user, role, updated_at: new Date().toISOString() });
     }
   }
 
   async updateUserBirthDate(userId: string, birthDate: string): Promise<void> {
     const user = this.users.get(userId);
     if (user) {
+      this.users.set(userId, { ...user, birth_date: birthDate, updated_at: new Date().toISOString() });
+    }
+  }
+
+  async updateUserSuspension(userId: string, suspendedUntil: string | null): Promise<void> {
+    const user = this.users.get(userId);
+    if (user) {
       this.users.set(userId, {
         ...user,
-        birth_date: birthDate,
+        suspended_until: suspendedUntil,
         updated_at: new Date().toISOString(),
       });
     }
   }
 
-  async createUserWithProfile(
-    user: UserRecord,
-    profile: UserProfileRecord,
-  ): Promise<void> {
+  async createUserWithProfile(user: UserRecord, profile: UserProfileRecord): Promise<void> {
     this.users.set(user.id, user);
     this.profiles.set(profile.user_id, profile);
   }
@@ -404,6 +356,7 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
         birth_date: user.birth_date,
         role: user.role,
         account_status: user.account_status,
+        suspended_until: user.suspended_until ?? null,
         created_at: user.created_at,
         username: profile?.username ?? '',
         display_name: profile?.display_name ?? user.email,
@@ -417,8 +370,9 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
   }
 
   async findProfileByUsername(username: string): Promise<UserProfileRecord | null> {
+    const norm = username.toLowerCase();
     for (const profile of this.profiles.values()) {
-      if (profile.username === username) return profile;
+      if (profile.username.toLowerCase() === norm) return profile;
     }
     return null;
   }
@@ -427,14 +381,26 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
     this.profiles.set(profile.user_id, profile);
   }
 
-  async findDeviceSecurity(
-    fingerprint: string,
-  ): Promise<DeviceSecurityRecord | null> {
+  async findDeviceSecurity(fingerprint: string): Promise<DeviceSecurityRecord | null> {
     return this.devices.get(fingerprint) ?? null;
+  }
+
+  async findLatestDeviceByUserId(userId: string): Promise<DeviceSecurityRecord | null> {
+    let best: DeviceSecurityRecord | null = null;
+    for (const d of this.devices.values()) {
+      if (d.user_id === userId) {
+        if (!best || d.updated_at > best.updated_at) best = d;
+      }
+    }
+    return best;
   }
 
   async upsertDeviceSecurity(record: DeviceSecurityRecord): Promise<void> {
     this.devices.set(record.device_fingerprint, record);
+  }
+
+  async listBannedDevices(): Promise<DeviceSecurityRecord[]> {
+    return Array.from(this.devices.values()).filter((d) => d.is_hardware_banned === 1);
   }
 
   async createSession(session: SessionRecord): Promise<void> {
@@ -447,16 +413,12 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
 
   async revokeSessionByJti(jti: string): Promise<void> {
     const existing = this.sessions.get(jti);
-    if (existing) {
-      this.sessions.set(jti, { ...existing, revoked: 1 });
-    }
+    if (existing) this.sessions.set(jti, { ...existing, revoked: 1 });
   }
 
   async revokeAllUserSessions(userId: string): Promise<void> {
     for (const [jti, session] of this.sessions.entries()) {
-      if (session.user_id === userId) {
-        this.sessions.set(jti, { ...session, revoked: 1 });
-      }
+      if (session.user_id === userId) this.sessions.set(jti, { ...session, revoked: 1 });
     }
   }
 
@@ -464,15 +426,11 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
     return Array.from(this.campaigns.values());
   }
 
-  async listCampaignMembershipsByUser(
-    userId: string,
-  ): Promise<CampaignMemberRecord[]> {
+  async listCampaignMembershipsByUser(userId: string): Promise<CampaignMemberRecord[]> {
     return this.memberships.filter((m) => m.user_id === userId);
   }
 
-  async listCampaignMembersByCampaign(
-    campaignId: string,
-  ): Promise<CampaignMemberDetailRecord[]> {
+  async listCampaignMembersByCampaign(campaignId: string): Promise<CampaignMemberDetailRecord[]> {
     return this.memberships
       .filter((m) => m.campaign_id === campaignId)
       .map((m) => {
@@ -485,14 +443,9 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
       });
   }
 
-  async findCampaignMember(
-    campaignId: string,
-    userId: string,
-  ): Promise<CampaignMemberRecord | null> {
+  async findCampaignMember(campaignId: string, userId: string): Promise<CampaignMemberRecord | null> {
     return (
-      this.memberships.find(
-        (m) => m.campaign_id === campaignId && m.user_id === userId,
-      ) ?? null
+      this.memberships.find((m) => m.campaign_id === campaignId && m.user_id === userId) ?? null
     );
   }
 
@@ -508,37 +461,121 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
     return this.campaigns.get(id) ?? null;
   }
 
-  async createCampaign(
-    campaign: CampaignRecord,
-    ownerMembership: CampaignMemberRecord,
-  ): Promise<void> {
+  async createCampaign(campaign: CampaignRecord, ownerMembership: CampaignMemberRecord): Promise<void> {
     this.campaigns.set(campaign.id, campaign);
     this.memberships.push(ownerMembership);
+  }
+
+  async updateCampaign(campaign: CampaignRecord): Promise<void> {
+    this.campaigns.set(campaign.id, campaign);
   }
 
   async upsertCampaignMember(member: CampaignMemberRecord): Promise<void> {
     const idx = this.memberships.findIndex(
       (m) => m.campaign_id === member.campaign_id && m.user_id === member.user_id,
     );
-    if (idx >= 0) {
-      this.memberships[idx] = member;
-    } else {
-      this.memberships.push(member);
-    }
+    if (idx >= 0) this.memberships[idx] = member;
+    else this.memberships.push(member);
   }
 
   async incrementCampaignOccupiedSlots(campaignId: string): Promise<void> {
     const cmp = this.campaigns.get(campaignId);
     if (cmp) {
-      this.campaigns.set(campaignId, {
-        ...cmp,
-        occupied_slots: cmp.occupied_slots + 1,
-      });
+      this.campaigns.set(campaignId, { ...cmp, occupied_slots: cmp.occupied_slots + 1 });
     }
   }
 
+  async decrementCampaignOccupiedSlots(campaignId: string): Promise<void> {
+    const cmp = this.campaigns.get(campaignId);
+    if (cmp && cmp.occupied_slots > 1) {
+      this.campaigns.set(campaignId, { ...cmp, occupied_slots: cmp.occupied_slots - 1 });
+    }
+  }
+
+  async createCampaignInvite(invite: CampaignInviteRecord): Promise<void> {
+    this.invites.unshift(invite);
+  }
+
+  async findCampaignInvite(inviteId: string): Promise<CampaignInviteRecord | null> {
+    return this.invites.find((i) => i.id === inviteId) ?? null;
+  }
+
+  async updateCampaignInviteStatus(
+    inviteId: string,
+    status: 'pending' | 'accepted' | 'declined',
+  ): Promise<void> {
+    const idx = this.invites.findIndex((i) => i.id === inviteId);
+    if (idx >= 0) this.invites[idx] = { ...this.invites[idx]!, status };
+  }
+
+  async banPlayerFromGM(gmId: string, playerId: string, reason: string): Promise<void> {
+    const exists = this.gmBans.findIndex((b) => b.gm_id === gmId && b.player_id === playerId);
+    const rec: GmBanRecord = {
+      gm_id: gmId,
+      player_id: playerId,
+      reason,
+      created_at: new Date().toISOString(),
+    };
+    if (exists >= 0) this.gmBans[exists] = rec;
+    else this.gmBans.unshift(rec);
+
+    for (const cmp of this.campaigns.values()) {
+      if (cmp.owner_id === gmId) {
+        const memIdx = this.memberships.findIndex(
+          (m) => m.campaign_id === cmp.id && m.user_id === playerId,
+        );
+        if (memIdx >= 0) {
+          const prev = this.memberships[memIdx]!;
+          if (prev.status === 'active') {
+            await this.decrementCampaignOccupiedSlots(cmp.id);
+          }
+          this.memberships[memIdx] = { ...prev, status: 'rejected' };
+        }
+      }
+    }
+  }
+
+  async unbanPlayerFromGM(gmId: string, playerId: string): Promise<void> {
+    this.gmBans = this.gmBans.filter((b) => !(b.gm_id === gmId && b.player_id === playerId));
+  }
+
+  async isPlayerBannedByGM(gmId: string, playerId: string): Promise<boolean> {
+    return this.gmBans.some((b) => b.gm_id === gmId && b.player_id === playerId);
+  }
+
+  async listGMBannedPlayers(gmId: string): Promise<GmBanRecord[]> {
+    return this.gmBans
+      .filter((b) => b.gm_id === gmId)
+      .map((b) => {
+        const profile = this.profiles.get(b.player_id);
+        return {
+          ...b,
+          player_username: profile?.username ?? '',
+          player_display_name: profile?.display_name ?? '',
+        };
+      });
+  }
+
+  async listScenesByCampaign(campaignId: string): Promise<CampaignSceneRecord[]> {
+    return this.scenes.filter((s) => s.campaign_id === campaignId);
+  }
+
+  async findSceneById(sceneId: string): Promise<CampaignSceneRecord | null> {
+    return this.scenes.find((s) => s.id === sceneId) ?? null;
+  }
+
+  async upsertScene(scene: CampaignSceneRecord): Promise<void> {
+    const idx = this.scenes.findIndex((s) => s.id === scene.id);
+    if (idx >= 0) this.scenes[idx] = scene;
+    else this.scenes.push(scene);
+  }
+
+  async deleteScene(sceneId: string): Promise<void> {
+    this.scenes = this.scenes.filter((s) => s.id !== sceneId);
+  }
+
   async listSystems(): Promise<SystemRecord[]> {
-    return Array.from(this.systems.values());
+    return Array.from(this.systems.values()).filter((s) => s.id !== 'sys_universal');
   }
 
   async createSystem(system: SystemRecord): Promise<void> {
@@ -549,6 +586,47 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
     return this.compendium.filter((item) => item.system_id === systemId);
   }
 
+  async findCompendiumItemById(itemId: string): Promise<CompendiumItemRecord | null> {
+    return this.compendium.find((item) => item.id === itemId) ?? null;
+  }
+
+  async upsertCompendiumItem(item: CompendiumItemRecord): Promise<void> {
+    const idx = this.compendium.findIndex((i) => i.id === item.id);
+    if (idx >= 0) this.compendium[idx] = item;
+    else this.compendium.push(item);
+  }
+
+  async createSystemKey(record: SystemCreationKeyRecord): Promise<void> {
+    this.systemKeys.set(record.code.toUpperCase(), record);
+  }
+
+  async findSystemKey(code: string): Promise<SystemCreationKeyRecord | null> {
+    return this.systemKeys.get(code.trim().toUpperCase()) ?? null;
+  }
+
+  async markSystemKeyUsed(code: string, usedByUserId: string): Promise<void> {
+    const key = this.systemKeys.get(code.trim().toUpperCase());
+    if (key) {
+      this.systemKeys.set(key.code, { ...key, is_used: 1, used_by_user_id: usedByUserId });
+    }
+  }
+
+  async listSystemKeys(): Promise<SystemCreationKeyRecord[]> {
+    return Array.from(this.systemKeys.values());
+  }
+
+  async listFavoriteSystemIds(userId: string): Promise<string[]> {
+    return Array.from(this.favoriteSystems.get(userId) ?? []);
+  }
+
+  async toggleFavoriteSystem(userId: string, systemId: string): Promise<string[]> {
+    const current = this.favoriteSystems.get(userId) ?? new Set<string>();
+    if (current.has(systemId)) current.delete(systemId);
+    else current.add(systemId);
+    this.favoriteSystems.set(userId, current);
+    return Array.from(current);
+  }
+
   async listGuilds(): Promise<GuildRecord[]> {
     return [...this.guilds];
   }
@@ -557,13 +635,18 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
     this.guilds.unshift(guild);
   }
 
+  async updateGuild(guild: GuildRecord): Promise<void> {
+    const idx = this.guilds.findIndex((g) => g.id === guild.id);
+    if (idx >= 0) this.guilds[idx] = guild;
+  }
+
   async boostGuild(guildId: string, points: number): Promise<GuildRecord | null> {
     const idx = this.guilds.findIndex((g) => g.id === guildId);
     if (idx < 0) return null;
     const current = this.guilds[idx]!;
     const updated: GuildRecord = {
       ...current,
-      boost_points: Math.min(current.boost_goal, current.boost_points + points),
+      boost_points: current.boost_points + points,
     };
     this.guilds[idx] = updated;
     return updated;
@@ -577,11 +660,29 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
     this.topics.unshift(topic);
   }
 
-  async upvoteForumTopic(topicId: string): Promise<ForumTopicRecord | null> {
+  async upvoteForumTopic(topicId: string, delta = 1): Promise<ForumTopicRecord | null> {
     const topic = this.topics.find((t) => t.id === topicId);
     if (!topic) return null;
-    topic.upvotes += 1;
+    topic.upvotes += delta;
     return topic;
+  }
+
+  async listForumComments(topicId: string): Promise<ForumCommentRecord[]> {
+    return this.forumComments.filter((c) => c.topic_id === topicId);
+  }
+
+  async createForumComment(comment: ForumCommentRecord): Promise<void> {
+    this.forumComments.push(comment);
+    const topic = this.topics.find((t) => t.id === comment.topic_id);
+    if (topic) topic.replies_count += 1;
+  }
+
+  async listAnnouncements(): Promise<AnnouncementRecord[]> {
+    return [...this.announcements];
+  }
+
+  async createAnnouncement(announcement: AnnouncementRecord): Promise<void> {
+    this.announcements.unshift(announcement);
   }
 
   async listChatMessages(channelId: string): Promise<ChatMessageRecord[]> {
@@ -594,6 +695,14 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
 
   async createChatMessage(message: ChatMessageRecord): Promise<void> {
     this.messages.push(message);
+  }
+
+  async deleteChatMessage(messageId: string): Promise<void> {
+    this.messages = this.messages.filter((m) => m.id !== messageId);
+  }
+
+  async clearChatChannel(channelId: string): Promise<void> {
+    this.messages = this.messages.filter((m) => m.channel_id !== channelId);
   }
 
   async listFriendships(userId: string): Promise<FriendshipRecord[]> {
@@ -613,11 +722,14 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
     const idx = this.friendships.findIndex(
       (f) => f.user_id === record.user_id && f.friend_id === record.friend_id,
     );
-    if (idx >= 0) {
-      this.friendships[idx] = record;
-    } else {
-      this.friendships.unshift(record);
-    }
+    if (idx >= 0) this.friendships[idx] = record;
+    else this.friendships.unshift(record);
+  }
+
+  async removeFriendship(userId: string, friendId: string): Promise<void> {
+    this.friendships = this.friendships.filter(
+      (f) => !(f.user_id === userId && f.friend_id === friendId),
+    );
   }
 
   async listNotifications(userId: string): Promise<NotificationRecord[]> {
@@ -640,6 +752,20 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
     return Array.from(this.characters.values()).filter((c) => c.user_id === userId);
   }
 
+  async listCharactersByCampaign(campaignId: string): Promise<CharacterRecord[]> {
+    return Array.from(this.characters.values()).filter((c) => c.campaign_id === campaignId);
+  }
+
+  async findCharacterByUserAndCampaign(
+    userId: string,
+    campaignId: string,
+  ): Promise<CharacterRecord | null> {
+    for (const c of this.characters.values()) {
+      if (c.user_id === userId && c.campaign_id === campaignId) return c;
+    }
+    return null;
+  }
+
   async upsertCharacter(character: CharacterRecord): Promise<void> {
     this.characters.set(character.id, character);
   }
@@ -652,10 +778,26 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
     return [...this.reports];
   }
 
-  async updateReportStatus(
+  async findReportById(reportId: string): Promise<UniversalReportRecord | null> {
+    return this.reports.find((r) => r.id === reportId) ?? null;
+  }
+
+  async updateReportVotes(
     reportId: string,
-    status: 'resolved' | 'dismissed',
+    votesJson: string,
+    status?: 'pending' | 'resolved' | 'dismissed',
   ): Promise<void> {
+    const idx = this.reports.findIndex((r) => r.id === reportId);
+    if (idx >= 0) {
+      this.reports[idx] = {
+        ...this.reports[idx]!,
+        votes_json: votesJson,
+        ...(status ? { status } : {}),
+      };
+    }
+  }
+
+  async updateReportStatus(reportId: string, status: 'resolved' | 'dismissed'): Promise<void> {
     const target = this.reports.find((r) => r.id === reportId);
     if (target) target.status = status;
   }
@@ -690,4 +832,3 @@ export class InMemoryArcanaRepository implements IArcanaRepository {
     };
   }
 }
-

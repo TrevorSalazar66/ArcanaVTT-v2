@@ -10,7 +10,7 @@ type OAuthInput = z.infer<typeof authOAuthGoogleSchema>;
 
 /**
  * Autenticação 100% Google OAuth 2.0 com validação de `id_token`, barreira etária LGPD (>= 16 anos),
- * proteção Hardware Ban e sessão de Dispositivo Confiável (15–30 dias).
+ * proteção Hardware Ban, checagem de suspensão e Auto-Login Progressivo (15 dias para contas <90d, 30 dias >=90d).
  */
 export async function authenticateGoogleOAuth(
   input: OAuthInput,
@@ -129,6 +129,16 @@ export async function authenticateGoogleOAuth(
       'Esta conta foi suspensa pelas Diretrizes de Convivencia.',
     );
   }
+  if (user && user.suspended_until) {
+    const untilMs = Date.parse(user.suspended_until);
+    if (Number.isFinite(untilMs) && untilMs > Date.now()) {
+      throw new AppError(
+        403,
+        'ACCOUNT_SUSPENDED',
+        `Esta conta esta suspensa temporariamente ate ${user.suspended_until}.`,
+      );
+    }
+  }
 
   if (!user) {
     const userId = generateId('usr');
@@ -146,7 +156,6 @@ export async function authenticateGoogleOAuth(
     } else if (env?.ENVIRONMENT === 'test' && input.requested_role) {
       initialRole = input.requested_role;
     } else {
-      // Regra estrita (01-visao-geral-e-rbac.md & 06_Planejamento): todo novo usuario inicia como jogador.
       initialRole = 'jogador';
     }
 
@@ -157,6 +166,7 @@ export async function authenticateGoogleOAuth(
       birth_date: input.birth_date ?? '2000-01-01',
       role: initialRole,
       account_status: 'active',
+      suspended_until: null,
       lockout_token_hash: null,
       created_at: nowIso,
       updated_at: nowIso,
@@ -180,9 +190,14 @@ export async function authenticateGoogleOAuth(
     await repo.createUserWithProfile(user, profile);
   }
 
-  const ttlDays = input.trust_device
-    ? Number.parseInt(env?.SESSION_TTL_DAYS ?? '30', 10) || 30
-    : 1;
+  // Auto-Login Progressivo: contas < 90 dias recebem 15 dias; veteranas (>= 90 dias) recebem 30 dias
+  const accountAgeDays = Math.floor(
+    (Date.now() - (Date.parse(user.created_at) || Date.now())) / (24 * 60 * 60 * 1000),
+  );
+  const maxVeteranDays = Number.parseInt(env?.SESSION_TTL_DAYS ?? '30', 10) || 30;
+  const progressiveDays = accountAgeDays >= 90 ? maxVeteranDays : 15;
+  const ttlDays = input.trust_device ? progressiveDays : 1;
+
   const expiresAtDate = new Date(Date.now() + ttlDays * 24 * 60 * 60 * 1000);
   const jti = generateId('jti');
 
@@ -231,13 +246,14 @@ export async function authenticateGoogleOAuth(
     token,
     expires_at: expiresAtDate.toISOString(),
     trusted_device_days: input.trust_device ? ttlDays : 0,
+    requires_profile_setup: (profile?.onboarding_completed ?? 0) === 0,
     user: {
       id: user.id,
       email: user.email,
       role: user.role,
       account_status: user.account_status,
+      created_at: user.created_at,
     },
     profile,
   };
 }
-

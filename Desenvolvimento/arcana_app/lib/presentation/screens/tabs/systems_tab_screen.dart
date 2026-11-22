@@ -7,10 +7,8 @@ import '../../modals/modal_shell.dart';
 import '../../modals/system_modals.dart';
 import '../../widgets/heraldic_buttons.dart';
 import '../../widgets/heraldic_card.dart';
-import '../../widgets/heraldic_section_divider.dart';
 import '../../widgets/svg_icon_widget.dart';
 
-/// Aba 3 — Sistemas & Compêndio Inteligente (Ocultação Automática de Categorias Vazias).
 class SystemsTabScreen extends StatefulWidget {
   final AppController controller;
 
@@ -21,51 +19,47 @@ class SystemsTabScreen extends StatefulWidget {
 }
 
 class _SystemsTabScreenState extends State<SystemsTabScreen> {
-  int _segmentIdx = 0;
-  String _search = '';
-  String _selectedSystemForCompendium = 'sys_alphad6_v24';
-  CompendiumCategory? _selectedCategory;
-
-  static const _segments = ['Oficiais', 'Próprios', 'Meus', 'Comunidade'];
+  int _segmentIndex = 0; // Oficiais, Proprios, Meus, Comunidade
+  String _searchQuery = '';
+  bool _onlyFavorites = false;
 
   @override
   Widget build(BuildContext context) {
     final p = context.arcana;
     final ctrl = widget.controller;
+    final selectedSeg = SystemSegment.values[_segmentIndex];
 
-    final filteredSystems = ctrl.systems.where((sys) {
-      if (_search.trim().isNotEmpty &&
-          !sys.name.toLowerCase().contains(_search.trim().toLowerCase())) {
+    final filtered = ctrl.systems.where((s) {
+      if (_segmentIndex == 2) {
+        if (s.authorId != ctrl.currentUser.id && !s.isFavorite) return false;
+      } else if (s.segment != selectedSeg) {
         return false;
       }
-      switch (_segmentIdx) {
-        case 0:
-          return sys.segment == SystemSegment.oficiais;
-        case 1:
-          return sys.segment == SystemSegment.proprios;
-        case 2:
-          return sys.segment == SystemSegment.proprios || sys.isOfficial;
-        default:
-          return sys.segment == SystemSegment.comunidade;
+      if (_onlyFavorites && !s.isFavorite) return false;
+      if (_searchQuery.trim().isNotEmpty) {
+        final q = _searchQuery.toLowerCase();
+        return s.name.toLowerCase().contains(q) ||
+            s.description.toLowerCase().contains(q);
       }
+      return true;
     }).toList();
 
-    final compResult = ctrl.queryCompendium(
-      systemId: _selectedSystemForCompendium,
-      category: _selectedCategory,
-      searchQuery: _search,
-    );
-
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+      padding: const EdgeInsets.all(16),
       children: [
+        HeraldicSegmentBar(
+          segments: const ['Oficiais', 'Proprios', 'Meus', 'Comunidade'],
+          selectedIndex: _segmentIndex,
+          onSelected: (idx) => setState(() => _segmentIndex = idx),
+        ),
+        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
               child: TextField(
-                onChanged: (v) => setState(() => _search = v),
+                onChanged: (v) => setState(() => _searchQuery = v),
                 decoration: InputDecoration(
-                  hintText: 'Buscar sistema ou item...',
+                  hintText: 'Pesquisar sistemas, compendios ou motores...',
                   prefixIcon: Padding(
                     padding: const EdgeInsets.all(12),
                     child: SvgIconWidget(ArcanaSvgIcons.search, size: 18),
@@ -75,159 +69,123 @@ class _SystemsTabScreenState extends State<SystemsTabScreen> {
             ),
             const SizedBox(width: 8),
             SecondaryHeraldicButton(
-              label: _selectedCategory?.labelPtBr ?? 'Categorias',
-              svgIcon: ArcanaSvgIcons.filter,
-              borderColor: p.goldBorder,
-              onPressed: () => showArcanaModal(
-                context,
-                builder: (_) => SystemFiltersModal(
-                  availableCategories: compResult.visibleCategories,
-                  selected: _selectedCategory,
-                  onSelect: (cat) => setState(() => _selectedCategory = cat),
-                ),
-              ),
+              label: _onlyFavorites ? 'Favoritos' : 'Todos',
+              svgIcon: ArcanaSvgIcons.heart,
+              borderColor: _onlyFavorites ? p.goldPrimary : null,
+              onPressed: () => setState(() => _onlyFavorites = !_onlyFavorites),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        HeraldicSegmentBar(
-          segments: _segments,
-          selectedIndex: _segmentIdx,
-          onSelected: (idx) => setState(() => _segmentIdx = idx),
-        ),
-        const SizedBox(height: 12),
         PrimaryGoldPillButton(
-          label: 'Forjar Sistema Próprio (Homebrew JSON)',
+          label: 'Forjar Sistema (Key de Criacao / Admin)',
           svgIcon: ArcanaSvgIcons.sparkles,
-          onPressed: () => showArcanaModal(
-            context,
+          expand: true,
+          onPressed: () => showArcanaModal(context,
             builder: (_) => SystemForgeModal(controller: ctrl),
           ),
         ),
-        const SizedBox(height: 14),
-        ...filteredSystems.map(
-          (sys) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: HeraldicCard(
+        const SizedBox(height: 16),
+        if (filtered.isEmpty)
+          HeraldicCard(
+            child: Column(
+              children: [
+                SvgIconWidget(ArcanaSvgIcons.scroll, size: 32, color: p.goldPrimary),
+                const SizedBox(height: 8),
+                Text(
+                  'Catalogo Dinamico de Sistemas',
+                  style: TextStyle(
+                    fontFamily: 'Cinzel',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: p.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Nenhum sistema cadastrado nesta aba ainda. O ArcanaVTT nao pre-define regras engessadas: forje seu sistema com atributos proprios ou importe da comunidade.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: p.textSecondary),
+                ),
+              ],
+            ),
+          )
+        else
+          for (final sys in filtered) ...[
+            HeraldicCard(
               goldAccent: sys.isOfficial,
-              onTap: () => setState(() {
-                _selectedSystemForCompendium = sys.id;
-                _selectedCategory = null;
-              }),
+              onTap: () => showArcanaModal(context,
+                builder: (_) => SystemPreviewModal(controller: ctrl, system: sys),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Flexible(
-                        child: Text(
-                          '${sys.name} (${sys.version})',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ),
                       HeraldicChipPill(
-                        label: sys.isOfficial ? 'OFICIAL' : 'MOTOR ${sys.diceEngine.toUpperCase()}',
+                        label: sys.isOfficial ? 'OFICIAL' : 'HOMEBREW',
                         color: sys.isOfficial ? p.goldPrimary : p.infoBlue,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(sys.description, style: Theme.of(context).textTheme.bodySmall),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${sys.downloadsCount} mesas • Nota ${sys.rating}',
-                        style: TextStyle(fontSize: 11, color: p.textSecondary),
+                      const SizedBox(width: 6),
+                      HeraldicChipPill(label: sys.diceEngine, color: p.emerald),
+                      const Spacer(),
+                      IconButton(
+                        tooltip: 'Favoritar Sistema',
+                        onPressed: () => ctrl.toggleFavoriteSystem(sys.id),
+                        icon: SvgIconWidget(
+                          ArcanaSvgIcons.heart,
+                          size: 18,
+                          color: sys.isFavorite ? p.crimson : p.textSecondary,
+                        ),
                       ),
-                      SecondaryHeraldicButton(
-                        label: 'Inspecionar',
-                        svgIcon: ArcanaSvgIcons.bookOpen,
-                        onPressed: () => showArcanaModal(
-                          context,
-                          builder: (_) => SystemPreviewModal(
-                            controller: ctrl,
-                            system: sys,
-                          ),
+                      IconButton(
+                        tooltip: 'Salvar Cache Offline',
+                        onPressed: () => ctrl.toggleOfflineCacheSystem(sys.id),
+                        icon: SvgIconWidget(
+                          ArcanaSvgIcons.download,
+                          size: 18,
+                          color: sys.isOfflineCached ? p.emerald : p.textSecondary,
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const HeraldicSectionDivider(
-          svgIcon: ArcanaSvgIcons.flaskConical,
-          title: 'COMPÊNDIO INTELIGENTE',
-        ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: ctrl.systems.map((sys) {
-              final active = sys.id == _selectedSystemForCompendium;
-              return Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: ChoiceChip(
-                  label: Text(sys.name),
-                  selected: active,
-                  onSelected: (_) => setState(() {
-                    _selectedSystemForCompendium = sys.id;
-                    _selectedCategory = null;
-                  }),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: compResult.visibleCategories.map((cat) {
-            final count = compResult.counts[cat] ?? 0;
-            return FilterChip(
-              label: Text('${cat.labelPtBr} ($count)'),
-              selected: _selectedCategory == cat,
-              onSelected: (sel) =>
-                  setState(() => _selectedCategory = sel ? cat : null),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 10),
-        ...compResult.items.map(
-          (item) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: HeraldicCard(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: Text(item.name,
-                            style: Theme.of(context).textTheme.titleMedium),
-                      ),
-                      HeraldicChipPill(
-                        label: item.category.labelPtBr,
-                        color: p.emerald,
-                      ),
-                    ],
+                  Text(
+                    '${sys.name} (${sys.version})',
+                    style: TextStyle(
+                      fontFamily: 'Cinzel',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: p.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 4),
-                  Text(item.description, style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                    sys.description,
+                    style: TextStyle(fontSize: 12.5, color: p.textSecondary),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: sys.attributes
+                        .map((a) => HeraldicChipPill(label: a, color: p.goldHighlight))
+                        .toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  SecondaryHeraldicButton(
+                    label: 'Abrir Compendio & Delta',
+                    svgIcon: ArcanaSvgIcons.bookOpen,
+                    expand: true,
+                    onPressed: () => showArcanaModal(context,
+                      builder: (_) => SystemPreviewModal(controller: ctrl, system: sys),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-        ),
+            const SizedBox(height: 12),
+          ],
       ],
     );
   }
 }
-

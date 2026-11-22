@@ -1,228 +1,81 @@
 import 'package:flutter/material.dart';
-import '../../controllers/app_controller.dart';
-import '../../core/constants/svg_icons.dart';
-import '../../core/theme/arcana_colors.dart';
-import '../../domain/entities/arcana_entities.dart';
+import '../../../controllers/app_controller.dart';
+import '../../../core/constants/svg_icons.dart';
+import '../../../core/theme/arcana_colors.dart';
+import '../../../domain/entities/arcana_entities.dart';
 import '../widgets/heraldic_buttons.dart';
 import '../widgets/heraldic_card.dart';
 import 'modal_shell.dart';
+import 'universal_report_modal.dart';
 
-/// Painel de Guilda com Shared World & barra interativa de Guild Boost.
-class GuildPanelModal extends StatelessWidget {
-  final AppController controller;
-  final String guildId;
-
-  const GuildPanelModal({
-    super.key,
-    required this.controller,
-    required this.guildId,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.arcana;
-    return ListenableBuilder(
-      listenable: controller,
-      builder: (context, _) {
-        if (controller.guilds.isEmpty) {
-          return ArcanaModalScaffold(
-            svgIcon: ArcanaSvgIcons.shield,
-            title: 'GUILDA NÃO ENCONTRADA',
-            subtitle: 'Nenhuma guilda registrada na sua conta no momento',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                HeraldicCard(
-                  child: Text(
-                    'Funde uma nova guilda na aba Comunidades para habilitar o mundo compartilhado e campanhas vinculadas.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                PrimaryGoldPillButton(
-                  label: 'Fundar Nova Guilda',
-                  svgIcon: ArcanaSvgIcons.plus,
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    showArcanaModal(
-                      context,
-                      builder: (_) => CreateGuildModal(controller: controller),
-                    );
-                  },
-                ),
-              ],
-            ),
-          );
-        }
-
-        final Guild guild = controller.guilds.firstWhere(
-          (g) => g.id == guildId,
-          orElse: () => controller.guilds.first,
-        );
-        final ratio =
-            (guild.boostGoal <= 0 ? 0.0 : guild.boostPoints / guild.boostGoal)
-                .clamp(0.0, 1.0);
-
-        return ArcanaModalScaffold(
-          svgIcon: ArcanaSvgIcons.shield,
-          title: guild.name.toUpperCase(),
-          subtitle: 'Tag [${guild.tag}] • Líder ${guild.leaderHandle}',
-          badgeLabel: 'SHARED WORLD',
-          badgeColor: p.goldPrimary,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              HeraldicCard(
-                goldAccent: true,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(guild.description),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        HeraldicChipPill(
-                          label: '${guild.memberCount} Membros',
-                          color: p.infoBlue,
-                        ),
-                        HeraldicChipPill(
-                          label: '${guild.activeTablesCount} Mesas Ativas',
-                          color: p.emerald,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              HeraldicCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Guild Boost Comunitário',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        Text(
-                          '${guild.boostPoints} / ${guild.boostGoal}',
-                          style: TextStyle(
-                            color: p.goldPrimary,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    LinearProgressIndicator(
-                      value: ratio,
-                      minHeight: 8,
-                      borderRadius: BorderRadius.circular(99),
-                      color: p.goldPrimary,
-                      backgroundColor: p.surfaceElevated,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${guild.sharedWorldName} — ${guild.currentSeason}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-              PrimaryGoldPillButton(
-                label: 'Impulsionar Guilda (+50 Pontos)',
-                svgIcon: ArcanaSvgIcons.flame,
-                onPressed: () => controller.contributeGuildBoost(guild.id, 50),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// Modal para Criar Novo Tópico no Fórum da Comunidade.
-class CreateForumTopicModal extends StatefulWidget {
+class CreateAnnouncementModal extends StatefulWidget {
   final AppController controller;
 
-  const CreateForumTopicModal({super.key, required this.controller});
+  const CreateAnnouncementModal({super.key, required this.controller});
 
   @override
-  State<CreateForumTopicModal> createState() => _CreateForumTopicModalState();
+  State<CreateAnnouncementModal> createState() => _CreateAnnouncementModalState();
 }
 
-class _CreateForumTopicModalState extends State<CreateForumTopicModal> {
-  String _category = 'Regras & Oficina';
-  final TextEditingController _titleCtrl = TextEditingController();
-  final TextEditingController _bodyCtrl = TextEditingController();
+class _CreateAnnouncementModalState extends State<CreateAnnouncementModal> {
+  final _tagCtrl = TextEditingController(text: 'OFICIAL');
+  final _titleCtrl = TextEditingController();
+  final _summaryCtrl = TextEditingController();
+  bool _saving = false;
 
   @override
   void dispose() {
+    _tagCtrl.dispose();
     _titleCtrl.dispose();
-    _bodyCtrl.dispose();
+    _summaryCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return ArcanaModalScaffold(
-      svgIcon: ArcanaSvgIcons.messageSquare,
-      title: 'NOVO TÓPICO NO FÓRUM',
-      subtitle: 'Compartilhe guias, dúvidas ou convites com a comunidade',
+      svgIcon: ArcanaSvgIcons.sparkles,
+      title: 'Publicar Anuncio Oficial',
+      subtitle: 'Visivel para todos os aventureiros na Home e Aba Noticias',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          DropdownButtonFormField<String>(
-            initialValue: _category,
-            decoration: const InputDecoration(labelText: 'Categoria'),
-            items: const [
-              DropdownMenuItem(value: 'Regras & Oficina', child: Text('Regras & Oficina')),
-              DropdownMenuItem(value: 'Narrativa', child: Text('Narrativa')),
-              DropdownMenuItem(value: 'Recrutamento', child: Text('Recrutamento')),
-            ],
-            onChanged: (v) {
-              if (v != null) setState(() => _category = v);
-            },
+          TextField(
+            controller: _tagCtrl,
+            decoration: const InputDecoration(labelText: 'Tag (ex: OFICIAL, PATCH)'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           TextField(
             controller: _titleCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Título do Tópico',
-              hintText: 'Ex: Dicas para combates rápidos em AlphaD6',
-            ),
+            decoration: const InputDecoration(labelText: 'Titulo do Anuncio'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           TextField(
-            controller: _bodyCtrl,
-            maxLines: 4,
-            decoration: const InputDecoration(
-              labelText: 'Conteúdo',
-              hintText: 'Escreva sua publicação...',
-            ),
+            controller: _summaryCtrl,
+            maxLines: 3,
+            decoration: const InputDecoration(labelText: 'Conteudo / Resumo'),
           ),
           const SizedBox(height: 16),
           PrimaryGoldPillButton(
-            label: 'Publicar Tópico',
+            label: _saving ? 'Publicando...' : 'Publicar no Boletim',
             svgIcon: ArcanaSvgIcons.check,
-            onPressed: () async {
-              await widget.controller.createForumTopic(
-                category: _category,
-                title: _titleCtrl.text.trim().isEmpty
-                    ? 'Discussão sobre mesas AlphaD6'
-                    : _titleCtrl.text.trim(),
-                content: _bodyCtrl.text.trim().isEmpty
-                    ? 'Tópico aberto na comunidade ArcanaVTT.'
-                    : _bodyCtrl.text.trim(),
-              );
-              if (context.mounted) Navigator.of(context).pop();
-            },
+            expand: true,
+            onPressed: _saving
+                ? null
+                : () async {
+                    if (_titleCtrl.text.trim().length < 4 ||
+                        _summaryCtrl.text.trim().length < 6) {
+                      return;
+                    }
+                    setState(() => _saving = true);
+                    final nav = Navigator.of(context);
+                    await widget.controller.createOfficialAnnouncement(
+                      tag: _tagCtrl.text,
+                      title: _titleCtrl.text,
+                      summary: _summaryCtrl.text,
+                    );
+                    if (nav.mounted) nav.pop();
+                  },
           ),
         ],
       ),
@@ -230,7 +83,6 @@ class _CreateForumTopicModalState extends State<CreateForumTopicModal> {
   }
 }
 
-/// Modal para Fundar uma Nova Guilda sincronizada no Cloudflare D1.
 class CreateGuildModal extends StatefulWidget {
   final AppController controller;
 
@@ -241,119 +93,73 @@ class CreateGuildModal extends StatefulWidget {
 }
 
 class _CreateGuildModalState extends State<CreateGuildModal> {
-  final TextEditingController _nameCtrl = TextEditingController();
-  final TextEditingController _tagCtrl = TextEditingController();
-  final TextEditingController _descCtrl = TextEditingController();
-  final TextEditingController _worldCtrl =
-      TextEditingController(text: 'Continente de Valen');
-
+  final _nameCtrl = TextEditingController();
+  final _tagCtrl = TextEditingController();
+  final _worldCtrl = TextEditingController(text: 'Continente Compartilhado');
+  final _descCtrl = TextEditingController();
   bool _saving = false;
-  String? _error;
 
   @override
   void dispose() {
     _nameCtrl.dispose();
     _tagCtrl.dispose();
-    _descCtrl.dispose();
     _worldCtrl.dispose();
+    _descCtrl.dispose();
     super.dispose();
-  }
-
-  Future<void> _submit() async {
-    final name = _nameCtrl.text.trim();
-    final tag = _tagCtrl.text.trim().toUpperCase();
-    if (name.length < 3) {
-      setState(() => _error = 'Nome da guilda precisa ter ao menos 3 caracteres.');
-      return;
-    }
-    if (tag.length < 2 || tag.length > 5) {
-      setState(() => _error = 'A tag da guilda deve ter de 2 a 5 caracteres.');
-      return;
-    }
-
-    setState(() {
-      _saving = true;
-      _error = null;
-    });
-
-    final ok = await widget.controller.createGuild(
-      name: name,
-      tag: tag,
-      description: _descCtrl.text.trim().isEmpty
-          ? 'Guilda fundada na Taverna para mesas compartilhadas.'
-          : _descCtrl.text.trim(),
-      sharedWorldName: _worldCtrl.text.trim().isEmpty
-          ? 'Continente de Valen'
-          : _worldCtrl.text.trim(),
-    );
-
-    if (!mounted) return;
-    if (ok) {
-      Navigator.of(context).pop();
-    } else {
-      setState(() {
-        _saving = false;
-        _error = widget.controller.lastSyncError ??
-            'Falha ao fundar guilda no servidor.';
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final p = context.arcana;
     return ArcanaModalScaffold(
-      svgIcon: ArcanaSvgIcons.shield,
-      title: 'FUNDAR NOVA GUILDA',
-      subtitle: 'Inaugure um Shared World e convide mestres e heróis',
+      svgIcon: ArcanaSvgIcons.crown,
+      title: 'Fundar Nova Guilda',
+      subtitle: 'Hub de Clas, World Wiki e Mesas Compartilhadas',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextField(
             controller: _nameCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Nome da Guilda',
-              hintText: 'Ex: Ordem da Chama Dourada',
-            ),
+            decoration: const InputDecoration(labelText: 'Nome da Guilda'),
           ),
           const SizedBox(height: 10),
           TextField(
             controller: _tagCtrl,
-            textCapitalization: TextCapitalization.characters,
-            maxLength: 5,
-            decoration: const InputDecoration(
-              labelText: 'Tag da Guilda (2 a 5 letras)',
-              hintText: 'Ex: ORDE',
-            ),
+            maxLength: 8,
+            decoration: const InputDecoration(labelText: 'Tag (ex: ORDEM)'),
           ),
           const SizedBox(height: 10),
           TextField(
             controller: _worldCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Nome do Mundo Compartilhado',
-            ),
+            decoration: const InputDecoration(labelText: 'Nome do Shared World'),
           ),
           const SizedBox(height: 10),
           TextField(
             controller: _descCtrl,
             maxLines: 3,
-            decoration: const InputDecoration(
-              labelText: 'Descrição / Juramento da Guilda',
-              hintText: 'Foco em one-shots ou crônicas semanais...',
-            ),
+            decoration: const InputDecoration(labelText: 'Proposito da Guilda'),
           ),
-          if (_error != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              _error!,
-              style: TextStyle(color: p.crimson, fontSize: 12),
-            ),
-          ],
           const SizedBox(height: 16),
           PrimaryGoldPillButton(
-            label: _saving ? 'Fundando Guilda...' : 'Fundar Guilda no D1',
+            label: _saving ? 'Fundando...' : 'Criar Guilda (Nivel 1)',
             svgIcon: ArcanaSvgIcons.check,
-            onPressed: _saving ? null : _submit,
+            expand: true,
+            onPressed: _saving
+                ? null
+                : () async {
+                    if (_nameCtrl.text.trim().length < 3 ||
+                        _descCtrl.text.trim().length < 6) {
+                      return;
+                    }
+                    setState(() => _saving = true);
+                    final nav = Navigator.of(context);
+                    await widget.controller.createGuild(
+                      name: _nameCtrl.text,
+                      tag: _tagCtrl.text,
+                      description: _descCtrl.text,
+                      sharedWorldName: _worldCtrl.text,
+                    );
+                    if (nav.mounted) nav.pop();
+                  },
           ),
         ],
       ),
@@ -361,3 +167,484 @@ class _CreateGuildModalState extends State<CreateGuildModal> {
   }
 }
 
+class GuildDetailModal extends StatefulWidget {
+  final AppController controller;
+  final Guild guild;
+
+  const GuildDetailModal({
+    super.key,
+    required this.controller,
+    required this.guild,
+  });
+
+  @override
+  State<GuildDetailModal> createState() => _GuildDetailModalState();
+}
+
+class _GuildDetailModalState extends State<GuildDetailModal> {
+  final _clanCtrl = TextEditingController();
+  final _wikiTitleCtrl = TextEditingController();
+  final _wikiBodyCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _clanCtrl.dispose();
+    _wikiTitleCtrl.dispose();
+    _wikiBodyCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.arcana;
+    final g = widget.controller.guilds.firstWhere(
+      (item) => item.id == widget.guild.id,
+      orElse: () => widget.guild,
+    );
+
+    return ArcanaModalScaffold(
+      svgIcon: ArcanaSvgIcons.crown,
+      title: '[${g.tag}] ${g.name}',
+      subtitle: 'Nivel ${g.level}/5 · ${g.sharedWorldName} (${g.currentSeason})',
+      badgeLabel: 'NV.${g.level}',
+      badgeColor: p.emerald,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HeraldicCard(
+            goldAccent: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(g.description, style: TextStyle(fontSize: 13, color: p.textPrimary)),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    HeraldicChipPill(label: 'Membros max: ${g.maxMembers}', color: p.infoBlue),
+                    HeraldicChipPill(label: 'Mestres max: ${g.maxMasters}', color: p.goldPrimary),
+                    HeraldicChipPill(label: 'Canais: ${g.maxChannels}', color: p.emerald),
+                    HeraldicChipPill(label: 'Clas max: ${g.maxClans}', color: p.goldHighlight),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                PrimaryGoldPillButton(
+                  label: 'Contribuir Guild Boost (+500 XP)',
+                  svgIcon: ArcanaSvgIcons.flame,
+                  expand: true,
+                  onPressed: () async {
+                    await widget.controller.contributeGuildBoost(g.id, 500);
+                    if (mounted) setState(() {});
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Clas da Guilda (${g.clans.length}/${g.maxClans})',
+            style: TextStyle(
+              fontFamily: 'Cinzel',
+              fontWeight: FontWeight.w700,
+              color: p.goldHighlight,
+            ),
+          ),
+          const SizedBox(height: 8),
+          for (final c in g.clans)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: HeraldicCard(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        (c['name'] as String?) ?? 'Cla',
+                        style: TextStyle(fontWeight: FontWeight.w700, color: p.textPrimary),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Denunciar Cla',
+                      onPressed: () => showArcanaModal(context,
+                        builder: (_) => UniversalReportModal(
+                          controller: widget.controller,
+                          originType: 'cla',
+                          originId: '${g.id}_${c['name']}',
+                        ),
+                      ),
+                      icon: const Icon(Icons.flag_outlined, size: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _clanCtrl,
+                  decoration: const InputDecoration(hintText: 'Nome do novo Cla'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SecondaryHeraldicButton(
+                label: 'Fundar Cla',
+                svgIcon: ArcanaSvgIcons.plus,
+                onPressed: g.clans.length >= g.maxClans
+                    ? null
+                    : () async {
+                        if (_clanCtrl.text.trim().length < 2) return;
+                        final nextClans = [
+                          ...g.clans,
+                          {'name': _clanCtrl.text.trim()},
+                        ];
+                        await widget.controller
+                            .updateGuildWorld(g.id, {'clans': nextClans});
+                        _clanCtrl.clear();
+                        if (mounted) setState(() {});
+                      },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'World Wiki Compartilhada (${g.wikiArticles.length})',
+            style: TextStyle(
+              fontFamily: 'Cinzel',
+              fontWeight: FontWeight.w700,
+              color: p.goldHighlight,
+            ),
+          ),
+          const SizedBox(height: 8),
+          for (final w in g.wikiArticles)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: HeraldicCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            (w['title'] as String?) ?? 'Artigo',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: p.goldPrimary,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Denunciar Wiki',
+                          onPressed: () => showArcanaModal(context,
+                            builder: (_) => UniversalReportModal(
+                              controller: widget.controller,
+                              originType: 'wiki',
+                              originId: '${g.id}_${w['title']}',
+                            ),
+                          ),
+                          icon: const Icon(Icons.flag_outlined, size: 16),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      (w['body'] as String?) ?? '',
+                      style: TextStyle(fontSize: 12.5, color: p.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          TextField(
+            controller: _wikiTitleCtrl,
+            decoration: const InputDecoration(hintText: 'Titulo do artigo na World Wiki'),
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _wikiBodyCtrl,
+            maxLines: 2,
+            decoration: const InputDecoration(hintText: 'Lore / Canon do Mundo Compartilhado'),
+          ),
+          const SizedBox(height: 8),
+          SecondaryHeraldicButton(
+            label: 'Publicar na World Wiki',
+            svgIcon: ArcanaSvgIcons.bookOpen,
+            expand: true,
+            onPressed: () async {
+              if (_wikiTitleCtrl.text.trim().length < 2) return;
+              final nextWiki = [
+                ...g.wikiArticles,
+                {
+                  'title': _wikiTitleCtrl.text.trim(),
+                  'body': _wikiBodyCtrl.text.trim(),
+                },
+              ];
+              await widget.controller.updateGuildWorld(g.id, {'wiki': nextWiki});
+              _wikiTitleCtrl.clear();
+              _wikiBodyCtrl.clear();
+              if (mounted) setState(() {});
+            },
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: SecondaryHeraldicButton(
+              label: 'Denunciar Guilda',
+              svgIcon: ArcanaSvgIcons.flag,
+              borderColor: p.crimson,
+              textColor: p.crimson,
+              onPressed: () => showArcanaModal(context,
+                builder: (_) => UniversalReportModal(
+                  controller: widget.controller,
+                  originType: 'guilda',
+                  originId: g.id,
+                  targetUserId: g.leaderId,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CreateForumTopicModal extends StatefulWidget {
+  final AppController controller;
+
+  const CreateForumTopicModal({super.key, required this.controller});
+
+  @override
+  State<CreateForumTopicModal> createState() => _CreateForumTopicModalState();
+}
+
+class _CreateForumTopicModalState extends State<CreateForumTopicModal> {
+  String _category = 'Regras';
+  final _titleCtrl = TextEditingController();
+  final _contentCtrl = TextEditingController();
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _titleCtrl.dispose();
+    _contentCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ArcanaModalScaffold(
+      svgIcon: ArcanaSvgIcons.feather,
+      title: 'Novo Topico no Forum',
+      subtitle: 'Discussoes, homebrews, narracao e convites de mesa',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: _category,
+            decoration: const InputDecoration(labelText: 'Categoria'),
+            items: const ['Regras', 'Cenarios', 'Homebrews', 'Mesa Aberta', 'Feedback']
+                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                .toList(),
+            onChanged: (v) => setState(() => _category = v ?? 'Regras'),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _titleCtrl,
+            decoration: const InputDecoration(labelText: 'Titulo do Topico'),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _contentCtrl,
+            maxLines: 4,
+            decoration: const InputDecoration(labelText: 'Conteudo da Discussao'),
+          ),
+          const SizedBox(height: 16),
+          PrimaryGoldPillButton(
+            label: _saving ? 'Publicando...' : 'Publicar no Forum',
+            svgIcon: ArcanaSvgIcons.check,
+            expand: true,
+            onPressed: _saving
+                ? null
+                : () async {
+                    if (_titleCtrl.text.trim().length < 5 ||
+                        _contentCtrl.text.trim().length < 10) {
+                      return;
+                    }
+                    setState(() => _saving = true);
+                    final nav = Navigator.of(context);
+                    await widget.controller.createForumTopic(
+                      category: _category,
+                      title: _titleCtrl.text,
+                      content: _contentCtrl.text,
+                    );
+                    if (nav.mounted) nav.pop();
+                  },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ForumTopicDetailModal extends StatefulWidget {
+  final AppController controller;
+  final ForumTopic topic;
+
+  const ForumTopicDetailModal({
+    super.key,
+    required this.controller,
+    required this.topic,
+  });
+
+  @override
+  State<ForumTopicDetailModal> createState() => _ForumTopicDetailModalState();
+}
+
+class _ForumTopicDetailModalState extends State<ForumTopicDetailModal> {
+  final _commentCtrl = TextEditingController();
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.fetchForumTopicDetail(widget.topic.id).whenComplete(() {
+      if (mounted) setState(() => _loading = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _commentCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.arcana;
+    final topic = widget.controller.forumTopics.firstWhere(
+      (t) => t.id == widget.topic.id,
+      orElse: () => widget.topic,
+    );
+
+    return ArcanaModalScaffold(
+      svgIcon: ArcanaSvgIcons.messageSquare,
+      title: topic.title,
+      subtitle: '${topic.authorHandle} · ${topic.category} · ${topic.timeAgo}',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HeraldicCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(topic.content, style: TextStyle(fontSize: 13.5, color: p.textPrimary)),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    SecondaryHeraldicButton(
+                      label: '+1 (${topic.upvotes})',
+                      svgIcon: ArcanaSvgIcons.sparkles,
+                      onPressed: () async {
+                        await widget.controller.upvoteTopic(topic.id, delta: 1);
+                        if (mounted) setState(() {});
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    SecondaryHeraldicButton(
+                      label: '-1',
+                      onPressed: () async {
+                        await widget.controller.upvoteTopic(topic.id, delta: -1);
+                        if (mounted) setState(() {});
+                      },
+                    ),
+                    const Spacer(),
+                    SecondaryHeraldicButton(
+                      label: 'Denunciar',
+                      svgIcon: ArcanaSvgIcons.flag,
+                      borderColor: p.crimson,
+                      textColor: p.crimson,
+                      onPressed: () => showArcanaModal(context,
+                        builder: (_) => UniversalReportModal(
+                          controller: widget.controller,
+                          originType: 'forum',
+                          originId: topic.id,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Respostas (${topic.comments.length})',
+            style: TextStyle(
+              fontFamily: 'Cinzel',
+              fontWeight: FontWeight.w700,
+              color: p.goldHighlight,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (_loading)
+            const Center(child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator()))
+          else if (topic.comments.isEmpty)
+            HeraldicCard(
+              child: Text(
+                'Nenhum comentario ainda.',
+                style: TextStyle(fontSize: 12, color: p.textSecondary),
+              ),
+            )
+          else
+            for (final c in topic.comments) ...[
+              HeraldicCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(c.authorHandle,
+                            style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                                color: p.goldPrimary)),
+                        Text(c.timeAgo,
+                            style: TextStyle(fontSize: 11, color: p.textSecondary)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(c.content, style: TextStyle(fontSize: 13, color: p.textPrimary)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _commentCtrl,
+                  decoration: const InputDecoration(hintText: 'Responder ao topico...'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              PrimaryGoldPillButton(
+                label: 'Enviar',
+                onPressed: () async {
+                  if (_commentCtrl.text.trim().length < 2) return;
+                  final txt = _commentCtrl.text;
+                  _commentCtrl.clear();
+                  await widget.controller.commentOnForumTopic(topic.id, txt);
+                  if (mounted) setState(() {});
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

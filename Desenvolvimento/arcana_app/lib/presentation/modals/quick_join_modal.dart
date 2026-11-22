@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
-import '../../controllers/app_controller.dart';
-import '../../core/constants/svg_icons.dart';
-import '../../core/theme/arcana_colors.dart';
+import '../../../controllers/app_controller.dart';
+import '../../../core/constants/svg_icons.dart';
+import '../../../core/theme/arcana_colors.dart';
 import '../widgets/heraldic_buttons.dart';
-import '../widgets/heraldic_card.dart';
 import 'campaign_modals.dart';
 import 'modal_shell.dart';
 
-/// Modal de Entrada Rápida (Quick Join) por código de 6 dígitos ou leitura QR Code.
 class QuickJoinModal extends StatefulWidget {
   final AppController controller;
-  final String? prefilledCode;
 
   const QuickJoinModal({
     super.key,
     required this.controller,
-    this.prefilledCode,
   });
 
   @override
@@ -23,16 +19,9 @@ class QuickJoinModal extends StatefulWidget {
 }
 
 class _QuickJoinModalState extends State<QuickJoinModal> {
-  late final TextEditingController _codeCtrl;
-  String? _statusMsg;
-  bool _isError = false;
-  bool _joining = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _codeCtrl = TextEditingController(text: widget.prefilledCode ?? '');
-  }
+  final _codeCtrl = TextEditingController();
+  bool _loading = false;
+  String? _errorText;
 
   @override
   void dispose() {
@@ -40,36 +29,45 @@ class _QuickJoinModalState extends State<QuickJoinModal> {
     super.dispose();
   }
 
-  Future<void> _lookup() async {
+  Future<void> _lookupCode() async {
+    final code = _codeCtrl.text.trim().toUpperCase();
+    if (code.length < 4) {
+      setState(() => _errorText = 'Digite o codigo de 6 caracteres da mesa.');
+      return;
+    }
     setState(() {
-      _joining = true;
-      _statusMsg = null;
+      _loading = true;
+      _errorText = null;
     });
-    final res = await widget.controller.lookupCampaignByCode(_codeCtrl.text);
+
+    final result = await widget.controller.lookupCampaignByCode(code);
     if (!mounted) return;
-    if (res == null) {
+    setState(() => _loading = false);
+
+    if (result == null) {
       setState(() {
-        _joining = false;
-        _isError = true;
-        _statusMsg = widget.controller.lastSyncError ??
-            'Código de campanha não encontrado no servidor.';
+        _errorText = widget.controller.lastSyncError ??
+            'Nenhuma campanha encontrada ou acesso bloqueado para este codigo.';
       });
       return;
     }
 
     Navigator.of(context).pop();
-    showArcanaModal(
-      context,
-      builder: (_) => res.isMember
-          ? CampaignGeneralModal(
-              controller: widget.controller,
-              campaign: res.campaign,
-            )
-          : CampaignApplicationModal(
-              controller: widget.controller,
-              campaign: res.campaign,
-            ),
-    );
+    if (result.isMember || widget.controller.ghostSpectatorActive) {
+      showArcanaModal(context,
+        builder: (_) => CampaignGeneralModal(
+          controller: widget.controller,
+          campaign: result.campaign,
+        ),
+      );
+    } else {
+      showArcanaModal(context,
+        builder: (_) => CampaignApplicationModal(
+          controller: widget.controller,
+          campaign: result.campaign,
+        ),
+      );
+    }
   }
 
   @override
@@ -77,43 +75,33 @@ class _QuickJoinModalState extends State<QuickJoinModal> {
     final p = context.arcana;
     return ArcanaModalScaffold(
       svgIcon: ArcanaSvgIcons.qrCode,
-      title: 'QUICK JOIN & QR CODE',
-      subtitle: 'Localize mesas pelo código de convite de 6 dígitos',
-      badgeLabel: 'CLOUDFLARE D1',
-      badgeColor: p.infoBlue,
+      title: 'Quick Join por Codigo',
+      subtitle: 'Se ainda nao for membro, abre o formulario de Candidatura ao Mestre',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextField(
             controller: _codeCtrl,
             textCapitalization: TextCapitalization.characters,
+            maxLength: 8,
             decoration: const InputDecoration(
-              labelText: 'Código Alfanumérico da Mesa (6 dígitos)',
-              hintText: 'Ex: A1B2C3',
+              labelText: 'Codigo da Campanha (6 caracteres)',
+              hintText: 'Ex: ARC904',
             ),
           ),
-          if (_statusMsg != null) ...[
-            const SizedBox(height: 12),
-            HeraldicCard(
-              borderColor: _isError ? p.crimson : p.emerald,
-              child: Text(
-                _statusMsg!,
-                style: TextStyle(
-                  color: _isError ? p.crimson : p.emerald,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
+          if (_errorText != null) ...[
+            const SizedBox(height: 8),
+            Text(_errorText!, style: TextStyle(color: p.crimson, fontSize: 12.5)),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           PrimaryGoldPillButton(
-            label: _joining ? 'Consultando Servidor...' : 'Localizar Campanha Agora',
-            svgIcon: ArcanaSvgIcons.arrowRight,
-            onPressed: _joining ? null : _lookup,
+            label: _loading ? 'Localizando...' : 'Localizar Mesa',
+            svgIcon: ArcanaSvgIcons.search,
+            expand: true,
+            onPressed: _loading ? null : _lookupCode,
           ),
         ],
       ),
     );
   }
 }
-

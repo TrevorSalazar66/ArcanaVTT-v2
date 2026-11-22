@@ -2,6 +2,20 @@
 
 Todas as mudanças notáveis deste projeto serão documentadas neste arquivo seguindo o padrão Keep a Changelog e Versionamento Semântico (SemVer).
 
+## [0.2.0-universal] — Correção Integral Fase 1 + Fase 2 + Motor Universal Agnóstico
+
+### Alterado & Adicionado
+- **Backend Cloudflare Workers + D1 (`Desenvolvimento/arcana_backend`):**
+  - Removido completamente o sistema predefinido `AlphaD6 Core v2.4` (`sys_alphad6_v24`) via migration segura `0003_universal_engine_and_phase2.sql` aplicada no banco D1 remoto (`arcana_vtt_db`) e implantado no Worker `arcana-vtt-backend`.
+  - Adicionado **Motor Universal Agnóstico de RPG (`universal_rpg_engine.ts`)**: rolagens criptográficas WebCrypto (`XdY+Z`, vantagem/desvantagem `2d20kh1/kl1`, pools `XdY>=T` com dificuldade e desempate, percentuais `1d100<=Alvo`), `parseDiceRange` `{min, max}`, `mergeCompendiumDelta` e comandos universais (`/roll`, `/gmroll`, `/opposed`, `/w`, `/me`, `/ooc`, `/gm`, `/npc`, `/rest`, `/heal`, `/init`, cards de aprovação).
+  - Reforçada barreira `PROFILE_INCOMPLETE` (`403` até `profile.setup`), Auto-Login Progressivo (`15 dias` <90d, `30 dias` >=90d), **Sigilo de E-mail LGPD** no Perfil Social (`social.get_profile`), DMs 1-a-1 isoladas (`dm.*`) com auditoria exclusiva do Superadmin, Keys de Criação de Sistema (`KEY-ARC-*`), Banimento em Nível de Mestre (`gm_banned_players`), limite rígido de 1 ficha por jogador por mesa e 18 cenas por campanha com execução autoritativa No-Code `[QUANDO]->[SE]->[ENTÃO]`, Guild Boost Nível 1..5 e Votação Colegiada de 3 Admins para punições graves.
+  - Verificado com `npm run typecheck` (0 erros) e `npm test` (Vitest: 3 arquivos, 12/12 testes passando).
+- **Aplicativo Mobile Android (`Desenvolvimento/arcana_app`):**
+  - Catálogo inicial zero sistemas (`ArcanaSeedData.officialSystems()` e `officialCompendium()` vazios), envio dinâmico de `X-Device-Fingerprint` único e persistência completa de preferências/onboarding em `LocalStorageDatasource`.
+  - Atualizado `MainHubScreen` (ícones SVG oficiais, Sidebar fixa `>=900dp` e banner Espectador Fantasma), `HomeTabScreen`, `CampaignsTabScreen`, `SystemsTabScreen`, `CommunitiesTabScreen` (com anúncios oficiais, Guild Boost Nv.1-5, World Wiki, Clãs e Fórum com comentários).
+  - Novos fluxos e modais completos: `SocialProfileModal` sem e-mail com 3 abas Discord + Drill-Down + 8 contatos, `DirectMessageModal` 1-a-1, `FriendsManagementModal` (Confirmados/Pendentes/Bloqueados), `NotificationsModal` com aceite de convite direto, `TutorialsCentralModal` Sandbox interativo, `GeneralSettingsModal` sem role-switcher falso e com confirmação de Lockout, `AdminGovernanceModal` com 5 submódulos, `HeroSheetHighlightModal` (9 slots corporais, prata, poderes, contatos, lore, 1-por-mesa), `CampaignGeneralModal` (7 sub-abas) e `workshop_and_scenes_modals.dart` (3 Módulos da Oficina + 6 Modelos de Cena interativos + No-Code Builder com `Capturar Alvo`).
+  - Validado com `dart analyze` (`No issues found!`) e `flutter test` (11/11 aprovados nas 3 camadas) + geração do APK Release.
+
 ## [0.1.1-fase-1] — Remoção Total de Mocks, Google OAuth 2.0 Real & Sincronização Cloudflare D1
 
 ### Alterado
